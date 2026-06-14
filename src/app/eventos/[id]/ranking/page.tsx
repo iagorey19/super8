@@ -134,7 +134,7 @@ export default function PublicRankingPage() {
             results.map((r: any, idx: number) => (
               <tr
                 key={r.id || idx}
-                className={`transition-colors ${idx === 0 ? "bg-yellow-50/50" : idx === 1 ? "bg-gray-50/50" : idx === 2 ? "bg-orange-50/30" : "hover:bg-gray-50 dark:hover:bg-gray-800"}`}
+                className={`transition-colors ${idx === 0 ? "bg-yellow-50/50 dark:bg-yellow-900/20" : idx === 1 ? "bg-gray-50/50 dark:bg-gray-800/50" : idx === 2 ? "bg-orange-50/30 dark:bg-orange-900/20" : "hover:bg-gray-50 dark:hover:bg-gray-800"}`}
               >
                 <Td>
                   <span
