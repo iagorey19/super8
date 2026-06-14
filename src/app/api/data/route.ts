@@ -83,7 +83,10 @@ export async function POST(req: Request) {
     if (!data.seed_version) {
       return NextResponse.json({ error: "Invalid data structure" }, { status: 400 })
     }
-    await syncToSupabase(data)
+    const errors = await syncToSupabase(data)
+    if (errors.length > 0) {
+      return NextResponse.json({ ok: false, errors })
+    }
     return NextResponse.json({ ok: true })
   } catch (e) {
     console.error("POST /api/data error:", e)
@@ -91,8 +94,9 @@ export async function POST(req: Request) {
   }
 }
 
-async function syncToSupabase(data: AppData) {
+async function syncToSupabase(data: AppData): Promise<string[]> {
   const svc = getServiceClient()
+  const errors: string[] = []
 
   const upsertOrder = [
     { table: "users", records: data.users },
@@ -117,7 +121,9 @@ async function syncToSupabase(data: AppData) {
     if (records.length === 0) continue
     const { error } = await svc.from(table).upsert(records as any, { onConflict: "id", ignoreDuplicates: false })
     if (error) {
-      console.error(`Error upserting into ${table}:`, error.message)
+      errors.push(`${table}: ${error.message}`)
     }
   }
+
+  return errors
 }
