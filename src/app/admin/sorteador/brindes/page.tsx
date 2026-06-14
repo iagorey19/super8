@@ -202,10 +202,10 @@ export default function SortearBrindes() {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+        <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">
           SORTEIO - Brindes
         </h1>
-        <p className="text-gray-500">Sorteie brindes entre os participantes</p>
+        <p className="text-gray-500 dark:text-gray-400">Sorteie brindes entre os participantes</p>
       </div>
 
       <Card>
@@ -233,10 +233,10 @@ export default function SortearBrindes() {
                 a.brindes.some((br: any) => br.id === b.id)
               )
               return (
-                <div key={b.id} className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-3">
+                <div key={b.id} className="bg-green-50 dark:bg-green-900/20 border border-green-200 rounded-lg p-3 flex items-center gap-3">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{b.description}</p>
-                    <p className="text-xs text-gray-400">Doado por: {apoiador?.name || "Desconhecido"}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{b.description}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">Doado por: {apoiador?.name || "Desconhecido"}</p>
                   </div>
                   <Button size="sm" variant="success" onClick={() => handleAutoRaffle(b.id)}>
                     Sortear
@@ -273,12 +273,12 @@ export default function SortearBrindes() {
               {participants.map((p) => (
                 <span
                   key={p.id}
-                  className="inline-flex items-center gap-1.5 bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full text-sm font-medium"
+                  className="inline-flex items-center gap-1.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1.5 rounded-full text-sm font-medium"
                 >
                   {p.name}
                   <button
                     onClick={() => handleRemove(p.id)}
-                    className="text-gray-400 hover:text-red-500 transition-colors"
+                    className="text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors"
                   >
                     ×
                   </button>
@@ -303,10 +303,10 @@ export default function SortearBrindes() {
 
           {isAnimating && (
             <div className="text-center py-8">
-              <div className="text-6xl font-black text-amber-600 animate-pulse mb-4">
+              <div className="text-6xl font-black text-amber-600 dark:text-amber-400 animate-pulse mb-4">
                 {scrollingName}
               </div>
-              <p className="text-gray-400">Sorteando...</p>
+              <p className="text-gray-400 dark:text-gray-500">Sorteando...</p>
             </div>
           )}
 
@@ -325,13 +325,13 @@ export default function SortearBrindes() {
           {winner && !isAnimating && (
             <div className="text-center bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl border-2 border-amber-300 p-8 space-y-3">
               <div className="text-5xl">🎉</div>
-              <h2 className="text-2xl font-bold text-gray-900">VENCEDOR</h2>
-              <div className="text-4xl font-black text-amber-600">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">VENCEDOR</h2>
+              <div className="text-4xl font-black text-amber-600 dark:text-amber-400">
                 {winner.name}
               </div>
               {prize.trim() && (
-                <p className="text-lg text-gray-500">
-                  Prêmio: <span className="font-semibold text-gray-700">{prize.trim()}</span>
+                <p className="text-lg text-gray-500 dark:text-gray-400">
+                  Prêmio: <span className="font-semibold text-gray-700 dark:text-gray-300">{prize.trim()}</span>
                 </p>
               )}
               <div className="flex justify-center gap-3 pt-4">
@@ -354,16 +354,16 @@ export default function SortearBrindes() {
             {records.map((record, idx) => (
               <div
                 key={record.id}
-                className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3"
+                className="flex items-center justify-between bg-gray-50 dark:bg-gray-950 rounded-lg px-4 py-3"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-lg">🎁</span>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{record.winner_name}</p>
-                    <p className="text-xs text-gray-600">{record.brinde_description}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{record.winner_name}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">{record.brinde_description}</p>
                   </div>
                 </div>
-                <span className="text-xs text-gray-400">#{idx + 1}</span>
+                <span className="text-xs text-gray-400 dark:text-gray-500">#{idx + 1}</span>
               </div>
             ))}
           </div>

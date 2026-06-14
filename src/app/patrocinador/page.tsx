@@ -63,8 +63,8 @@ export default function SponsorDashboard() {
 
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Olá, {user.name}!</h1>
-          <p className="text-gray-500 mt-1">Seus Torneios Patrocinados</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Olá, {user.name}!</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Seus Torneios Patrocinados</p>
         </div>
         <Button size="sm" variant="ghost" onClick={() => {
           setProfileForm({ name: user.name, email: user.email, phone: user.phone || "" })
@@ -76,7 +76,7 @@ export default function SponsorDashboard() {
 
       {tournaments.length === 0 ? (
         <Card>
-          <p className="text-gray-500 text-center py-8">Nenhum torneio patrocinado ainda.</p>
+          <p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum torneio patrocinado ainda.</p>
         </Card>
       ) : (
         tournaments.map((tour) => (
@@ -86,11 +86,11 @@ export default function SponsorDashboard() {
               <Badge className={getStatusColor(tour.status)}>
                 {getStatusLabel(tour.status)}
               </Badge>
-              <span className="text-sm text-gray-500">{formatDate(tour.date)}</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">{formatDate(tour.date)}</span>
             </div>
-            <div className="p-3 rounded-lg bg-purple-50 border border-purple-200">
-              <p className="text-sm text-purple-600 font-medium">Valor Patrocinado</p>
-              <p className="text-xl font-bold text-purple-700">
+            <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200">
+              <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">Valor Patrocinado</p>
+              <p className="text-xl font-bold text-purple-700 dark:text-purple-400">
                 {formatCurrency(getSponsorshipAmount(tour.id))}
               </p>
             </div>

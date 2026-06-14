@@ -116,7 +116,7 @@ export default function AdminTorneios() {
           }
         />
         {tournaments.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">Nenhum torneio cadastrado.</p>
+          <p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum torneio cadastrado.</p>
         ) : (
           <Table headers={["Título", "Edição", "Data", "Status", "Ações"]}>
             {tournaments.map((t) => (
@@ -204,7 +204,7 @@ export default function AdminTorneios() {
             onChange={(e) => setForm({ ...form, registrationFee: e.target.value })}
           />
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Categorias</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Categorias</label>
             <div className="flex gap-4">
               {ALL_CATEGORIES.map((cat) => (
                 <label key={cat} className="flex items-center gap-2 cursor-pointer">
@@ -221,9 +221,9 @@ export default function AdminTorneios() {
                         })
                       }
                     }}
-                    className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+                    className="w-4 h-4 text-amber-600 dark:text-amber-400 border-gray-300 dark:border-gray-600 rounded focus:ring-amber-500"
                   />
-                  <span className="text-sm text-gray-700">{cat === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">{cat === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}</span>
                 </label>
               ))}
             </div>

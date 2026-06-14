@@ -19,9 +19,9 @@ const roleOptions = [
 
 const roleLabels: Record<string, string> = { admin: "Administrador", athlete: "Atleta", sponsor: "Patrocinador" }
 const roleColors: Record<string, string> = {
-  admin: "bg-red-100 text-red-800",
-  athlete: "bg-blue-100 text-blue-800",
-  sponsor: "bg-purple-100 text-purple-800",
+  admin: "bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300",
+  athlete: "bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300",
+  sponsor: "bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300",
 }
 
 export default function UsuariosPage() {
@@ -85,7 +85,7 @@ export default function UsuariosPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Usuários</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Usuários</h1>
         <Button onClick={() => setNewModalOpen(true)}>Novo Usuário</Button>
       </div>
 
@@ -105,13 +105,13 @@ export default function UsuariosPage() {
           {users.length === 0 ? (
             <tr>
               <Td colSpan={5}>
-                <p className="text-center text-gray-400 py-8">Nenhum usuário cadastrado</p>
+                <p className="text-center text-gray-400 dark:text-gray-500 py-8">Nenhum usuário cadastrado</p>
               </Td>
             </tr>
           ) : (
             users.map((u) => (
-              <tr key={u.id} className="hover:bg-gray-50">
-                <Td className="font-medium text-gray-900">{u.name}</Td>
+              <tr key={u.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                <Td className="font-medium text-gray-900 dark:text-white">{u.name}</Td>
                 <Td>{u.email}</Td>
                 <Td>
                   <Badge className={roleColors[u.role]}>{roleLabels[u.role]}</Badge>
@@ -217,7 +217,7 @@ export default function UsuariosPage() {
             onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
           />
           {editingUser && (
-            <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-500">
+            <div className="p-3 bg-gray-50 dark:bg-gray-950 rounded-lg text-sm text-gray-500 dark:text-gray-400">
               Perfil: <Badge className={roleColors[editingUser.role]}>{roleLabels[editingUser.role]}</Badge>
             </div>
           )}

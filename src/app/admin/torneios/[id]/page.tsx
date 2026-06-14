@@ -69,7 +69,7 @@ export default function TournamentDetail() {
   if (!tournament) {
     return (
       <Card>
-        <p className="text-gray-500 text-center py-8">Torneio não encontrado.</p>
+        <p className="text-gray-500 dark:text-gray-400 text-center py-8">Torneio não encontrado.</p>
       </Card>
     )
   }
@@ -161,12 +161,12 @@ export default function TournamentDetail() {
           <Badge className={getStatusColor(tournament.status)}>
             {getStatusLabel(tournament.status)}
           </Badge>
-          <span className="text-sm text-gray-500">{formatDate(tournament.date)}</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">{formatDate(tournament.date)}</span>
           {tournament.location && (
-            <span className="text-sm text-gray-500">{tournament.location}</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">{tournament.location}</span>
           )}
           {categories.map((cat) => (
-            <Badge key={cat} className="bg-purple-100 text-purple-800">
+            <Badge key={cat} className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300">
               {cat === "4e5" ? "Cat. 4e5" : "Cat. 6e7"}
             </Badge>
           ))}
@@ -184,8 +184,8 @@ export default function TournamentDetail() {
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
               <div className="text-center py-2">
                 <span className="text-3xl">🎾</span>
-                <p className="font-semibold text-gray-900 mt-2">Jogos</p>
-                <p className="text-sm text-gray-500">Gerenciar partidas</p>
+                <p className="font-semibold text-gray-900 dark:text-white mt-2">Jogos</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Gerenciar partidas</p>
               </div>
             </Card>
           </Link>
@@ -193,8 +193,8 @@ export default function TournamentDetail() {
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
               <div className="text-center py-2">
                 <span className="text-3xl">📺</span>
-                <p className="font-semibold text-gray-900 mt-2">Placar ao Vivo</p>
-                <p className="text-sm text-gray-500">Acompanhar jogos</p>
+                <p className="font-semibold text-gray-900 dark:text-white mt-2">Placar ao Vivo</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Acompanhar jogos</p>
               </div>
             </Card>
           </Link>
@@ -202,8 +202,8 @@ export default function TournamentDetail() {
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
               <div className="text-center py-2">
                 <span className="text-3xl">🏆</span>
-                <p className="font-semibold text-gray-900 mt-2">Ranking</p>
-                <p className="text-sm text-gray-500">Classificação atual</p>
+                <p className="font-semibold text-gray-900 dark:text-white mt-2">Ranking</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Classificação atual</p>
               </div>
             </Card>
           </Link>
@@ -211,8 +211,8 @@ export default function TournamentDetail() {
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
               <div className="text-center py-2">
                 <span className="text-3xl">👥</span>
-                <p className="font-semibold text-gray-900 mt-2">Gerenciar Atletas</p>
-                <p className="text-sm text-gray-500">Aprovar inscrições</p>
+                <p className="font-semibold text-gray-900 dark:text-white mt-2">Gerenciar Atletas</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Aprovar inscrições</p>
               </div>
             </Card>
           </Link>
@@ -247,7 +247,7 @@ export default function TournamentDetail() {
                     </Button>
                   )}
                   {tournament.status === "upcoming" && (
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
                       {catApproved}/8 atletas
                     </span>
                   )}
@@ -267,12 +267,12 @@ export default function TournamentDetail() {
                     <Td>
                       {r.status === "approved" ? (
                         r.confirmed ? (
-                          <span className="text-green-600 font-medium text-sm">✅</span>
+                          <span className="text-green-600 dark:text-green-400 font-medium text-sm">✅</span>
                         ) : (
                           <span className="text-yellow-600 font-medium text-sm">⏳</span>
                         )
                       ) : (
-                        <span className="text-gray-300">—</span>
+                        <span className="text-gray-300 dark:text-gray-600">—</span>
                       )}
                     </Td>
                     <Td>{r.draw_number ?? "-"}</Td>
@@ -338,17 +338,17 @@ export default function TournamentDetail() {
             )}
             {catMatches.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-                <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200">
                   <p className="text-sm text-blue-600 font-medium">Total de Jogos</p>
                   <p className="text-2xl font-bold text-blue-700">{catMatches.length}</p>
                 </div>
-                <div className="p-4 rounded-lg bg-green-50 border border-green-200">
-                  <p className="text-sm text-green-600 font-medium">Finalizados</p>
-                  <p className="text-2xl font-bold text-green-700">{catFinished}</p>
+                <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200">
+                  <p className="text-sm text-green-600 dark:text-green-400 font-medium">Finalizados</p>
+                  <p className="text-2xl font-bold text-green-700 dark:text-green-400">{catFinished}</p>
                 </div>
-                <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
-                  <p className="text-sm text-amber-600 font-medium">Ao Vivo</p>
-                  <p className="text-2xl font-bold text-amber-700">{catLive}</p>
+                <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200">
+                  <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">Ao Vivo</p>
+                  <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">{catLive}</p>
                 </div>
               </div>
             )}
@@ -367,7 +367,7 @@ export default function TournamentDetail() {
               const catName = cats[catIdx] || "4e5"
               return (
                 <div key={idx} className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-gray-500 w-20">
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400 w-20">
                     {catName === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}
                   </span>
                   <Input
@@ -416,7 +416,7 @@ export default function TournamentDetail() {
             onChange={(e) => setEditForm({ ...editForm, registrationFee: e.target.value })}
           />
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Categorias</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Categorias</label>
             <div className="flex gap-4">
               {ALL_CATEGORIES.map((cat) => (
                 <label key={cat} className="flex items-center gap-2 cursor-pointer">
@@ -433,9 +433,9 @@ export default function TournamentDetail() {
                         })
                       }
                     }}
-                    className="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+                    className="w-4 h-4 text-amber-600 dark:text-amber-400 border-gray-300 dark:border-gray-600 rounded focus:ring-amber-500"
                   />
-                  <span className="text-sm text-gray-700">{cat === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">{cat === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}</span>
                 </label>
               ))}
             </div>
@@ -483,12 +483,12 @@ export default function TournamentDetail() {
             />
           )}
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Atletas disponíveis ({allAthletes.length})
             </p>
             <div className="max-h-60 overflow-y-auto border rounded-lg divide-y">
               {allAthletes.length === 0 && (
-                <p className="text-sm text-gray-400 text-center py-4">
+                <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
                   Nenhum atleta disponível
                 </p>
               )}
@@ -498,7 +498,7 @@ export default function TournamentDetail() {
                   <label
                     key={a.id}
                     className={`flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-amber-50 transition-colors ${
-                      checked ? "bg-amber-50" : ""
+                      checked ? "bg-amber-50 dark:bg-amber-900/20" : ""
                     }`}
                   >
                     <input
@@ -511,16 +511,16 @@ export default function TournamentDetail() {
                             : [...prev, a.id]
                         )
                       }}
-                      className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                      className="rounded border-gray-300 dark:border-gray-600 text-amber-600 dark:text-amber-400 focus:ring-amber-500"
                     />
-                    <span className="text-sm text-gray-900">{a.name}</span>
+                    <span className="text-sm text-gray-900 dark:text-white">{a.name}</span>
                   </label>
                 )
               })}
             </div>
           </div>
           <div className="flex items-center justify-between pt-2">
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               {registerAthleteIds.length} selecionado(s)
             </span>
             <div className="flex gap-3">

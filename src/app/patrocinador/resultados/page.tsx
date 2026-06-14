@@ -71,7 +71,7 @@ export default function SponsorResults() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Resultados</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Resultados</h1>
 
       {tournaments.length > 0 && (
         <div className="flex gap-3 items-end">
@@ -115,14 +115,14 @@ export default function SponsorResults() {
               <CardHeader title="Fotos" subtitle={`${photos.length} foto(s)`} />
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {photos.map((photo) => (
-                  <div key={photo.id} className="rounded-lg overflow-hidden bg-gray-100">
+                  <div key={photo.id} className="rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
                     <img
                       src={photo.url}
                       alt={photo.caption || "Foto do torneio"}
                       className="w-full h-32 object-cover"
                     />
                     {photo.caption && (
-                      <p className="text-xs text-gray-500 p-2">{photo.caption}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 p-2">{photo.caption}</p>
                     )}
                   </div>
                 ))}
@@ -136,7 +136,7 @@ export default function SponsorResults() {
               subtitle={selectedCategory ? undefined : "Todas as categorias"}
             />
             {rankings.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">Resultados ainda não disponíveis.</p>
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4">Resultados ainda não disponíveis.</p>
             ) : (
               <Table headers={["Posição", "Atleta", "Categoria", "Total Games", "Pontos"]}>
                 {rankings.map((r) => (
@@ -145,7 +145,7 @@ export default function SponsorResults() {
                     <Td>{r.name}</Td>
                     <Td>
                       {r.category ? (
-                        <Badge className="bg-purple-100 text-purple-800">
+                        <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300">
                           {r.category === "4e5" ? "4e5" : "6e7"}
                         </Badge>
                       ) : (
@@ -163,14 +163,14 @@ export default function SponsorResults() {
           <Card>
             <CardHeader title="Jogos por Rodada" />
             {matches.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">Nenhum jogo registrado.</p>
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4">Nenhum jogo registrado.</p>
             ) : (
               <div className="space-y-4">
                 {matchesByCategory.map((cat) => {
                   const catMatches = matches.filter((m) => m.category === cat)
                   return (
                     <div key={cat}>
-                      <Badge className="bg-purple-100 text-purple-800 mb-2">
+                      <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 mb-2">
                         {cat === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}
                       </Badge>
                       {rounds.map((round) => {
@@ -179,7 +179,7 @@ export default function SponsorResults() {
 
                         return (
                           <div key={`${cat}-${round}`} className="mb-4">
-                            <h4 className="text-sm font-semibold text-gray-700 mb-2">{roundNames[round]}</h4>
+                            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{roundNames[round]}</h4>
                             <div className="space-y-2">
                               {roundMatches.map((m) => {
                                 const t1p1 = store.getUserName(m.team1_player1_id)
@@ -188,24 +188,24 @@ export default function SponsorResults() {
                                 const t2p2 = store.getUserName(m.team2_player2_id)
 
                                 return (
-                                  <div key={m.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
+                                  <div key={m.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-gray-950">
                                     <div className="flex items-center gap-2 flex-1 min-w-0">
-                                      <span className="text-xs text-gray-400 w-12">{m.court}</span>
-                                      <span className="text-sm text-gray-700 truncate">
+                                      <span className="text-xs text-gray-400 dark:text-gray-500 w-12">{m.court}</span>
+                                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
                                         {t1p1}/{t1p2}
                                       </span>
                                     </div>
                                     <div className="mx-2 text-center flex-shrink-0">
                                       {m.status === "pending" ? (
-                                        <span className="text-gray-400 text-sm">--</span>
+                                        <span className="text-gray-400 dark:text-gray-500 text-sm">--</span>
                                       ) : (
-                                        <span className="font-bold text-sm text-gray-900">
+                                        <span className="font-bold text-sm text-gray-900 dark:text-white">
                                           {m.score_team1} x {m.score_team2}
                                         </span>
                                       )}
                                     </div>
                                     <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
-                                      <span className="text-sm text-gray-700 truncate">
+                                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
                                         {t2p1}/{t2p2}
                                       </span>
                                       <Badge className={getStatusColor(m.status)}>
@@ -230,14 +230,14 @@ export default function SponsorResults() {
             <div className="space-y-4">
               {sponsorships.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-amber-700 mb-2 flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-2 flex items-center gap-2">
                     <span>🏆</span> Patrocinador(es)
                   </h3>
                   <div className="space-y-2">
                     {sponsorships.map((s) => (
-                      <div key={s.id} className="flex items-center justify-between p-3 rounded-lg bg-amber-50 border border-amber-200">
-                        <span className="font-medium text-gray-900">{s.sponsor_name}</span>
-                        <span className="text-sm font-semibold text-amber-700">{formatCurrency(s.amount)}</span>
+                      <div key={s.id} className="flex items-center justify-between p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200">
+                        <span className="font-medium text-gray-900 dark:text-white">{s.sponsor_name}</span>
+                        <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">{formatCurrency(s.amount)}</span>
                       </div>
                     ))}
                   </div>
@@ -246,17 +246,17 @@ export default function SponsorResults() {
 
               {apoiadores.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-purple-700 mb-2 flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-purple-700 dark:text-purple-400 mb-2 flex items-center gap-2">
                     <span>🙌</span> Apoiadores
                   </h3>
                   <div className="space-y-2">
                     {apoiadores.map((a) => (
-                      <div key={a.id} className="p-3 rounded-lg bg-purple-50 border border-purple-200">
-                        <p className="font-medium text-gray-900">{a.name}</p>
+                      <div key={a.id} className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200">
+                        <p className="font-medium text-gray-900 dark:text-white">{a.name}</p>
                         {a.brindes.length > 0 && (
                           <div className="mt-1 flex flex-wrap gap-1">
                             {a.brindes.map((b) => (
-                              <span key={b.id} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-white text-gray-600 border border-gray-200">
+                              <span key={b.id} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
                                 {b.description}
                                 {b.type === "kit" && ` (${b.quantity}x kit)`}
                                 {b.type === "sorteio" && " (sorteio)"}
@@ -271,20 +271,20 @@ export default function SponsorResults() {
               )}
 
               {sponsorships.length === 0 && apoiadores.length === 0 && raffleRecords.length === 0 && (
-                <p className="text-gray-400 text-sm text-center py-2">Nenhum patrocinador ou apoiador registrado.</p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm text-center py-2">Nenhum patrocinador ou apoiador registrado.</p>
               )}
 
               {raffleRecords.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-green-700 mb-2 flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-green-700 dark:text-green-400 mb-2 flex items-center gap-2">
                     <span>🎁</span> Vencedores dos Sorteios
                   </h3>
                   <div className="space-y-2">
                     {raffleRecords.map((r) => (
-                      <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-green-50 border border-green-200">
+                      <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200">
                         <div>
-                          <p className="font-medium text-gray-900">{r.winner_name}</p>
-                          <p className="text-xs text-gray-500">{r.brinde_description}</p>
+                          <p className="font-medium text-gray-900 dark:text-white">{r.winner_name}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{r.brinde_description}</p>
                         </div>
                       </div>
                     ))}

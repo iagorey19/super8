@@ -33,52 +33,52 @@ export default function AthleteStatsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Minhas Estatísticas</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Minhas Estatísticas</h1>
 
       <div className="grid grid-cols-2 gap-4">
         <Card className="text-center">
-          <p className="text-3xl font-bold text-gray-900">{stats.totalMatches}</p>
-          <p className="text-sm text-gray-500 mt-1">Total de Jogos</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.totalMatches}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Total de Jogos</p>
         </Card>
         <Card className="text-center">
-          <p className="text-3xl font-bold text-green-600">{stats.winRate}%</p>
-          <p className="text-sm text-gray-500 mt-1">Aproveitamento</p>
+          <p className="text-3xl font-bold text-green-600 dark:text-green-400">{stats.winRate}%</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Aproveitamento</p>
         </Card>
         <Card className="text-center">
           <p className="text-3xl font-bold text-blue-600">{stats.wins}</p>
-          <p className="text-sm text-gray-500 mt-1">Vitórias</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Vitórias</p>
         </Card>
         <Card className="text-center">
           <p className="text-3xl font-bold text-red-600">{stats.losses}</p>
-          <p className="text-sm text-gray-500 mt-1">Derrotas</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Derrotas</p>
         </Card>
         <Card className="text-center">
-          <p className="text-3xl font-bold text-amber-600">{stats.avgScore}</p>
-          <p className="text-sm text-gray-500 mt-1">Média de Pontos</p>
+          <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">{stats.avgScore}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Média de Pontos</p>
         </Card>
         <Card className="text-center">
-          <p className="text-3xl font-bold text-purple-600">
+          <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
             {stats.bestPosition ? `${stats.bestPosition}º` : "--"}
           </p>
-          <p className="text-sm text-gray-500 mt-1">Melhor Posição</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Melhor Posição</p>
         </Card>
       </div>
 
       <Card>
         <CardHeader title="Desempenho por Torneio" />
         {stats.scoresByTournament.length === 0 ? (
-          <p className="text-gray-400 text-center py-6">Nenhum torneio participado.</p>
+          <p className="text-gray-400 dark:text-gray-500 text-center py-6">Nenhum torneio participado.</p>
         ) : (
           <div className="space-y-3">
             {stats.scoresByTournament.map((s, i) => (
               <div key={i} className="space-y-1">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-gray-700">{s.tournamentTitle}</span>
-                  <span className="text-gray-500">
+                  <span className="font-medium text-gray-700 dark:text-gray-300">{s.tournamentTitle}</span>
+                  <span className="text-gray-500 dark:text-gray-400">
                     {s.position > 0 ? `${s.position}º lugar` : "Em andamento"} · {s.points} pts
                   </span>
                 </div>
-                <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+                <div className="w-full h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all"
                     style={{ width: `${(s.points / maxPoints) * 100}%` }}

@@ -109,7 +109,7 @@ export default function AthletesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Atletas</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Atletas</h1>
         <Button onClick={() => setAddModalOpen(true)}>Adicionar Atleta</Button>
       </div>
 
@@ -129,13 +129,13 @@ export default function AthletesPage() {
           {athletes.length === 0 ? (
             <tr>
               <Td colSpan={4}>
-                <p className="text-center text-gray-400 py-8">Nenhum atleta cadastrado</p>
+                <p className="text-center text-gray-400 dark:text-gray-500 py-8">Nenhum atleta cadastrado</p>
               </Td>
             </tr>
           ) : (
             athletes.map((a) => (
-              <tr key={a.id} className="hover:bg-gray-50">
-                <Td className="font-medium text-gray-900">{a.name}</Td>
+              <tr key={a.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                <Td className="font-medium text-gray-900 dark:text-white">{a.name}</Td>
                 <Td>{a.email}</Td>
                 <Td>{a.phone || "-"}</Td>
                 <Td>
@@ -190,27 +190,27 @@ export default function AthletesPage() {
             {pending.length === 0 ? (
               <tr>
                 <Td colSpan={7}>
-                  <p className="text-center text-gray-400 py-8">Nenhuma solicitação pendente</p>
+                  <p className="text-center text-gray-400 dark:text-gray-500 py-8">Nenhuma solicitação pendente</p>
                 </Td>
               </tr>
             ) : (
               pending.map((p) => (
-                <tr key={p.registration_id} className="hover:bg-gray-50">
-                  <Td className="font-medium text-gray-900">{p.name}</Td>
+                <tr key={p.registration_id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <Td className="font-medium text-gray-900 dark:text-white">{p.name}</Td>
                   <Td>{p.email}</Td>
                   <Td>{p.phone || "-"}</Td>
                   <Td>
-                    <span className="text-sm text-gray-700">{p.tournament_title || "-"}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{p.tournament_title || "-"}</span>
                   </Td>
                   <Td>
                     {p.category ? (
-                      <Badge className="bg-purple-100 text-purple-800">{p.category}</Badge>
+                      <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300">{p.category}</Badge>
                     ) : (
-                      <span className="text-gray-400">-</span>
+                      <span className="text-gray-400 dark:text-gray-500">-</span>
                     )}
                   </Td>
                   <Td>
-                    <Badge className="bg-yellow-100 text-yellow-800">
+                    <Badge className="bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300">
                       {getStatusLabel("pending")}
                     </Badge>
                   </Td>
@@ -379,36 +379,36 @@ export default function AthletesPage() {
         {statsData && (
           <div className="space-y-4">
             <div className="grid grid-cols-3 gap-3">
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <p className="text-2xl font-bold text-gray-900">{statsData.totalMatches}</p>
-                <p className="text-xs text-gray-500 mt-1">Jogos</p>
+              <div className="text-center p-3 bg-gray-50 dark:bg-gray-950 rounded-lg">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{statsData.totalMatches}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Jogos</p>
               </div>
-              <div className="text-center p-3 bg-green-50 rounded-lg">
-                <p className="text-2xl font-bold text-green-600">{statsData.winRate}%</p>
-                <p className="text-xs text-gray-500 mt-1">Aproveitamento</p>
+              <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{statsData.winRate}%</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Aproveitamento</p>
               </div>
-              <div className="text-center p-3 bg-amber-50 rounded-lg">
-                <p className="text-2xl font-bold text-amber-600">{statsData.avgScore}</p>
-                <p className="text-xs text-gray-500 mt-1">Média</p>
+              <div className="text-center p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{statsData.avgScore}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Média</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="text-center p-3 bg-blue-50 rounded-lg">
+              <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <p className="text-2xl font-bold text-blue-600">{statsData.wins}</p>
-                <p className="text-xs text-gray-500 mt-1">Vitórias</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Vitórias</p>
               </div>
-              <div className="text-center p-3 bg-red-50 rounded-lg">
+              <div className="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
                 <p className="text-2xl font-bold text-red-600">{statsData.losses}</p>
-                <p className="text-xs text-gray-500 mt-1">Derrotas</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Derrotas</p>
               </div>
             </div>
             {statsData.bestPosition && (
-              <div className="text-center p-3 bg-purple-50 rounded-lg">
-                <p className="text-2xl font-bold text-purple-600">{statsData.bestPosition}º</p>
-                <p className="text-xs text-gray-500 mt-1">Melhor Posição</p>
+              <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{statsData.bestPosition}º</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Melhor Posição</p>
               </div>
             )}
-            <div className="text-sm text-gray-500 text-center">
+            <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
               {statsData.tournamentsPlayed} torneio{(statsData.tournamentsPlayed || 0) !== 1 ? "s" : ""} participado{(statsData.tournamentsPlayed || 0) !== 1 ? "s" : ""}
             </div>
             <Button variant="secondary" className="w-full" onClick={() => setStatsModalOpen(false)}>

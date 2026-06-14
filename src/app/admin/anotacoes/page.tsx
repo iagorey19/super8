@@ -61,13 +61,13 @@ export default function AnotacoesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Anotações</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Anotações</h1>
         <Button variant="primary" size="sm" onClick={openNew}>Nova Anotação</Button>
       </div>
 
       {notes.length === 0 ? (
         <Card>
-          <div className="text-center text-gray-400 py-12">
+          <div className="text-center text-gray-400 dark:text-gray-500 py-12">
             <p className="text-4xl mb-3">📝</p>
             <p>Nenhuma anotação ainda</p>
             <p className="text-sm mt-1">Clique em "Nova Anotação" para começar</p>
@@ -82,10 +82,10 @@ export default function AnotacoesPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       {n.pinned && <span className="text-amber-500 text-sm">📌</span>}
-                      <h3 className="font-semibold text-gray-900 truncate">{n.title}</h3>
+                      <h3 className="font-semibold text-gray-900 dark:text-white truncate">{n.title}</h3>
                     </div>
-                    <p className="text-sm text-gray-600 mt-2 whitespace-pre-wrap">{n.content}</p>
-                    <p className="text-xs text-gray-400 mt-3">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 whitespace-pre-wrap">{n.content}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">
                       {new Date(n.updated_at).toLocaleDateString("pt-BR", {
                         day: "2-digit", month: "long", year: "numeric",
                         hour: "2-digit", minute: "2-digit",
@@ -93,13 +93,13 @@ export default function AnotacoesPage() {
                     </p>
                   </div>
                   <div className="flex gap-1 shrink-0">
-                    <button onClick={() => togglePin(n)} className="p-2 text-gray-400 hover:text-amber-500 transition-colors text-sm" title={n.pinned ? "Desfixar" : "Fixar"}>
+                    <button onClick={() => togglePin(n)} className="p-2 text-gray-400 dark:text-gray-500 hover:text-amber-500 transition-colors text-sm" title={n.pinned ? "Desfixar" : "Fixar"}>
                       📌
                     </button>
-                    <button onClick={() => openEdit(n)} className="p-2 text-gray-400 hover:text-blue-500 transition-colors text-sm" title="Editar">
+                    <button onClick={() => openEdit(n)} className="p-2 text-gray-400 dark:text-gray-500 hover:text-blue-500 transition-colors text-sm" title="Editar">
                       ✏️
                     </button>
-                    <button onClick={() => remove(n.id)} className="p-2 text-gray-400 hover:text-red-500 transition-colors text-sm" title="Excluir">
+                    <button onClick={() => remove(n.id)} className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors text-sm" title="Excluir">
                       🗑️
                     </button>
                   </div>
@@ -118,7 +118,7 @@ export default function AnotacoesPage() {
               onChange={(e) => setTitle(e.target.value)}
             />
             <textarea
-              className="w-full min-h-[200px] p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 resize-y"
+              className="w-full min-h-[200px] p-3 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 resize-y"
               placeholder="Escreva sua anotação aqui..."
               value={content}
               onChange={(e) => setContent(e.target.value)}

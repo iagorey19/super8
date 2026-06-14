@@ -103,11 +103,11 @@ export default function AdminDashboard() {
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Total de Jogos</p>
         </Card>
         <Card>
-          <p className="text-3xl font-bold text-amber-600">{liveMatches.length}</p>
+          <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">{liveMatches.length}</p>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Jogos ao Vivo</p>
         </Card>
         <Card>
-          <p className="text-3xl font-bold text-green-600">{finishedMatches.length}</p>
+          <p className="text-3xl font-bold text-green-600 dark:text-green-400">{finishedMatches.length}</p>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Jogos Finalizados</p>
         </Card>
       </div>
@@ -129,7 +129,7 @@ export default function AdminDashboard() {
                   <Td>{m.court}</Td>
                   <Td>
                     {m.status === "pending" ? (
-                      <span className="text-gray-400">--</span>
+                      <span className="text-gray-400 dark:text-gray-500">--</span>
                     ) : (
                       <span className="font-semibold">
                         {m.score_team1} x {m.score_team2}
@@ -151,17 +151,17 @@ export default function AdminDashboard() {
       <Card>
         <CardHeader title="Resumo Financeiro" />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-4 rounded-lg bg-green-50 border border-green-200">
-            <p className="text-sm text-green-600 font-medium">Receitas</p>
-            <p className="text-xl font-bold text-green-700">{formatCurrency(summary.totalRevenues)}</p>
+          <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200">
+            <p className="text-sm text-green-600 dark:text-green-400 font-medium">Receitas</p>
+            <p className="text-xl font-bold text-green-700 dark:text-green-400">{formatCurrency(summary.totalRevenues)}</p>
           </div>
-          <div className="p-4 rounded-lg bg-red-50 border border-red-200">
+          <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200">
             <p className="text-sm text-red-600 font-medium">Despesas</p>
             <p className="text-xl font-bold text-red-700">{formatCurrency(summary.totalExpenses)}</p>
           </div>
-          <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+          <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200">
             <p className="text-sm text-blue-600 font-medium">Saldo</p>
-            <p className={`text-xl font-bold ${summary.balance >= 0 ? "text-green-700" : "text-red-700"}`}>
+            <p className={`text-xl font-bold ${summary.balance >= 0 ? "text-green-700 dark:text-green-400" : "text-red-700"}`}>
               {formatCurrency(summary.balance)}
             </p>
           </div>

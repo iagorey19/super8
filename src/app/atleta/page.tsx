@@ -107,7 +107,7 @@ export default function AthleteDashboard() {
             </Badge>
             <span className="text-sm text-gray-500 dark:text-gray-400">{formatDate(tournament.date)}</span>
             {myCategory && (
-              <Badge className="bg-purple-100 text-purple-800">
+              <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
                 {myCategory === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}
               </Badge>
             )}
@@ -124,9 +124,9 @@ export default function AthleteDashboard() {
               )}
               {registration.status === "approved" && (
                 <div className="mt-2 space-y-2">
-                  <Badge className="bg-green-100 text-green-800">✅ Inscrição aprovada</Badge>
+                  <Badge className="bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">✅ Inscrição aprovada</Badge>
                   {registration.confirmed ? (
-                    <div className="p-2 rounded-lg bg-blue-50 border border-blue-200">
+                    <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200">
                       <p className="text-sm text-blue-700 font-medium">✅ Presença confirmada</p>
                     </div>
                   ) : tournament?.status === "upcoming" && (
@@ -145,7 +145,7 @@ export default function AthleteDashboard() {
                 </div>
               )}
               {registration.status === "rejected" && (
-                <div className="p-3 rounded-lg bg-red-50 border border-red-200">
+                <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200">
                   <p className="text-sm text-red-800 font-medium">❌ Inscrição rejeitada</p>
                 </div>
               )}
@@ -165,7 +165,7 @@ export default function AthleteDashboard() {
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Seus Jogos</p>
           </Card>
           <Card className="text-center">
-            <p className="text-3xl font-bold text-amber-600">
+            <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">
               {athletePosition !== null ? `${athletePosition}º` : "--"}
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Sua Posição</p>
@@ -178,7 +178,7 @@ export default function AthleteDashboard() {
           <CardHeader title="🎁 Sorteios" subtitle="Vencedores dos sorteios deste evento" />
           <div className="space-y-2">
             {raffleRecords.map((r) => (
-              <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-green-50 border border-green-200">
+              <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200">
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">{r.winner_name}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">{r.brinde_description}</p>
@@ -195,7 +195,7 @@ export default function AthleteDashboard() {
           <div className="space-y-4">
             {sponsors.length > 0 && (
               <div>
-                <p className="text-sm font-bold text-amber-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <p className="text-sm font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                   <span className="text-lg">🏆</span> Patrocinadores
                 </p>
                 <div className="flex flex-wrap gap-3">
@@ -205,7 +205,7 @@ export default function AthleteDashboard() {
                       <div>
                         <p className="font-bold text-gray-900 dark:text-white text-base">{s.sponsor_name}</p>
                         {s.sponsor_url && (
-                          <a href={s.sponsor_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-bold text-amber-600 hover:text-amber-700 mt-0.5">
+                          <a href={s.sponsor_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 mt-0.5">
                             🔗 Acesse o site
                           </a>
                         )}
@@ -220,10 +220,10 @@ export default function AthleteDashboard() {
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Apoiadores</p>
                 <div className="flex flex-wrap gap-2">
                   {apoiadores.map((a: any) => (
-                    <div key={a.id} className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 text-sm">
+                    <div key={a.id} className="bg-green-50 dark:bg-green-900/20 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 text-sm">
                       <span className="font-medium text-gray-900 dark:text-white">{a.name}</span>
                       {a.brindes?.length > 0 && (
-                        <span className="text-gray-600 dark:text-gray-300 ml-1">
+                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-300 ml-1">
                           - {a.brindes.map((b: any) => `${b.description} (${b.type === "kit" ? "Kit" : "Sorteio"})`).join(", ")}
                         </span>
                       )}

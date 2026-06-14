@@ -123,10 +123,10 @@ export default function SortearNumeros() {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight animate-fade-in">
+        <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight animate-fade-in">
           SORTEIO - Números dos Atletas
         </h1>
-        <p className="text-gray-500">Clique em "Sortear" para definir o número de cada atleta, um por vez</p>
+        <p className="text-gray-500 dark:text-gray-400">Clique em "Sortear" para definir o número de cada atleta, um por vez</p>
       </div>
 
       <Card>
@@ -188,15 +188,15 @@ export default function SortearNumeros() {
           {isAnimating && drawingAthlete && (
             <div className="text-center py-8 space-y-6">
               <div className="animate-pulse">
-                <p className="text-lg font-medium text-gray-700 mb-2">Sorteando...</p>
-                <p className="text-3xl font-black text-gray-900">{currentAthleteName}</p>
+                <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Sorteando...</p>
+                <p className="text-3xl font-black text-gray-900 dark:text-white">{currentAthleteName}</p>
                 {currentCategory && (
-                  <Badge className="bg-purple-100 text-purple-800 mt-2">
+                  <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 mt-2">
                     {currentCategory === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}
                   </Badge>
                 )}
               </div>
-              <div className="text-8xl font-black text-amber-600 animate-pulse">
+              <div className="text-8xl font-black text-amber-600 dark:text-amber-400 animate-pulse">
                 {rollingNumber}
               </div>
             </div>
@@ -211,18 +211,18 @@ export default function SortearNumeros() {
                   className={`relative bg-gradient-to-br rounded-2xl border-2 p-6 text-center transition-all duration-500 ${
                     athlete.number != null
                       ? "from-amber-50 to-orange-50 border-amber-200 opacity-100"
-                      : "from-gray-50 to-gray-100 border-gray-200 opacity-60"
+                      : "from-gray-50 to-gray-100 border-gray-200 dark:border-gray-700 opacity-60"
                   }`}
                 >
-                  <p className="text-sm font-medium text-gray-700 mb-2 truncate">{athlete.name}</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 truncate">{athlete.name}</p>
                   {athlete.category && (
-                    <Badge className="bg-purple-100 text-purple-800 mb-2">{athlete.category}</Badge>
+                    <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 mb-2">{athlete.category}</Badge>
                   )}
-                  <div className="text-5xl font-black text-amber-600">
+                  <div className="text-5xl font-black text-amber-600 dark:text-amber-400">
                     {athlete.number != null ? athlete.number : "?"}
                   </div>
                   {athlete.number != null && athlete.number === 1 && (
-                    <p className="text-xs text-gray-400 mt-1">🏆 Cabeça de chave</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">🏆 Cabeça de chave</p>
                   )}
                 </div>
               )
@@ -233,14 +233,14 @@ export default function SortearNumeros() {
 
       {selectedTournament && athletes.length === 0 && !isAnimating && (
         <Card>
-          <p className="text-gray-500 text-center py-8">
+          <p className="text-gray-500 dark:text-gray-400 text-center py-8">
             Nenhum atleta aprovado encontrado{selectedCategory ? ` na categoria ${selectedCategory}` : ""}.
           </p>
         </Card>
       )}
 
       <div className="text-center">
-        <Link href="/admin" className="text-sm text-amber-600 hover:text-amber-800 font-medium">
+        <Link href="/admin" className="text-sm text-amber-600 dark:text-amber-400 hover:text-amber-800 font-medium">
           ← Nova Edição
         </Link>
       </div>

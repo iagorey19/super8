@@ -59,19 +59,19 @@ export default function AthleteMatches() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Meus Jogos</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Meus Jogos</h1>
         {isTournamentEnded && (
-          <Badge className="bg-gray-200 text-gray-700">Torneio Encerrado</Badge>
+          <Badge className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">Torneio Encerrado</Badge>
         )}
       </div>
 
       {tournamentTitle && (
-        <p className="text-sm text-gray-500 -mt-4">{tournamentTitle}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 -mt-4">{tournamentTitle}</p>
       )}
 
       {matches.length === 0 ? (
         <Card>
-          <p className="text-gray-500 text-center py-8">Nenhum jogo encontrado.</p>
+          <p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum jogo encontrado.</p>
         </Card>
       ) : (
         categories.map((cat) => {
@@ -79,8 +79,8 @@ export default function AthleteMatches() {
           if (catMatches.length === 0) return null
           return (
             <div key={cat}>
-              <h2 className="text-lg font-semibold text-gray-800 mb-3">
-                <Badge className="bg-purple-100 text-purple-800 text-sm px-3 py-1">
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">
+                <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 text-sm px-3 py-1">
                   {cat === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}
                 </Badge>
               </h2>
@@ -105,30 +105,30 @@ export default function AthleteMatches() {
                           <div
                             key={m.id}
                             className={`rounded-lg border p-3 ${
-                              isMyTeam1 || isMyTeam2 ? "border-amber-300 bg-amber-50/50" : "border-gray-200"
+                              isMyTeam1 || isMyTeam2 ? "border-amber-300 bg-amber-50/50 dark:bg-amber-900/20" : "border-gray-200 dark:border-gray-700"
                             }`}
                           >
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs text-gray-400">Quadra {m.court}</span>
+                              <span className="text-xs text-gray-400 dark:text-gray-500">Quadra {m.court}</span>
                               <Badge className={getStatusColor(m.status)}>
                                 {getStatusLabel(m.status)}
                               </Badge>
                             </div>
                             <div className="flex items-center justify-between">
-                              <div className={`flex-1 text-sm font-medium ${isMyTeam1 ? "text-amber-700" : "text-gray-700"}`}>
+                              <div className={`flex-1 text-sm font-medium ${isMyTeam1 ? "text-amber-700 dark:text-amber-400" : "text-gray-700 dark:text-gray-300"}`}>
                                 {t1p1} / {t1p2}
                                 {isMyTeam1 && <span className="text-xs ml-1">(você)</span>}
                               </div>
                               <div className="mx-4 text-center">
                                 {m.status === "pending" ? (
-                                  <span className="text-gray-400 text-sm">--</span>
+                                  <span className="text-gray-400 dark:text-gray-500 text-sm">--</span>
                                 ) : (
-                                  <span className="font-bold text-lg text-gray-900">
+                                  <span className="font-bold text-lg text-gray-900 dark:text-white">
                                     {m.score_team1} x {m.score_team2}
                                   </span>
                                 )}
                               </div>
-                              <div className={`flex-1 text-sm font-medium text-right ${isMyTeam2 ? "text-amber-700" : "text-gray-700"}`}>
+                              <div className={`flex-1 text-sm font-medium text-right ${isMyTeam2 ? "text-amber-700 dark:text-amber-400" : "text-gray-700 dark:text-gray-300"}`}>
                                 {t2p1} / {t2p2}
                                 {isMyTeam2 && <span className="text-xs ml-1">(você)</span>}
                               </div>
@@ -150,10 +150,10 @@ export default function AthleteMatches() {
           <CardHeader title="🎁 Sorteios" subtitle="Vencedores dos sorteios do evento" />
           <div className="space-y-2">
             {raffleRecords.map((r) => (
-              <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-green-50 border border-green-200">
+              <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200">
                 <div>
-                  <p className="font-medium text-gray-900">{r.winner_name}</p>
-                  <p className="text-xs text-gray-500">{r.brinde_description}</p>
+                  <p className="font-medium text-gray-900 dark:text-white">{r.winner_name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{r.brinde_description}</p>
                 </div>
               </div>
             ))}

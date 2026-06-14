@@ -12,9 +12,9 @@ import { getStatusLabel } from "@/lib/utils"
 import type { Tournament } from "@/lib/types"
 
 const positionStyle = (pos: number) => {
-  if (pos === 1) return "bg-yellow-100 text-yellow-800 border-yellow-300 font-bold"
-  if (pos === 2) return "bg-gray-200 text-gray-700 dark:text-gray-300 border-gray-300 font-semibold"
-  if (pos === 3) return "bg-orange-100 text-orange-800 border-orange-300 font-semibold"
+  if (pos === 1) return "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 border-yellow-300 font-bold"
+  if (pos === 2) return "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 font-semibold"
+  if (pos === 3) return "bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 border-orange-300 font-semibold"
   return ""
 }
 
@@ -65,7 +65,7 @@ export default function PublicRankingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Link href={`/eventos/${tournamentId}`} className="text-sm text-amber-600 hover:text-amber-700 font-medium">
+        <Link href={`/eventos/${tournamentId}`} className="text-sm text-amber-600 dark:text-amber-400 hover:text-amber-700 font-medium">
           &larr; Voltar
         </Link>
         <div className="flex items-center justify-between">
@@ -86,7 +86,7 @@ export default function PublicRankingPage() {
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               !selectedCategory
                 ? "bg-amber-600 text-white"
-                : "bg-gray-200 text-gray-700 dark:text-gray-300 hover:bg-gray-300"
+                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300"
             }`}
           >
             Todas
@@ -98,7 +98,7 @@ export default function PublicRankingPage() {
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 selectedCategory === cat
                   ? "bg-amber-600 text-white"
-                  : "bg-gray-200 text-gray-700 dark:text-gray-300 hover:bg-gray-300"
+                  : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300"
               }`}
             >
               {cat === "4e5" ? "4e5" : "6e7"}
@@ -125,7 +125,7 @@ export default function PublicRankingPage() {
           {results.length === 0 ? (
             <tr>
               <Td colSpan={maxRounds + 5}>
-                <p className="text-center text-gray-400 py-8">
+                <p className="text-center text-gray-400 dark:text-gray-500 py-8">
                   Nenhum resultado disponível
                 </p>
               </Td>
@@ -134,7 +134,7 @@ export default function PublicRankingPage() {
             results.map((r: any, idx: number) => (
               <tr
                 key={r.id || idx}
-                className={`transition-colors ${idx === 0 ? "bg-yellow-50/50" : idx === 1 ? "bg-gray-50/50" : idx === 2 ? "bg-orange-50/30" : "hover:bg-gray-50"}`}
+                className={`transition-colors ${idx === 0 ? "bg-yellow-50/50" : idx === 1 ? "bg-gray-50/50" : idx === 2 ? "bg-orange-50/30" : "hover:bg-gray-50 dark:hover:bg-gray-800"}`}
               >
                 <Td>
                   <span
@@ -148,7 +148,7 @@ export default function PublicRankingPage() {
                 </Td>
                 <Td>
                   {r.category && (
-                    <Badge className="bg-purple-100 text-purple-800 text-xs">
+                    <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 text-xs">
                       {r.category === "4e5" ? "4e5" : "6e7"}
                     </Badge>
                   )}
@@ -159,7 +159,7 @@ export default function PublicRankingPage() {
                   </Td>
                 ))}
                 <Td className="text-center font-medium">{r.total_games}</Td>
-                <Td className="text-center font-semibold text-amber-700">{r.points}</Td>
+                <Td className="text-center font-semibold text-amber-700 dark:text-amber-400">{r.points}</Td>
               </tr>
             ))
           )}
@@ -172,7 +172,7 @@ export default function PublicRankingPage() {
           <div className="space-y-3">
             {sponsors.length > 0 && (
               <div>
-                <p className="text-sm font-bold text-amber-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <p className="text-sm font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                   <span className="text-lg">🏆</span> Patrocinadores
                 </p>
                 <div className="flex flex-wrap gap-3">
@@ -182,7 +182,7 @@ export default function PublicRankingPage() {
                       <div>
                         <p className="font-bold text-gray-900 dark:text-white text-base">{s.sponsor_name}</p>
                         {s.sponsor_url && (
-                          <a href={s.sponsor_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-bold text-amber-600 hover:text-amber-700 mt-0.5">
+                          <a href={s.sponsor_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 mt-0.5">
                             🔗 Acesse o site
                           </a>
                         )}
@@ -197,10 +197,10 @@ export default function PublicRankingPage() {
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Apoiadores</p>
                 <div className="flex flex-wrap gap-2">
                   {apoiadores.map((a: any) => (
-                    <div key={a.id} className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 text-sm">
+                    <div key={a.id} className="bg-green-50 dark:bg-green-900/20 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 text-sm">
                       <span className="font-medium text-gray-900 dark:text-white">{a.name}</span>
                       {a.brindes?.length > 0 && (
-                        <span className="text-gray-600 dark:text-gray-300 ml-1">
+                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-300 ml-1">
                           - {a.brindes.map((b: any) => `${b.description} (${b.type === "kit" ? "Kit" : "Sorteio"})`).join(", ")}
                         </span>
                       )}
@@ -215,9 +215,9 @@ export default function PublicRankingPage() {
                 <div className="space-y-1">
                   {raffleRecords.map((r: any) => (
                     <div key={r.id} className="flex items-center gap-2 text-sm px-2 py-1">
-                      <span className="text-green-600">🎁</span>
+                      <span className="text-green-600 dark:text-green-400">🎁</span>
                         <span className="font-medium text-gray-900 dark:text-white">{r.winner_name}</span>
-                        <span className="text-gray-600 dark:text-gray-300">- {r.brinde_description}</span>
+                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-300">- {r.brinde_description}</span>
                     </div>
                   ))}
                 </div>

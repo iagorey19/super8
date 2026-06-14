@@ -32,13 +32,13 @@ export default function SponsorsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4 border-b border-gray-200 pb-2">
+      <div className="flex items-center gap-4 border-b border-gray-200 dark:border-gray-700 pb-2">
         <button
           onClick={() => setTab("patrocinadores")}
           className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
             tab === "patrocinadores"
-              ? "bg-amber-50 text-amber-700 border border-b-0 border-gray-200 -mb-[3px]"
-              : "text-gray-500 hover:text-gray-700"
+              ? "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-b-0 border-gray-200 dark:border-gray-700 -mb-[3px]"
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
           }`}
         >
           🤝 Patrocinadores
@@ -47,8 +47,8 @@ export default function SponsorsPage() {
           onClick={() => setTab("apoiadores")}
           className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
             tab === "apoiadores"
-              ? "bg-amber-50 text-amber-700 border border-b-0 border-gray-200 -mb-[3px]"
-              : "text-gray-500 hover:text-gray-700"
+              ? "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-b-0 border-gray-200 dark:border-gray-700 -mb-[3px]"
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
           }`}
         >
           🙌 Apoiadores
@@ -188,7 +188,7 @@ function PatrocinadoresTab() {
       )}
 
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Patrocinadores</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Patrocinadores</h2>
         <Button onClick={() => setNewModalOpen(true)}>Novo Patrocinador</Button>
       </div>
 
@@ -198,7 +198,7 @@ function PatrocinadoresTab() {
           {sponsors.length === 0 ? (
             <tr>
               <Td colSpan={6}>
-                <p className="text-center text-gray-400 py-8">Nenhum patrocinador cadastrado</p>
+                <p className="text-center text-gray-400 dark:text-gray-500 py-8">Nenhum patrocinador cadastrado</p>
               </Td>
             </tr>
           ) : (
@@ -206,24 +206,24 @@ function PatrocinadoresTab() {
               const sponsorShips = getSponsorshipsForSponsor(s.id)
               const isExpanded = expandedSponsor === s.id
               return (
-                <tr key={s.id} className="hover:bg-gray-50">
-                  <Td className="font-medium text-gray-900">{s.name}</Td>
+                <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <Td className="font-medium text-gray-900 dark:text-white">{s.name}</Td>
                   <Td>{s.email}</Td>
                   <Td>{s.phone || "-"}</Td>
                   <Td>
                     {s.url ? (
-                      <a href={s.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg px-3 py-1.5 transition-colors">
+                      <a href={s.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 border border-amber-200 rounded-lg px-3 py-1.5 transition-colors">
                         🔗 Acesse o site
                       </a>
                     ) : "-"}
                   </Td>
                   <Td>
                     {sponsorShips.length === 0 ? (
-                      <span className="text-gray-400 text-sm">Nenhum</span>
+                      <span className="text-gray-400 dark:text-gray-500 text-sm">Nenhum</span>
                     ) : (
                       <button
                         onClick={() => setExpandedSponsor(isExpanded ? null : s.id)}
-                        className="flex items-center gap-1 text-sm text-amber-600 hover:text-amber-700 font-medium"
+                        className="flex items-center gap-1 text-sm text-amber-600 dark:text-amber-400 hover:text-amber-700 font-medium"
                       >
                         {sponsorShips.length} patrocínio(s) {isExpanded ? "▲" : "▼"}
                       </button>
@@ -231,18 +231,18 @@ function PatrocinadoresTab() {
                     {isExpanded && sponsorShips.length > 0 && (
                       <div className="mt-2 space-y-2">
                         {sponsorShips.map((sp: any) => (
-                          <div key={sp.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                          <div key={sp.id} className="bg-gray-50 dark:bg-gray-950 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
                             <div className="flex items-center justify-between">
                               <div className="text-sm space-y-0.5">
-                                <p className="font-medium text-gray-900">{tierEmoji[sp.tier]} {getTierLabel(sp.tier)}</p>
-                                <p className="text-gray-500">{getTournamentName(sp.tournament_id)}</p>
-                                {sp.description && <p className="text-gray-400 text-xs">{sp.description}</p>}
+                                <p className="font-medium text-gray-900 dark:text-white">{tierEmoji[sp.tier]} {getTierLabel(sp.tier)}</p>
+                                <p className="text-gray-500 dark:text-gray-400">{getTournamentName(sp.tournament_id)}</p>
+                                {sp.description && <p className="text-gray-400 dark:text-gray-500 text-xs">{sp.description}</p>}
                               </div>
                               <div className="text-right text-sm">
-                                <p className="font-semibold text-gray-900">{formatCurrency(sp.amount)}</p>
+                                <p className="font-semibold text-gray-900 dark:text-white">{formatCurrency(sp.amount)}</p>
                                 <div className="flex gap-2 mt-1 justify-end">
-                                  <button onClick={() => openEditSponsorship(sp)} className="text-gray-400 hover:text-amber-500 text-xs" title="Editar">✏️</button>
-                                  <button onClick={() => handleDeleteSponsorship(sp.id)} className="text-gray-400 hover:text-red-500 text-xs" title="Remover">✕</button>
+                                  <button onClick={() => openEditSponsorship(sp)} className="text-gray-400 dark:text-gray-500 hover:text-amber-500 text-xs" title="Editar">✏️</button>
+                                  <button onClick={() => handleDeleteSponsorship(sp.id)} className="text-gray-400 dark:text-gray-500 hover:text-red-500 text-xs" title="Remover">✕</button>
                                 </div>
                               </div>
                             </div>
@@ -429,7 +429,7 @@ function ApoiadoresTab() {
   return (
     <>
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Apoiadores</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Apoiadores</h2>
         <div className="flex items-center gap-3">
           <Select
             label=""
@@ -442,20 +442,20 @@ function ApoiadoresTab() {
       </div>
 
       {!selectedTournament ? (
-        <Card><p className="text-gray-500 text-center py-8">Selecione um torneio.</p></Card>
+        <Card><p className="text-gray-500 dark:text-gray-400 text-center py-8">Selecione um torneio.</p></Card>
       ) : apoiadores.length === 0 ? (
-        <Card><p className="text-gray-500 text-center py-4">Nenhum apoiador cadastrado para este torneio.</p></Card>
+        <Card><p className="text-gray-500 dark:text-gray-400 text-center py-4">Nenhum apoiador cadastrado para este torneio.</p></Card>
       ) : (
         <div className="space-y-4">
           {apoiadores.map((apoio) => {
             const bf = brindeForm[apoio.id] || { description: "", quantity: "", type: "kit" }
             const kitQty = totalCapacity || 0
             return (
-              <div key={apoio.id} className="rounded-lg border border-gray-200 p-4 bg-white">
+              <div key={apoio.id} className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <p className="font-semibold text-gray-900">{apoio.name}</p>
-                    {apoio.phone && <p className="text-xs text-gray-400">{apoio.phone}</p>}
+                    <p className="font-semibold text-gray-900 dark:text-white">{apoio.name}</p>
+                    {apoio.phone && <p className="text-xs text-gray-400 dark:text-gray-500">{apoio.phone}</p>}
                   </div>
                   <div className="flex gap-2">
                     <Button size="sm" variant="secondary" onClick={() => openEditApoio(apoio)}>Editar</Button>
@@ -466,16 +466,16 @@ function ApoiadoresTab() {
                 {apoio.brindes.length > 0 && (
                   <div className="space-y-1 mb-3">
                     {apoio.brindes.map((b: any) => (
-                      <div key={b.id} className="flex items-center justify-between text-sm bg-gray-50 rounded px-3 py-1.5">
+                      <div key={b.id} className="flex items-center justify-between text-sm bg-gray-50 dark:bg-gray-950 rounded px-3 py-1.5">
                         <span>
-                          <span className="text-gray-700">{b.description}</span>
-                          <Badge className={`ml-2 text-xs ${b.type === "kit" ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}`}>
+                          <span className="text-gray-700 dark:text-gray-300">{b.description}</span>
+                          <Badge className={`ml-2 text-xs ${b.type === "kit" ? "bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300" : "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300"}`}>
                             {b.type === "kit" ? `Kit (${b.quantity}x)` : "Sorteio"}
                           </Badge>
                         </span>
                         <div className="flex gap-1">
-                          <button onClick={() => openEditBrinde(b)} className="text-gray-400 hover:text-amber-500 text-xs" title="Editar">✏️</button>
-                          <button onClick={() => handleRemoveBrinde(b.id)} className="text-gray-400 hover:text-red-500 text-xs ml-1" title="Remover">✕</button>
+                          <button onClick={() => openEditBrinde(b)} className="text-gray-400 dark:text-gray-500 hover:text-amber-500 text-xs" title="Editar">✏️</button>
+                          <button onClick={() => handleRemoveBrinde(b.id)} className="text-gray-400 dark:text-gray-500 hover:text-red-500 text-xs ml-1" title="Remover">✕</button>
                         </div>
                       </div>
                     ))}
@@ -484,13 +484,13 @@ function ApoiadoresTab() {
 
                 <div className="flex gap-2 items-end">
                   <div className="flex-1">
-                    <label className="block text-xs text-gray-500 mb-1">Adicionar brinde</label>
+                    <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Adicionar brinde</label>
                     <input
                       type="text"
                       placeholder="Descrição"
                       value={bf.description}
                       onChange={(e) => setBrindeForm({ ...brindeForm, [apoio.id]: { ...bf, description: e.target.value } })}
-                      className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                     />
                   </div>
                   {bf.type === "sorteio" && (
@@ -500,24 +500,24 @@ function ApoiadoresTab() {
                         placeholder="Qtd"
                         value={bf.quantity}
                         onChange={(e) => setBrindeForm({ ...brindeForm, [apoio.id]: { ...bf, quantity: e.target.value } })}
-                        className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                       />
                     </div>
                   )}
                   {bf.type === "kit" && (
                     <div className="w-20">
-                      <div className="block text-xs text-gray-400 mb-1">&nbsp;</div>
-                      <div className="px-3 py-1.5 text-sm text-gray-500 bg-gray-50 rounded-lg border border-gray-200">{kitQty}x</div>
+                      <div className="block text-xs text-gray-400 dark:text-gray-500 mb-1">&nbsp;</div>
+                      <div className="px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-950 rounded-lg border border-gray-200 dark:border-gray-700">{kitQty}x</div>
                     </div>
                   )}
                   <div className="flex gap-1">
                     <button
                       onClick={() => setBrindeForm({ ...brindeForm, [apoio.id]: { ...bf, type: "kit", quantity: "" } })}
-                      className={`px-2 py-1.5 text-xs rounded font-medium ${bf.type === "kit" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"}`}
+                      className={`px-2 py-1.5 text-xs rounded font-medium ${bf.type === "kit" ? "bg-blue-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"}`}
                     >Kit</button>
                     <button
                       onClick={() => setBrindeForm({ ...brindeForm, [apoio.id]: { ...bf, type: "sorteio" } })}
-                      className={`px-2 py-1.5 text-xs rounded font-medium ${bf.type === "sorteio" ? "bg-green-600 text-white" : "bg-gray-200 text-gray-700"}`}
+                      className={`px-2 py-1.5 text-xs rounded font-medium ${bf.type === "sorteio" ? "bg-green-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"}`}
                     >Sorteio</button>
                   </div>
                   <Button size="sm" onClick={() => handleAddBrinde(apoio.id)} disabled={!bf.description || (bf.type !== "kit" && (!bf.quantity || parseInt(bf.quantity) <= 0))}>+</Button>
@@ -558,7 +558,7 @@ function ApoiadoresTab() {
             <Input label="Quantidade" type="number" value={editBrindeForm.quantity} onChange={(e) => setEditBrindeForm({ ...editBrindeForm, quantity: e.target.value })} />
           )}
           {editBrindeForm.type === "kit" && (
-            <div className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 border border-gray-200">
+            <div className="text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-950 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
               Quantidade: <strong>{totalCapacity}x</strong> (total de atletas do evento)
             </div>
           )}

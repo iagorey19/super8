@@ -19,11 +19,11 @@ const typeLabels: Record<string, string> = {
 }
 
 const typeColors: Record<string, string> = {
-  jogo: "bg-blue-100 text-blue-800",
-  resultado: "bg-green-100 text-green-800",
-  ranking: "bg-amber-100 text-amber-800",
-  sorteio: "bg-purple-100 text-purple-800",
-  geral: "bg-gray-200 text-gray-700",
+  jogo: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
+  resultado: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
+  ranking: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+  sorteio: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
+  geral: "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300",
 }
 
 export function NotificationList({ userId, canSend }: { userId: string; canSend?: boolean }) {
@@ -87,9 +87,9 @@ export function NotificationList({ userId, canSend }: { userId: string; canSend?
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Notificações</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Notificações</h1>
           {unreadCount > 0 && (
-            <p className="text-sm text-gray-500 mt-1">{unreadCount} não lida{unreadCount !== 1 ? "s" : ""}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{unreadCount} não lida{unreadCount !== 1 ? "s" : ""}</p>
           )}
         </div>
         <div className="flex gap-2">
@@ -108,15 +108,15 @@ export function NotificationList({ userId, canSend }: { userId: string; canSend?
 
       {notifications.length === 0 ? (
         <Card>
-          <p className="text-gray-400 text-center py-12">Nenhuma notificação.</p>
+          <p className="text-gray-400 dark:text-gray-500 text-center py-12">Nenhuma notificação.</p>
         </Card>
       ) : (
         <div className="space-y-2">
           {notifications.map((n) => (
             <div
               key={n.id}
-              className={`rounded-xl border p-4 transition-colors cursor-pointer hover:bg-gray-50 ${
-                n.read ? "bg-white border-gray-200" : "bg-amber-50/50 border-amber-200"
+              className={`rounded-xl border p-4 transition-colors cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                n.read ? "bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700" : "bg-amber-50/50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-700"
               }`}
               onClick={() => { if (!n.read) handleMarkRead(n.id) }}
             >
@@ -124,11 +124,11 @@ export function NotificationList({ userId, canSend }: { userId: string; canSend?
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     {!n.read && <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />}
-                    <p className={`text-sm font-medium truncate ${n.read ? "text-gray-700" : "text-gray-900"}`}>
+                    <p className={`text-sm font-medium truncate ${n.read ? "text-gray-700 dark:text-gray-300" : "text-gray-900 dark:text-white"}`}>
                       {n.title}
                     </p>
                   </div>
-                  <p className={`text-sm ${n.read ? "text-gray-500" : "text-gray-600"}`}>
+                  <p className={`text-sm ${n.read ? "text-gray-500 dark:text-gray-400" : "text-gray-600 dark:text-gray-300"}`}>
                     {n.message}
                   </p>
                 </div>
@@ -136,7 +136,7 @@ export function NotificationList({ userId, canSend }: { userId: string; canSend?
                   <Badge className={typeColors[n.type] || typeColors.geral}>
                     {typeLabels[n.type] || n.type}
                   </Badge>
-                  <span className="text-[11px] text-gray-400 whitespace-nowrap">
+                  <span className="text-[11px] text-gray-400 dark:text-gray-500 whitespace-nowrap">
                     {new Date(n.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
                   </span>
                 </div>

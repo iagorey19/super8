@@ -25,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className="h-full">
-      <body className="min-h-full antialiased bg-gray-50">
+      <body className="min-h-full antialiased bg-gray-50 dark:bg-gray-950">
         <ErrorLogger />
         <DataLoader>
           <Providers>{children}</Providers>

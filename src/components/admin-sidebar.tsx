@@ -51,7 +51,7 @@ export function AdminSidebar() {
       {/* Sidebar */}
       <aside
         className={`
-          fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200
+          fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700
           min-h-[calc(100vh-3.5rem)]
           transform transition-transform duration-200 ease-in-out
           lg:translate-x-0 lg:block
@@ -59,11 +59,11 @@ export function AdminSidebar() {
         `}
       >
         {/* Mobile close button */}
-        <div className="flex items-center justify-between px-4 h-14 border-b border-gray-200 lg:hidden">
-          <span className="font-semibold text-gray-900">Menu</span>
+        <div className="flex items-center justify-between px-4 h-14 border-b border-gray-200 dark:border-gray-700 lg:hidden">
+          <span className="font-semibold text-gray-900 dark:text-white">Menu</span>
           <button
             onClick={() => setOpen(false)}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             aria-label="Fechar menu"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,8 +83,8 @@ export function AdminSidebar() {
                 onClick={() => handleNav(link.href)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   isActive
-                    ? "bg-amber-50 text-amber-700 border border-amber-200"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    ? "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700"
+                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
                 }`}
               >
                 <span className="text-lg">{link.icon}</span>

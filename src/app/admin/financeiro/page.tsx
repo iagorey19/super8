@@ -182,7 +182,7 @@ export default function AdminFinanceiro() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Financeiro</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Financeiro</h1>
         <div className="w-72">
           <Select
             label=""
@@ -199,7 +199,7 @@ export default function AdminFinanceiro() {
       {currentTournament && currentTournament.categories.length > 1 && (
         <div className="flex gap-2">
           {currentTournament.categories.map((cat) => (
-            <Badge key={cat} className="bg-purple-100 text-purple-800">
+            <Badge key={cat} className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300">
               {cat === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}
             </Badge>
           ))}
@@ -211,19 +211,19 @@ export default function AdminFinanceiro() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <div className="text-center space-y-1">
-                <p className="text-sm text-gray-500 font-medium">Total Receitas</p>
-                <p className="text-2xl font-bold text-green-600">{formatCurrency(totalRevenues)}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Receitas</p>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{formatCurrency(totalRevenues)}</p>
               </div>
             </Card>
             <Card>
               <div className="text-center space-y-1">
-                <p className="text-sm text-gray-500 font-medium">Total Despesas</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Total Despesas</p>
                 <p className="text-2xl font-bold text-red-600">{formatCurrency(totalExpenses)}</p>
               </div>
             </Card>
             <Card>
               <div className="text-center space-y-1">
-                <p className="text-sm text-gray-500 font-medium">Saldo</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Saldo</p>
                 <p className={`text-2xl font-bold ${balance >= 0 ? "text-blue-600" : "text-red-600"}`}>
                   {formatCurrency(balance)}
                 </p>
@@ -240,11 +240,11 @@ export default function AdminFinanceiro() {
                     <div className="flex items-center justify-between text-sm mb-1">
                       <div className="flex items-center gap-2">
                         <span>{getCategoryIcon(cat)}</span>
-                        <span className="font-medium text-gray-700">{getCategoryLabel(cat)}</span>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">{getCategoryLabel(cat)}</span>
                       </div>
-                      <span className="text-gray-600 font-medium">{formatCurrency(data.total)}</span>
+                      <span className="text-gray-600 dark:text-gray-400 font-medium">{formatCurrency(data.total)}</span>
                     </div>
-                    <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                    <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3 overflow-hidden">
                       <div
                         className="h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-500"
                         style={{ width: `${(data.total / maxCategory) * 100}%` }}
@@ -294,27 +294,27 @@ export default function AdminFinanceiro() {
                   </Button>
                 </div>
                 {expenses.length === 0 ? (
-                  <p className="text-gray-500 text-center py-6">Nenhuma despesa registrada.</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-6">Nenhuma despesa registrada.</p>
                 ) : (
                   expenses.map((exp) => (
                     <div
                       key={exp.id}
-                      className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3"
+                      className="flex items-center justify-between bg-gray-50 dark:bg-gray-950 rounded-lg px-4 py-3"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <Badge className="bg-amber-100 text-amber-800 shrink-0">
+                        <Badge className="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 shrink-0">
                           {getCategoryIcon(exp.category)} {getCategoryLabel(exp.category)}
                         </Badge>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{exp.description}</p>
-                          <p className="text-xs text-gray-400">{formatDate(exp.date)}</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{exp.description}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(exp.date)}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0 ml-3">
                         <span className="text-sm font-semibold text-red-600">- {formatCurrency(exp.amount)}</span>
                         <button
                           onClick={() => openEditExpense(exp)}
-                          className="text-gray-400 hover:text-amber-500 transition-colors text-xs"
+                          className="text-gray-400 dark:text-gray-500 hover:text-amber-500 transition-colors text-xs"
                           title="Editar"
                         >
                           ✏️
@@ -326,7 +326,7 @@ export default function AdminFinanceiro() {
                               loadData()
                             }
                           }}
-                          className="text-gray-400 hover:text-red-500 transition-colors text-xs"
+                          className="text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors text-xs"
                         >
                           ✕
                         </button>
@@ -357,28 +357,28 @@ export default function AdminFinanceiro() {
                   </Button>
                 </div>
                 {revenues.length === 0 ? (
-                  <p className="text-gray-500 text-center py-6">Nenhuma receita registrada.</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-6">Nenhuma receita registrada.</p>
                 ) : (
                   revenues.map((rev) => (
                     <div
                       key={rev.id}
-                      className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3"
+                      className="flex items-center justify-between bg-gray-50 dark:bg-gray-950 rounded-lg px-4 py-3"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <Badge className="bg-green-100 text-green-800 shrink-0">
+                        <Badge className="bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 shrink-0">
                           {rev.source === "patrocinio" ? "🤝" : rev.source === "inscricao" ? "📝" : "📦"}{" "}
                           {rev.source === "patrocinio" ? "Patrocínio" : rev.source === "inscricao" ? "Inscrição" : "Outros"}
                         </Badge>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{rev.description}</p>
-                          <p className="text-xs text-gray-400">{formatDate(rev.date)}</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{rev.description}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(rev.date)}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0 ml-3">
-                        <span className="text-sm font-semibold text-green-600">+ {formatCurrency(rev.amount)}</span>
+                        <span className="text-sm font-semibold text-green-600 dark:text-green-400">+ {formatCurrency(rev.amount)}</span>
                         <button
                           onClick={() => openEditRevenue(rev)}
-                          className="text-gray-400 hover:text-amber-500 transition-colors text-xs"
+                          className="text-gray-400 dark:text-gray-500 hover:text-amber-500 transition-colors text-xs"
                           title="Editar"
                         >
                           ✏️
@@ -390,7 +390,7 @@ export default function AdminFinanceiro() {
                               loadData()
                             }
                           }}
-                          className="text-gray-400 hover:text-red-500 transition-colors text-xs"
+                          className="text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors text-xs"
                         >
                           ✕
                         </button>
@@ -406,7 +406,7 @@ export default function AdminFinanceiro() {
 
       {!selectedTournament && (
         <Card>
-          <p className="text-gray-500 text-center py-8">Selecione um torneio para ver o financeiro.</p>
+          <p className="text-gray-500 dark:text-gray-400 text-center py-8">Selecione um torneio para ver o financeiro.</p>
         </Card>
       )}
 
@@ -417,7 +417,7 @@ export default function AdminFinanceiro() {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Categoria</label>
             <div className="grid grid-cols-4 gap-2 mb-3">
               {categoryEmojis.map(({ key, emoji, label }) => (
                 <button
@@ -427,11 +427,11 @@ export default function AdminFinanceiro() {
                   className={`flex flex-col items-center gap-1 p-2 rounded-lg text-xs transition-all ${
                     expenseForm.category === key
                       ? "bg-amber-100 ring-2 ring-amber-400"
-                      : "bg-gray-50 hover:bg-gray-100 border border-gray-200"
+                      : "bg-gray-50 dark:bg-gray-950 hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700"
                   }`}
                 >
                   <span className="text-2xl">{emoji}</span>
-                  <span className="text-gray-600">{label}</span>
+                  <span className="text-gray-600 dark:text-gray-400">{label}</span>
                 </button>
               ))}
             </div>

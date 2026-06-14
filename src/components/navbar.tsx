@@ -14,9 +14,9 @@ const roleLabels: Record<string, string> = {
 }
 
 const roleColors: Record<string, string> = {
-  admin: "bg-amber-100 text-amber-800",
-  athlete: "bg-blue-100 text-blue-800",
-  sponsor: "bg-purple-100 text-purple-800",
+  admin: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+  athlete: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
+  sponsor: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
 }
 
 export function Navbar() {
@@ -51,9 +51,9 @@ export function Navbar() {
           {unread > 0 && (
             <Link
               href={`/${user.role}/notificacoes`}
-              className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
-              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
               {unread > 0 && (
@@ -68,7 +68,7 @@ export function Navbar() {
           <div className="relative">
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-600 dark:text-gray-300">
                 {user.name.charAt(0).toUpperCase()}
@@ -93,7 +93,7 @@ export function Navbar() {
                   </div>
                   <button
                     onClick={() => { logout(); setMenuOpen(false) }}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                   >
                     Sair
                   </button>

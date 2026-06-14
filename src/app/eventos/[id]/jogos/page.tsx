@@ -52,7 +52,7 @@ export default function PublicJogosPage() {
     return (
       <div className="space-y-6">
         <div>
-          <Link href={`/eventos/${id}`} className="text-sm text-amber-600 hover:text-amber-700 font-medium">
+          <Link href={`/eventos/${id}`} className="text-sm text-amber-600 dark:text-amber-400 hover:text-amber-700 font-medium">
             &larr; Voltar
           </Link>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{tournament.title}</h1>
@@ -68,7 +68,7 @@ export default function PublicJogosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Link href={`/eventos/${id}`} className="text-sm text-amber-600 hover:text-amber-700 font-medium">
+        <Link href={`/eventos/${id}`} className="text-sm text-amber-600 dark:text-amber-400 hover:text-amber-700 font-medium">
           &larr; Voltar
         </Link>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{tournament.title}</h1>
@@ -82,7 +82,7 @@ export default function PublicJogosPage() {
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               !selectedCategory
                 ? "bg-amber-600 text-white"
-                : "bg-gray-200 text-gray-700 dark:text-gray-300 hover:bg-gray-300"
+                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300"
             }`}
           >
             Todas
@@ -94,7 +94,7 @@ export default function PublicJogosPage() {
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 selectedCategory === cat
                   ? "bg-amber-600 text-white"
-                  : "bg-gray-200 text-gray-700 dark:text-gray-300 hover:bg-gray-300"
+                  : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300"
               }`}
             >
               {cat === "4e5" ? "4e5" : "6e7"}
@@ -120,12 +120,12 @@ export default function PublicJogosPage() {
                           {getStatusLabel(match.status)}
                         </Badge>
                         {match.category && categories.length > 1 && (
-                          <Badge className="bg-purple-100 text-purple-800 text-xs">
+                          <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 text-xs">
                             {match.category === "4e5" ? "4e5" : "6e7"}
                           </Badge>
                         )}
                       </div>
-                      <span className="text-xs font-medium text-gray-400">
+                      <span className="text-xs font-medium text-gray-400 dark:text-gray-500">
                         {getCourtName(match.court)}
                       </span>
                     </div>
@@ -135,7 +135,7 @@ export default function PublicJogosPage() {
                         <p className="font-semibold text-gray-900 dark:text-white text-sm leading-relaxed">
                           {store.getUserName(match.team1_player1_id)}
                         </p>
-                        <span className="text-xs text-gray-400">/</span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500">/</span>
                         <p className="font-semibold text-gray-900 dark:text-white text-sm leading-relaxed">
                           {store.getUserName(match.team1_player2_id)}
                         </p>
@@ -143,7 +143,7 @@ export default function PublicJogosPage() {
 
                       <div className="text-center">
                         {match.status === "pending" ? (
-                          <span className="text-gray-400 text-sm">--</span>
+                          <span className="text-gray-400 dark:text-gray-500 text-sm">--</span>
                         ) : (
                           <p className="text-2xl font-bold text-gray-900 dark:text-white">
                             {match.score_team1} : {match.score_team2}
@@ -155,7 +155,7 @@ export default function PublicJogosPage() {
                         <p className="font-semibold text-gray-900 dark:text-white text-sm leading-relaxed">
                           {store.getUserName(match.team2_player1_id)}
                         </p>
-                        <span className="text-xs text-gray-400">/</span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500">/</span>
                         <p className="font-semibold text-gray-900 dark:text-white text-sm leading-relaxed">
                           {store.getUserName(match.team2_player2_id)}
                         </p>

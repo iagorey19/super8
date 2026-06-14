@@ -83,7 +83,7 @@ export default function PlacarPage() {
   if (!tournament) {
     return (
       <Card>
-        <p className="text-gray-500 text-center py-8">Torneio não encontrado.</p>
+        <p className="text-gray-500 dark:text-gray-400 text-center py-8">Torneio não encontrado.</p>
       </Card>
     )
   }
@@ -92,11 +92,11 @@ export default function PlacarPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{tournament.title}</h1>
-          <p className="text-sm text-gray-500">Placar ao Vivo</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{tournament.title}</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Placar ao Vivo</p>
         </div>
         <Card>
-          <p className="text-gray-500 text-center py-8">
+          <p className="text-gray-500 dark:text-gray-400 text-center py-8">
             Nenhuma partida encontrada. Inicie o torneio primeiro.
           </p>
         </Card>
@@ -108,8 +108,8 @@ export default function PlacarPage() {
     <div className="space-y-4 pb-8">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">{tournament.title}</h1>
-          <p className="text-xs text-gray-500">Placar ao Vivo</p>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">{tournament.title}</h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Placar ao Vivo</p>
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" size="sm" onClick={loadData}>
@@ -132,7 +132,7 @@ export default function PlacarPage() {
               className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
                 currentRound === r
                   ? "bg-amber-600 text-white shadow"
-                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                  : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
               }`}
             >
               Rodada {r}
@@ -147,11 +147,11 @@ export default function PlacarPage() {
             <Card className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     {match.court}
                   </span>
                   {match.category && (
-                    <Badge className="bg-purple-100 text-purple-800 text-xs">
+                    <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 text-xs">
                       {getCategoryBadge(match.category)}
                     </Badge>
                   )}
@@ -165,31 +165,31 @@ export default function PlacarPage() {
 
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex-1 text-center">
-                  <p className="font-bold text-gray-900 text-base leading-tight">
+                  <p className="font-bold text-gray-900 dark:text-white text-base leading-tight">
                     {getUserName(match.team1_player1_id)}
                   </p>
-                  <span className="text-xs text-gray-400">/</span>
-                  <p className="font-bold text-gray-900 text-base leading-tight">
+                  <span className="text-xs text-gray-400 dark:text-gray-500">/</span>
+                  <p className="font-bold text-gray-900 dark:text-white text-base leading-tight">
                     {getUserName(match.team1_player2_id)}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <p className="text-5xl font-black text-gray-900 tabular-nums leading-none min-w-[3rem] text-right">
+                  <p className="text-5xl font-black text-gray-900 dark:text-white tabular-nums leading-none min-w-[3rem] text-right">
                     {match.score_team1}
                   </p>
-                  <span className="text-3xl font-bold text-gray-300">:</span>
-                  <p className="text-5xl font-black text-gray-900 tabular-nums leading-none min-w-[3rem] text-left">
+                  <span className="text-3xl font-bold text-gray-300 dark:text-gray-600">:</span>
+                  <p className="text-5xl font-black text-gray-900 dark:text-white tabular-nums leading-none min-w-[3rem] text-left">
                     {match.score_team2}
                   </p>
                 </div>
 
                 <div className="flex-1 text-center">
-                  <p className="font-bold text-gray-900 text-base leading-tight">
+                  <p className="font-bold text-gray-900 dark:text-white text-base leading-tight">
                     {getUserName(match.team2_player1_id)}
                   </p>
-                  <span className="text-xs text-gray-400">/</span>
-                  <p className="font-bold text-gray-900 text-base leading-tight">
+                  <span className="text-xs text-gray-400 dark:text-gray-500">/</span>
+                  <p className="font-bold text-gray-900 dark:text-white text-base leading-tight">
                     {getUserName(match.team2_player2_id)}
                   </p>
                 </div>

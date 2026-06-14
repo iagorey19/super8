@@ -41,11 +41,11 @@ export default function AthleteHistory() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Meu Histórico</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Meu Histórico</h1>
 
       {tournaments.length === 0 ? (
         <Card>
-          <p className="text-gray-500 text-center py-8">Nenhum torneio disputado ainda</p>
+          <p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum torneio disputado ainda</p>
         </Card>
       ) : (
         tournaments.map((tour) => {
@@ -57,26 +57,26 @@ export default function AthleteHistory() {
                 <Badge className={getStatusColor(tour.status)}>
                   {getStatusLabel(tour.status)}
                 </Badge>
-                <span className="text-sm text-gray-500">{formatDate(tour.date)}</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">{formatDate(tour.date)}</span>
                 {myResult?.category && (
-                  <Badge className="bg-purple-100 text-purple-800">
+                  <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
                     {myResult.category === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}
                   </Badge>
                 )}
               </div>
               {myResult && myResult.position > 0 ? (
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 rounded-lg bg-gray-50 text-center">
-                    <p className="text-2xl font-bold text-gray-900">{myResult.position}º</p>
-                    <p className="text-xs text-gray-500 mt-1">Posição</p>
+                  <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-950 text-center">
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{myResult.position}º</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Posição</p>
                   </div>
-                  <div className="p-3 rounded-lg bg-gray-50 text-center">
-                    <p className="text-2xl font-bold text-amber-600">{myResult.points}</p>
-                    <p className="text-xs text-gray-500 mt-1">Pontos</p>
+                  <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-950 text-center">
+                    <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{myResult.points}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Pontos</p>
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-gray-400">Resultados ainda não disponíveis.</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500">Resultados ainda não disponíveis.</p>
               )}
             </Card>
           )

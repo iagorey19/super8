@@ -29,16 +29,16 @@ export function PWAPrompt() {
 
   return (
     <div className="fixed bottom-20 left-4 right-4 z-50 max-w-sm mx-auto">
-      <div className="bg-white rounded-2xl shadow-2xl border border-amber-200 p-4 flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-2xl flex-shrink-0">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-amber-200 dark:border-amber-700 p-4 flex items-center gap-3">
+        <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center text-2xl flex-shrink-0">
           🏟️
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900">Instalar THE SUPER 8</p>
-          <p className="text-xs text-gray-500">Adicione à tela inicial para acesso rápido</p>
+          <p className="text-sm font-semibold text-gray-900 dark:text-white">Instalar THE SUPER 8</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Adicione à tela inicial para acesso rápido</p>
         </div>
         <div className="flex gap-2 flex-shrink-0">
-          <button onClick={() => setShow(false)} className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 font-medium">
+          <button onClick={() => setShow(false)} className="px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium">
             Agora não
           </button>
           <button onClick={handleInstall} className="px-3 py-1.5 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700 font-medium">

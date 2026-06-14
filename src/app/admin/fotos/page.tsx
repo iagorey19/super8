@@ -79,7 +79,7 @@ export default function AdminFotos() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Fotos</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Fotos</h1>
         <div className="w-72">
           <Select
             label=""
@@ -96,7 +96,7 @@ export default function AdminFotos() {
       {currentTournament && currentTournament.categories.length > 1 && (
         <div className="flex gap-2">
           {currentTournament.categories.map((cat) => (
-            <Badge key={cat} className="bg-purple-100 text-purple-800">
+            <Badge key={cat} className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300">
               {cat === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}
             </Badge>
           ))}
@@ -111,7 +111,7 @@ export default function AdminFotos() {
 
       {!selectedTournament && (
         <Card>
-          <p className="text-gray-500 text-center py-8">Selecione um torneio para ver as fotos.</p>
+          <p className="text-gray-500 dark:text-gray-400 text-center py-8">Selecione um torneio para ver as fotos.</p>
         </Card>
       )}
 
@@ -119,8 +119,8 @@ export default function AdminFotos() {
         <Card>
           <div className="text-center py-12 space-y-3">
             <div className="text-6xl">📸</div>
-            <p className="text-gray-500 text-lg font-medium">Nenhuma foto ainda</p>
-            <p className="text-gray-400 text-sm">Adicione a primeira foto do torneio!</p>
+            <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">Nenhuma foto ainda</p>
+            <p className="text-gray-400 dark:text-gray-500 text-sm">Adicione a primeira foto do torneio!</p>
           </div>
         </Card>
       )}
@@ -130,10 +130,10 @@ export default function AdminFotos() {
           {photos.map((photo) => (
             <div
               key={photo.id}
-              className="group relative bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+              className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
             >
               {brokenImages.has(photo.id) ? (
-                <div className="aspect-[4/3] bg-gray-100 flex items-center justify-center text-gray-400">
+                <div className="aspect-[4/3] bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 dark:text-gray-500">
                   <div className="text-center">
                     <div className="text-3xl mb-1">🖼️</div>
                     <p className="text-xs">Imagem indisponível</p>
@@ -152,7 +152,7 @@ export default function AdminFotos() {
                   <p className="text-white text-sm font-medium truncate">{photo.caption}</p>
                 </div>
               )}
-              <div className="px-3 py-2 flex items-center justify-between text-xs text-gray-400">
+              <div className="px-3 py-2 flex items-center justify-between text-xs text-gray-400 dark:text-gray-500">
                 <span>{formatDate(photo.created_at)}</span>
                 <button
                   onClick={() => {
@@ -161,7 +161,7 @@ export default function AdminFotos() {
                       loadPhotos()
                     }
                   }}
-                  className="text-gray-400 hover:text-red-500 transition-colors"
+                  className="text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors"
                 >
                   ✕
                 </button>
