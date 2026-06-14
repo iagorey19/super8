@@ -94,14 +94,7 @@ export async function POST(req: Request) {
 async function syncToSupabase(data: AppData) {
   const svc = getServiceClient()
 
-  // Delete all existing data (reverse FK order)
-  const deleteOrder = [...DB_TABLES].reverse()
-  for (const table of deleteOrder) {
-    await svc.from(table).delete().neq("id", "00000000-0000-0000-0000-000000000000")
-  }
-
-  // Insert all data (FK order)
-  const insertOrder = [
+  const upsertOrder = [
     { table: "users", records: data.users },
     { table: "tournaments", records: data.tournaments },
     { table: "athlete_registrations", records: data.athlete_registrations },
@@ -120,11 +113,11 @@ async function syncToSupabase(data: AppData) {
     { table: "notes", records: data.notes },
   ]
 
-  for (const { table, records } of insertOrder) {
+  for (const { table, records } of upsertOrder) {
     if (records.length === 0) continue
-    const { error } = await svc.from(table).insert(records as any)
+    const { error } = await svc.from(table).upsert(records as any, { onConflict: "id", ignoreDuplicates: false })
     if (error) {
-      console.error(`Error inserting into ${table}:`, error.message)
+      console.error(`Error upserting into ${table}:`, error.message)
     }
   }
 }
