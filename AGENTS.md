@@ -104,6 +104,8 @@ Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (
 - `src/components/admin-sidebar.tsx`: Menu hamburguer mobile (botão flutuante + drawer lateral)
 - `src/components/annual-ranking.tsx`: Acordeão expansível — mostra torneios por atleta (posição, pontos, games)
 - `src/lib/store.ts`: `computeAnnualRanking` agora retorna `tournaments[]` com dados de cada torneio
+- `src/components/print-ranking.tsx`: dark: variantes para todos os elementos visuais
+- **~30 arquivos (todos os .tsx)**: 375 adições de classe `dark:` — audit completa de contraste em dark mode
 
 ## Próximos Passos
 1. Migrar autenticação para Supabase Auth (magic link, OAuth) — opcional

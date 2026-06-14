@@ -4,6 +4,13 @@ _Histórico completo de alterações. Consulte AGENTS.md para as últimas 5._
 
 ---
 
+## 14/06/2026 — Dark Mode Audit Completo
+
+- **375 adições de classe `dark:`** em ~30 arquivos `.tsx` — audit completa de contraste em dark mode
+- Padrões aplicados: textos (gray-900→white, gray-700→gray-300, etc.), backgrounds (bg-gray-50→gray-950, bg-white→gray-800), borders, hovers, badges coloridos
+- `print-ranking.tsx`: variantes dark para visualização em tela (bg-white, textos, bordas)
+- Todos os arquivos da aplicação agora possuem suporte a dark mode
+
 ## 12/Jun/2026
 
 - `src/app/admin/patrocinadores/page.tsx`: Adicionadas abas "🤝 Patrocinadores" e "🙌 Apoiadores" — apoiadores movidos do torneio para cá, com seletor de torneio, CRUD completo (editar/remover apoiadores e brindes), kit com quantidade = total de atletas do evento (`categorias × 8`)
