@@ -303,40 +303,56 @@ export default function TournamentDetail() {
                             </Button>
                           </>
                         )}
-                        {tournament.status === "upcoming" && (
+                        {r.status === "approved" && (
                           <>
-                            {r.status === "approved" && !r.confirmed && (
+                            {r.confirmed ? (
+                              <span className="text-green-600 dark:text-green-400 font-medium text-sm px-2">✅</span>
+                            ) : (
                               <Button
                                 size="sm"
                                 variant="secondary"
                                 onClick={() => {
-                                  store.createNotification(r.athlete_id, "geral", "Confirme sua presença!", `O torneio ${tournament.title} está chegando! Confirme sua presença no sistema.`)
-                                  alert(`Lembrete enviado para ${r.name}!`)
+                                  store.confirmAttendance(tournament.id, r.athlete_id)
+                                  load()
                                 }}
                               >
-                                Lembrar
+                                Check-in
                               </Button>
                             )}
-                            <Button
-                              size="sm"
-                              variant="danger"
-                              disabled={saving}
-                              onClick={async () => {
-                                if (!window.confirm(`Remover ${r.name} do torneio?`)) return
-                                setSaving(true)
-                                try {
-                                  await store.unregisterAthlete(r.id)
-                                  load()
-                                } catch (e) {
-                                  alert("Erro ao remover atleta. Tente novamente.")
-                                } finally {
-                                  setSaving(false)
-                                }
-                              }}
-                            >
-                              {saving ? "Removendo..." : "Remover"}
-                            </Button>
                           </>
+                        )}
+                        {tournament.status === "upcoming" && r.status === "approved" && !r.confirmed && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              store.createNotification(r.athlete_id, "geral", "Confirme sua presença!", `O torneio ${tournament.title} está chegando! Confirme sua presença no sistema.`)
+                              alert(`Lembrete enviado para ${r.name}!`)
+                            }}
+                          >
+                            Lembrar
+                          </Button>
+                        )}
+                        {tournament.status === "upcoming" && (
+                          <Button
+                            size="sm"
+                            variant="danger"
+                            disabled={saving}
+                            onClick={async () => {
+                              if (!window.confirm(`Remover ${r.name} do torneio?`)) return
+                              setSaving(true)
+                              try {
+                                await store.unregisterAthlete(r.id)
+                                load()
+                              } catch (e) {
+                                alert("Erro ao remover atleta. Tente novamente.")
+                              } finally {
+                                setSaving(false)
+                              }
+                            }}
+                          >
+                            {saving ? "Removendo..." : "Remover"}
+                          </Button>
                         )}
                       </div>
                     </Td>
