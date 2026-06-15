@@ -122,10 +122,23 @@ async function syncToSupabase(data: AppData): Promise<string[]> {
   ]
 
   for (const { table, records } of upsertOrder) {
-    if (records.length === 0) continue
-    const { error } = await svc.from(table).upsert(records as any, { onConflict: "id", ignoreDuplicates: false })
-    if (error) {
-      errors.push(`${table}: ${error.message}`)
+    if (records.length > 0) {
+      const { error } = await svc.from(table).upsert(records as any, { onConflict: "id", ignoreDuplicates: false })
+      if (error) {
+        errors.push(`${table} upsert: ${error.message}`)
+        continue
+      }
+    }
+    const currentIds = new Set(records.map((r: any) => r.id))
+    const { data: existing, error: selErr } = await svc.from(table).select("id")
+    if (selErr) {
+      errors.push(`${table} select: ${selErr.message}`)
+      continue
+    }
+    const toDelete = (existing || []).map((r: any) => r.id).filter((id: string) => !currentIds.has(id))
+    if (toDelete.length > 0) {
+      const { error: delErr } = await svc.from(table).delete().in("id", toDelete)
+      if (delErr) errors.push(`${table} delete: ${delErr.message}`)
     }
   }
 
