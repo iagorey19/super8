@@ -345,15 +345,18 @@ export function updateMatchScore(
   const match = data.matches.find((m) => m.id === matchId)
   if (!match || match.status === "finished") return null
 
+  const tournament = data.tournaments.find((t) => t.id === match.tournament_id)
+  const maxScore = tournament?.max_score || 5
+
   match.status = "live"
 
   if (team === 1) {
-    match.score_team1 = Math.min(match.score_team1 + 1, 5)
+    match.score_team1 = Math.min(match.score_team1 + 1, maxScore)
   } else {
-    match.score_team2 = Math.min(match.score_team2 + 1, 5)
+    match.score_team2 = Math.min(match.score_team2 + 1, maxScore)
   }
 
-  if (match.score_team1 === 5 || match.score_team2 === 5) {
+  if (match.score_team1 === maxScore || match.score_team2 === maxScore) {
     match.status = "finished"
     checkTournamentCompletion(data, match.tournament_id, match.category || "4e5", match.group_name || "A")
   }
@@ -558,7 +561,9 @@ export function computeAnnualRanking(category?: string, year?: number) {
         athleteTotals[r.athlete_id] = { points: 0, games: 0, tournaments: new Set(), wins: 0, details: [] }
       }
       athleteTotals[r.athlete_id].points += r.points
-      athleteTotals[r.athlete_id].games += r.total_games
+      const baseMax = t.max_score || 5
+      const normalizedGames = Math.round(r.total_games * (5 / baseMax))
+      athleteTotals[r.athlete_id].games += normalizedGames
       athleteTotals[r.athlete_id].tournaments.add(r.tournament_id)
       if (r.position === 1) athleteTotals[r.athlete_id].wins++
       athleteTotals[r.athlete_id].details.push({
@@ -1073,11 +1078,15 @@ export function getAthleteStats(athleteId: string) {
   let wins = 0
   let losses = 0
   let totalScore = 0
+  let totalNormalizedMax = 0
   for (const m of allMatches) {
+    const tournament = data.tournaments.find((t) => t.id === m.tournament_id)
+    const maxScore = tournament?.max_score || 5
     const onTeam1 = m.team1_player1_id === athleteId || m.team1_player2_id === athleteId
     const team1Won = m.score_team1 > m.score_team2
     const myScore = onTeam1 ? m.score_team1 : m.score_team2
     totalScore += myScore
+    totalNormalizedMax += maxScore
     if ((onTeam1 && team1Won) || (!onTeam1 && !team1Won)) {
       wins++
     } else {
@@ -1121,7 +1130,7 @@ export function getAthleteStats(athleteId: string) {
     wins,
     losses,
     winRate,
-    avgScore: total > 0 ? Math.round((totalScore / total) * 10) / 10 : 0,
+    avgScore: total > 0 ? Math.round((totalScore / totalNormalizedMax) * 50) / 10 : 0,
     bestPosition,
     tournamentsPlayed,
     scoresByTournament,

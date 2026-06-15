@@ -27,6 +27,7 @@ CREATE TABLE tournaments (
   status TEXT NOT NULL CHECK (status IN ('upcoming', 'ongoing', 'completed')),
   categories JSONB NOT NULL DEFAULT '[]',
   registration_fee REAL,
+  max_score INT DEFAULT 5,
   court_names JSONB DEFAULT '[]',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   created_by TEXT NOT NULL REFERENCES users(id)

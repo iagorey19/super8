@@ -38,6 +38,7 @@ export interface Tournament {
   status: TournamentStatus
   categories: string[]
   registration_fee?: number
+  max_score?: number
   court_names?: string[]
   created_at: string
   created_by: string

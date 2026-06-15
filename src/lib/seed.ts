@@ -44,7 +44,7 @@ export function seed(): AppData {
     {
       id: T1, title: "THE SUPER 8", edition: "1ª Edição", date: "2026-01-17",
       location: "Arena Super 8", status: "completed", categories: ["4e5"],
-      registration_fee: 50,
+      registration_fee: 50, max_score: 4,
       created_at: "2025-12-10T00:00:00.000Z", created_by: "admin-001",
     },
     {

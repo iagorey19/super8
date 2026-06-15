@@ -29,7 +29,7 @@ export default function TournamentDetail() {
   const [startingCat, setStartingCat] = useState<string | null>(null)
 
   const [editModal, setEditModal] = useState(false)
-  const [editForm, setEditForm] = useState({ title: "", edition: "", date: "", location: "", categories: ["4e5"] as string[], registrationFee: "" })
+  const [editForm, setEditForm] = useState({ title: "", edition: "", date: "", location: "", categories: ["4e5"] as string[], registrationFee: "", maxScore: "" })
 
   const [registerModal, setRegisterModal] = useState(false)
   const [registerAthleteIds, setRegisterAthleteIds] = useState<string[]>([])
@@ -149,6 +149,7 @@ export default function TournamentDetail() {
                     location: tournament.location || "",
                     categories: [...tournament.categories],
                     registrationFee: tournament.registration_fee ? String(tournament.registration_fee) : "",
+                    maxScore: tournament.max_score ? String(tournament.max_score) : "",
                   })
                   setEditModal(true)
                 }}
@@ -439,6 +440,15 @@ export default function TournamentDetail() {
             value={editForm.registrationFee}
             onChange={(e) => setEditForm({ ...editForm, registrationFee: e.target.value })}
           />
+          <Input
+            label="Games até (max)"
+            type="number"
+            placeholder="5"
+            min={1}
+            max={10}
+            value={editForm.maxScore}
+            onChange={(e) => setEditForm({ ...editForm, maxScore: e.target.value })}
+          />
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Categorias</label>
             <div className="flex gap-4">
@@ -475,6 +485,7 @@ export default function TournamentDetail() {
                   location: editForm.location,
                   categories: editForm.categories,
                   registration_fee: editForm.registrationFee ? Number(editForm.registrationFee) : undefined,
+                  max_score: editForm.maxScore ? Number(editForm.maxScore) : undefined,
                 })
                 setEditModal(false)
                 load()
