@@ -125,6 +125,9 @@ export async function rejectAthlete(registrationId: string) {
     (r) => r.id === registrationId && r.status === "pending"
   )
   if (reg) {
+    data.revenues = data.revenues.filter((r) => 
+      !(r.tournament_id === reg.tournament_id && r.created_by === reg.athlete_id && r.source === "inscricao")
+    )
     reg.status = "rejected"
     await saveData(data)
   }
@@ -133,6 +136,12 @@ export async function rejectAthlete(registrationId: string) {
 
 export async function unregisterAthlete(registrationId: string) {
   const data = getData()
+  const reg = data.athlete_registrations.find((r) => r.id === registrationId)
+  if (reg) {
+    data.revenues = data.revenues.filter((r) => 
+      !(r.tournament_id === reg.tournament_id && r.created_by === reg.athlete_id && r.source === "inscricao")
+    )
+  }
   data.athlete_registrations = data.athlete_registrations.filter((r) => r.id !== registrationId)
   await saveData(data)
 }
