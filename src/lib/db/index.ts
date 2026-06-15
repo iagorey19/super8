@@ -36,14 +36,13 @@ export async function init(): Promise<void> {
 
 export async function persist(): Promise<void> {
   if (!_data) return
-  try {
-    const res = await fetch("/api/data", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(_data),
-    })
-    if (!res.ok) console.error("Persist returned", res.status)
-  } catch (e) {
-    console.error("Persist failed:", e)
+  const res = await fetch("/api/data", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(_data),
+  })
+  if (!res.ok) {
+    const body = await res.text()
+    throw new Error(`Persist HTTP ${res.status}: ${body}`)
   }
 }

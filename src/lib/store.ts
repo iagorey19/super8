@@ -32,9 +32,9 @@ function getData(): AppData {
   return db.getData()
 }
 
-function saveData(data: AppData) {
+async function saveData(data: AppData) {
   db.setData(data)
-  db.persist()
+  await db.persist()
 }
 
 export function getSession(): { user: User } | null {
@@ -92,7 +92,7 @@ export function registerAthlete(
   return newUser
 }
 
-export function approveAthlete(registrationId: string) {
+export async function approveAthlete(registrationId: string) {
   const data = getData()
   const reg = data.athlete_registrations.find(
     (r) => r.id === registrationId && r.status === "pending"
@@ -114,27 +114,27 @@ export function approveAthlete(registrationId: string) {
       }
       data.revenues.push(revenue)
     }
-    saveData(data)
+    await saveData(data)
   }
   return reg
 }
 
-export function rejectAthlete(registrationId: string) {
+export async function rejectAthlete(registrationId: string) {
   const data = getData()
   const reg = data.athlete_registrations.find(
     (r) => r.id === registrationId && r.status === "pending"
   )
   if (reg) {
     reg.status = "rejected"
-    saveData(data)
+    await saveData(data)
   }
   return reg
 }
 
-export function unregisterAthlete(registrationId: string) {
+export async function unregisterAthlete(registrationId: string) {
   const data = getData()
   data.athlete_registrations = data.athlete_registrations.filter((r) => r.id !== registrationId)
-  saveData(data)
+  await saveData(data)
 }
 
 export function deleteTournament(tournamentId: string) {
@@ -236,12 +236,12 @@ export function updateCourtName(tournamentId: string, index: number, name: strin
   }
 }
 
-export function registerAthleteInTournament(
+export async function registerAthleteInTournament(
   tournamentId: string,
   athleteId: string,
   category?: string,
   groupName?: string
-): AthleteRegistration | null {
+): Promise<AthleteRegistration | null> {
   const data = getData()
   const tournament = data.tournaments.find((t) => t.id === tournamentId)
   const cat = category || tournament?.categories[0] || "4e5"
@@ -257,7 +257,7 @@ export function registerAthleteInTournament(
     created_at: new Date().toISOString(),
   }
   data.athlete_registrations.push(reg)
-  saveData(data)
+  await saveData(data)
   return reg
 }
 

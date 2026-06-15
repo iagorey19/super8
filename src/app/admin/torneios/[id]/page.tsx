@@ -34,6 +34,7 @@ export default function TournamentDetail() {
   const [registerModal, setRegisterModal] = useState(false)
   const [registerAthleteIds, setRegisterAthleteIds] = useState<string[]>([])
   const [registerCategory, setRegisterCategory] = useState("")
+  const [saving, setSaving] = useState(false)
   const [allAthletes, setAllAthletes] = useState<any[]>([])
   useEffect(() => {
     try { setAllAthletes(store.getAthletes().filter((a) => !registrations.some((r) => r.athlete_id === a.id))) } catch { setAllAthletes([]) }
@@ -319,14 +320,21 @@ export default function TournamentDetail() {
                             <Button
                               size="sm"
                               variant="danger"
-                              onClick={() => {
-                                if (window.confirm(`Remover ${r.name} do torneio?`)) {
-                                  store.unregisterAthlete(r.id)
+                              disabled={saving}
+                              onClick={async () => {
+                                if (!window.confirm(`Remover ${r.name} do torneio?`)) return
+                                setSaving(true)
+                                try {
+                                  await store.unregisterAthlete(r.id)
                                   load()
+                                } catch (e) {
+                                  alert("Erro ao remover atleta. Tente novamente.")
+                                } finally {
+                                  setSaving(false)
                                 }
                               }}
                             >
-                              Remover
+                              {saving ? "Removendo..." : "Remover"}
                             </Button>
                           </>
                         )}
@@ -528,19 +536,26 @@ export default function TournamentDetail() {
                 Cancelar
               </Button>
               <Button
-                disabled={registerAthleteIds.length === 0}
-                onClick={() => {
-                  const cat = registerCategory || tournament.categories[0]
-                  for (const aid of registerAthleteIds) {
-                    store.registerAthleteInTournament(id, aid, cat)
+                disabled={registerAthleteIds.length === 0 || saving}
+                onClick={async () => {
+                  setSaving(true)
+                  try {
+                    const cat = registerCategory || tournament.categories[0]
+                    for (const aid of registerAthleteIds) {
+                      await store.registerAthleteInTournament(id, aid, cat)
+                    }
+                    setRegisterModal(false)
+                    setRegisterAthleteIds([])
+                    setRegisterCategory("")
+                    load()
+                  } catch (e) {
+                    alert("Erro ao registrar atleta(s). Tente novamente.")
+                  } finally {
+                    setSaving(false)
                   }
-                  setRegisterModal(false)
-                  setRegisterAthleteIds([])
-                  setRegisterCategory("")
-                  load()
                 }}
               >
-                Registrar ({registerAthleteIds.length})
+                {saving ? "Registrando..." : `Registrar (${registerAthleteIds.length})`}
               </Button>
             </div>
           </div>

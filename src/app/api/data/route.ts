@@ -64,10 +64,14 @@ export async function GET() {
   try {
     const svc = getServiceClient()
     const { count, error } = await svc.from("users").select("*", { count: "exact", head: true })
-    if (error || count === 0) {
+    if (count === 0) {
       const data = seed()
       await syncToSupabase(data)
       return NextResponse.json(data)
+    }
+    if (error) {
+      console.error("GET /api/data count error:", error)
+      return NextResponse.json({ error: "Database query failed" }, { status: 500 })
     }
     const data = await getFullData()
     return NextResponse.json(data)
@@ -85,7 +89,7 @@ export async function POST(req: Request) {
     }
     const errors = await syncToSupabase(data)
     if (errors.length > 0) {
-      return NextResponse.json({ ok: false, errors })
+      return NextResponse.json({ ok: false, errors }, { status: 500 })
     }
     return NextResponse.json({ ok: true })
   } catch (e) {
