@@ -194,7 +194,8 @@ export function createTournament(
   location: string,
   createdBy: string,
   categories: string[] = ["4e5"],
-  registration_fee?: number
+  registration_fee?: number,
+  max_score?: number
 ): Tournament {
   const data = getData()
   const tournament: Tournament = {
@@ -206,6 +207,7 @@ export function createTournament(
     status: "upcoming",
     categories,
     registration_fee: registration_fee && registration_fee > 0 ? registration_fee : undefined,
+    max_score: max_score && max_score > 0 ? max_score : undefined,
     created_at: new Date().toISOString(),
     created_by: createdBy,
   }

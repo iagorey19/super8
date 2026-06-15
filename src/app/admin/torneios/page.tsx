@@ -23,7 +23,7 @@ export default function AdminTorneios() {
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [modalOpen, setModalOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [form, setForm] = useState({ title: "", edition: "", date: "", location: "", categories: ["4e5"] as string[], registrationFee: "" })
+  const [form, setForm] = useState({ title: "", edition: "", date: "", location: "", categories: ["4e5"] as string[], registrationFee: "", maxScore: "" })
   const [saving, setSaving] = useState(false)
 
   function load() {
@@ -51,14 +51,15 @@ export default function AdminTorneios() {
         location: form.location,
         categories: cats,
         registration_fee: fee,
+        max_score: form.maxScore ? Number(form.maxScore) : undefined,
       })
     } else {
-      store.createTournament(form.title, form.edition, form.date, form.location, user!.id, cats, fee)
+      store.createTournament(form.title, form.edition, form.date, form.location, user!.id, cats, fee, form.maxScore ? Number(form.maxScore) : undefined)
     }
     setSaving(false)
     setModalOpen(false)
     setEditingId(null)
-    setForm({ title: "", edition: "", date: "", location: "", categories: ["4e5"], registrationFee: "" })
+    setForm({ title: "", edition: "", date: "", location: "", categories: ["4e5"], registrationFee: "", maxScore: "" })
     load()
   }
 
@@ -138,7 +139,7 @@ export default function AdminTorneios() {
                       size="sm"
                       variant="ghost"
                       onClick={() => {
-                        setForm({ title: t.title, edition: t.edition, date: t.date, location: t.location || "", categories: t.categories || ["4e5"], registrationFee: t.registration_fee ? String(t.registration_fee) : "" })
+                        setForm({ title: t.title, edition: t.edition, date: t.date, location: t.location || "", categories: t.categories || ["4e5"], registrationFee: t.registration_fee ? String(t.registration_fee) : "", maxScore: t.max_score ? String(t.max_score) : "" })
                         setEditingId(t.id)
                         setModalOpen(true)
                       }}
@@ -170,7 +171,7 @@ export default function AdminTorneios() {
         )}
       </Card>
 
-      <Modal open={modalOpen} onClose={() => { setModalOpen(false); setEditingId(null); setForm({ title: "", edition: "", date: "", location: "", categories: ["4e5"], registrationFee: "" }) }} title={editingId ? "Editar Torneio" : "Novo Torneio"}>
+      <Modal open={modalOpen} onClose={() => { setModalOpen(false); setEditingId(null); setForm({ title: "", edition: "", date: "", location: "", categories: ["4e5"], registrationFee: "", maxScore: "" }) }} title={editingId ? "Editar Torneio" : "Novo Torneio"}>
         <div className="space-y-4">
           <Input
             label="Título"
@@ -203,6 +204,15 @@ export default function AdminTorneios() {
             value={form.registrationFee}
             onChange={(e) => setForm({ ...form, registrationFee: e.target.value })}
           />
+          <Input
+            label="Games até (max)"
+            type="number"
+            placeholder="5"
+            min={1}
+            max={10}
+            value={form.maxScore}
+            onChange={(e) => setForm({ ...form, maxScore: e.target.value })}
+          />
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Categorias</label>
             <div className="flex gap-4">
@@ -229,7 +239,7 @@ export default function AdminTorneios() {
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-2">
-            <Button variant="secondary" onClick={() => { setModalOpen(false); setEditingId(null); setForm({ title: "", edition: "", date: "", location: "", categories: ["4e5"], registrationFee: "" }) }}>
+            <Button variant="secondary" onClick={() => { setModalOpen(false); setEditingId(null); setForm({ title: "", edition: "", date: "", location: "", categories: ["4e5"], registrationFee: "", maxScore: "" }) }}>
               Cancelar
             </Button>
             <Button onClick={handleCreate} disabled={saving || !form.title || !form.edition || !form.date || !form.location || form.categories.length === 0}>
