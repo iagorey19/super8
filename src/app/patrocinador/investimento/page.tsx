@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Select } from "@/components/ui/select"
 import * as store from "@/lib/store"
-import { formatCurrency, getCategoryLabel, getCategoryIcon } from "@/lib/utils"
+import { formatCurrency, getCategoryLabel, getCategoryIcon, getRevenueSourceLabel, getRevenueSourceIcon } from "@/lib/utils"
 import type { Tournament } from "@/lib/types"
 
 export default function SponsorInvestment() {
@@ -14,6 +14,8 @@ export default function SponsorInvestment() {
   const [selectedTournamentId, setSelectedTournamentId] = useState("")
   const [summary, setSummary] = useState({ totalExpenses: 0, totalRevenues: 0, balance: 0 })
   const [expensesByCategory, setExpensesByCategory] = useState<Record<string, { total: number; items: any[] }>>({})
+  const [revenuesBySource, setRevenuesBySource] = useState<Record<string, { total: number; items: any[] }>>({})
+  const [expandedRevenueSources, setExpandedRevenueSources] = useState<Set<string>>(new Set())
   const [mySponsorshipAmount, setMySponsorshipAmount] = useState(0)
   const [athleteCount, setAthleteCount] = useState(0)
   const [matchCount, setMatchCount] = useState(0)
@@ -34,6 +36,7 @@ export default function SponsorInvestment() {
 
     setSummary(store.getFinancialSummary(selectedTournamentId))
     setExpensesByCategory(store.getExpensesByCategory(selectedTournamentId))
+    setRevenuesBySource(store.getRevenuesBySource(selectedTournamentId))
 
     const sponsorships = store.getSponsorships(selectedTournamentId)
     const mySponsorship = sponsorships.find((s) => s.sponsor_id === user.id)
@@ -136,6 +139,52 @@ export default function SponsorInvestment() {
                           <div key={item.id} className="flex items-center justify-between text-sm px-3 py-1.5">
                             <span className="text-gray-600 dark:text-gray-400">{item.description}</span>
                             <span className="font-medium text-gray-800 dark:text-white">{formatCurrency(item.amount)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          <Card>
+            <CardHeader title="Receitas por Fonte" />
+            {Object.keys(revenuesBySource).length === 0 ? (
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4">Nenhuma receita registrada.</p>
+            ) : (
+              <div className="space-y-3">
+                {Object.entries(revenuesBySource).map(([source, data]) => (
+                  <div key={source}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = new Set(expandedRevenueSources)
+                        if (next.has(source)) next.delete(source)
+                        else next.add(source)
+                        setExpandedRevenueSources(next)
+                      }}
+                      className="w-full flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-950 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">{getRevenueSourceIcon(source)}</span>
+                        <div className="text-left">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{getRevenueSourceLabel(source)}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">{data.items.length} receita(s)</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-semibold text-green-600 dark:text-green-400">{formatCurrency(data.total)}</span>
+                        <span className={`text-gray-400 transition-transform ${expandedRevenueSources.has(source) ? "rotate-180" : ""}`}>▼</span>
+                      </div>
+                    </button>
+                    {expandedRevenueSources.has(source) && data.items.length > 0 && (
+                      <div className="ml-12 mt-1 space-y-1">
+                        {data.items.map((item) => (
+                          <div key={item.id} className="flex items-center justify-between text-sm px-3 py-1.5">
+                            <span className="text-gray-600 dark:text-gray-400">{item.description}</span>
+                            <span className="font-medium text-green-600 dark:text-green-400">+ {formatCurrency(item.amount)}</span>
                           </div>
                         ))}
                       </div>

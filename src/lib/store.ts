@@ -906,6 +906,17 @@ export function createRevenue(
   return revenue
 }
 
+export function getRevenuesBySource(tournamentId?: string) {
+  const revenues = getRevenues(tournamentId)
+  const grouped: Record<string, { total: number; items: Revenue[] }> = {}
+  revenues.forEach((r) => {
+    if (!grouped[r.source]) grouped[r.source] = { total: 0, items: [] }
+    grouped[r.source].total += r.amount
+    grouped[r.source].items.push(r)
+  })
+  return grouped
+}
+
 export function getRevenues(tournamentId?: string): Revenue[] {
   const data = getData()
   let result = data.revenues

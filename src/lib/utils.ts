@@ -77,6 +77,24 @@ export function getCategoryIcon(cat: string): string {
   return icons[cat] || "📌"
 }
 
+export function getRevenueSourceLabel(source: string): string {
+  const labels: Record<string, string> = {
+    patrocinio: "Patrocínio",
+    inscricao: "Inscrição",
+    outros: "Outros",
+  }
+  return labels[source] || source
+}
+
+export function getRevenueSourceIcon(source: string): string {
+  const icons: Record<string, string> = {
+    patrocinio: "🤝",
+    inscricao: "📝",
+    outros: "📦",
+  }
+  return icons[source] || "📋"
+}
+
 export function exportToCSV(headers: string[], rows: string[][], filename: string) {
   const BOM = "\uFEFF"
   const escape = (v: string) => `"${String(v).replace(/"/g, '""')}"`
