@@ -4,6 +4,21 @@ _Histórico completo de alterações. Consulte AGENTS.md para as últimas 5._
 
 ---
 
+## 15/06/2026 — max_score, Check-in, Revenue Cleanup, Guias Atualizados
+
+- `src/lib/types.ts` + `docs/migration.sql`: Adicionado `max_score?: number` ao Tournament (default 5)
+- `src/lib/store.ts`: `updateMatchScore` usa `tournament.max_score`. `computeAnnualRanking` normaliza games por `max_score`. `getAthleteStats` normaliza `avgScore`. `unregisterAthlete` e `rejectAthlete` removem receita de inscrição vinculada
+- `src/app/admin/torneios/[id]/page.tsx`: Botão Check-in para admin confirmar presença; campo "Games até (max)" no modal editar
+- `src/app/admin/torneios/page.tsx`: Campo "Games até (max)" no modal criar/editar torneio
+- `src/lib/seed.ts`: 1ª Edição com `max_score: 4`
+- `src/app/eventos/ranking-anual/page.tsx`: Removido `PublicNavbar` duplicado (layout já renderizava)
+- `src/app/patrocinador/investimento/page.tsx`: Card "Receitas por Fonte" com categorias expansíveis
+- `src/lib/utils.ts`: Helpers `getRevenueSourceLabel`, `getRevenueSourceIcon`
+- `SETUP.md`: Reescrito — Supabase, Vercel, Supabase CLI DDL, nova stack
+- `.project-rules.md`: Atualizado — max_score configurável, normalização de rankings
+- `AGENTS.md`: Documentado `supabase db query --linked`, checklist DDL, próximos passos atualizados, senhas corrigidas
+- **Supabase DDL**: Coluna `max_score` adicionada via `supabase db query --linked` (1ª Edição = 4, demais = 5)
+
 ## 14/06/2026 — Dark Mode Audit Completo
 
 - **375 adições de classe `dark:`** em ~30 arquivos `.tsx` — audit completa de contraste em dark mode

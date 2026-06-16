@@ -76,6 +76,34 @@ Navegador (store.ts)
 - `upsert` com `ignoreDuplicates: false` substitui registros existentes pelo `id`
 - NOT NULL columns exigem dados completos no upsert (não é possível upsert parcial)
 
+## Supabase CLI — DDL (ALTER TABLE, CREATE TABLE, etc.)
+A REST API (`@supabase/supabase-js`) **NÃO** suporta DDL. Para alterar schema do banco remoto:
+
+```bash
+# Primeira vez: linkar o projeto (já feito, não repetir)
+npx supabase link --project-ref ylltshboiejlcbhksrci
+
+# Executar SQL no banco remoto
+npx supabase db query --linked "ALTER TABLE tabela ADD COLUMN IF NOT EXISTS coluna TIPO DEFAULT valor;"
+
+# Verificar resultado
+npx supabase db query --linked "SELECT * FROM tabela LIMIT 5;" --output json
+```
+
+> ⚠️ Sempre usar `--linked` para remote. Sem `--linked` tenta conectar em localhost.
+
+## Fluxo de Deploy
+O Vercel está integrado ao GitHub. **Push no `master` = deploy automático.**
+
+```
+git add .
+git commit -m "descrição"
+git push
+# Aguardar ~1-2 min, Vercel faz o resto
+```
+
+Para ver o status do deploy: https://vercel.com/iagorey19s-projects/super8
+
 ## Comandos Rápidos
 | Comando | Ação |
 |---------|------|
@@ -83,34 +111,47 @@ Navegador (store.ts)
 | `/status` | Resumo do estado do projeto |
 | `npm run dev` | Rodar localmente |
 | `npm run build` | Build de produção |
-| `npx vercel deploy --prod` | Deploy manual na Vercel |
+| `git push` | Sobe alterações → Vercel deploys automático |
+| `npx vercel deploy --prod` | Deploy manual alternativo |
+| `npx supabase db query --linked "SQL"` | Executar DDL/DML no Supabase remoto |
 
 ## Login de Teste
 | Perfil | Email | Senha |
 |--------|-------|-------|
 | Admin | admin@super8.com | admin123 |
-| Atleta | patricia@email.com | atleta123 |
+| Atleta | patricia@email.com | PatriciaRey123 |
 | Patrocinador | patrocinador@email.com | patro123 |
+| Patrocinador (real) | Aromorie@email.com | (definida pelo admin) |
 
 ## Auto-Update
 Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (arquivo + resumo). Manter só últimas 5. Se conversa ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e reiniciar."
 
 ## Últimas Alterações
-- `src/app/api/data/route.ts`: Reescrevido para Supabase — GET lê de 16 tabelas, POST faz upsert por lote. Seed automático se DB vazio
-- `src/lib/supabase.ts`: Criado — cliente Supabase (browser com anon key, server com service_role)
-- `scripts/migrate-to-supabase.ts`: Script para migrar `data/super8-db.json` → Supabase
-- `docs/migration.sql`: SQL das 16 tabelas (TEXT PK, JSONB para arrays, indexes)
-- `.env.local` + `.env.example`: Variáveis de ambiente (gitignorados)
-- `src/components/admin-sidebar.tsx`: Menu hamburguer mobile (botão flutuante + drawer lateral)
-- `src/components/annual-ranking.tsx`: Acordeão expansível — mostra torneios por atleta (posição, pontos, games)
-- `src/lib/store.ts`: `computeAnnualRanking` agora retorna `tournaments[]` com dados de cada torneio
-- `src/components/print-ranking.tsx`: dark: variantes para todos os elementos visuais
-- **~30 arquivos (todos os .tsx)**: 375 adições de classe `dark:` — audit completa de contraste em dark mode
+- `AGENTS.md`: Documentado `supabase db query --linked` para DDL remoto. Adicionado checklist de próximos passos
+- `src/lib/types.ts` + `docs/migration.sql`: Adicionado campo `max_score?: number` ao Tournament (default 5)
+- `src/lib/store.ts`: `updateMatchScore` usa `tournament.max_score` em vez de hardcoded 5. `computeAnnualRanking` normaliza `total_games` por `max_score`. `getAthleteStats` normaliza `avgScore`. `unregisterAthlete` e `rejectAthlete` removem receita de inscrição ao remover atleta
+- `src/app/admin/torneios/[id]/page.tsx`: Botão **Check-in** para admin. Campo "Games até (max)" no modal de editar torneio
+- `src/app/admin/torneios/page.tsx`: Campo "Games até (max)" no modal de criar/editar torneio
+- `src/app/eventos/ranking-anual/page.tsx`: Corrigido `PublicNavbar` duplicado (layout já renderizava)
+- `src/lib/seed.ts`: 1ª Edição com `max_score: 4`
+- `src/app/patrocinador/investimento/page.tsx`: Adicionado card "Receitas por Fonte" expansível
+- `src/lib/utils.ts`: Helpers `getRevenueSourceLabel`, `getRevenueSourceIcon`
 
 ## Próximos Passos
-1. Migrar autenticação para Supabase Auth (magic link, OAuth) — opcional
-2. Adicionar RLS policies nas tabelas do Supabase
-3. Domínio personalizado (TheSuper8.com.br) — comprar no registro.br, configurar no Vercel
+1. **Regra de desempate do ranking anual** — definir critério final (user ainda não decidiu 100%)
+2. **`scripts/update-passwords.ts`** — revisar se senhas no Supabase estão sincronizadas com seed
+3. **Migrar autenticação para Supabase Auth** (magic link, OAuth) — opcional
+4. **Adicionar RLS policies** nas tabelas do Supabase
+5. **Domínio personalizado** (TheSuper8.com.br) — comprar no registro.br, configurar no Vercel
+
+## Checklist de DDL no Supabase Remoto
+Sempre que precisar alterar schema, usar Supabase CLI:
+
+```bash
+npx supabase db query --linked "ALTER TABLE tabela ADD COLUMN IF NOT EXISTS coluna TIPO;"
+```
+
+Verificar alterações no `docs/migration.sql` para manter histórico.
 
 ---
-_Atualizado em: 14/06/2026. Changelog completo: `docs/CHANGELOG.md`_
+_Atualizado em: 15/06/2026. Changelog completo: `docs/CHANGELOG.md`_
