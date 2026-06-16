@@ -134,8 +134,8 @@ export default function JogosPage() {
         </Card>
       ) : view === "grade" ? (
         <div className="overflow-x-auto">
-          <div className="min-w-[600px]">
-            <div className="grid gap-px bg-gray-200 dark:bg-gray-700 rounded-xl overflow-hidden" style={{ gridTemplateColumns: `160px repeat(${rounds.length}, 1fr)` }}>
+          <div className="min-w-[850px]">
+            <div className="grid gap-px bg-gray-200 dark:bg-gray-700 rounded-xl" style={{ gridTemplateColumns: `160px repeat(${rounds.length}, minmax(100px, 1fr))` }}>
               <div className="bg-gray-200 dark:bg-gray-700 p-3 font-medium text-sm text-gray-700 dark:text-gray-300">Quadra</div>
               {rounds.map((r) => (
                 <div key={r} className="bg-gray-200 dark:bg-gray-700 p-3 font-medium text-sm text-gray-700 dark:text-gray-300 text-center">
