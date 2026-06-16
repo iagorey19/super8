@@ -575,9 +575,7 @@ export default function TournamentDetail() {
                   setSaving(true)
                   try {
                     const cat = registerCategory || tournament.categories[0]
-                    for (const aid of registerAthleteIds) {
-                      await store.registerAthleteInTournament(id, aid, cat)
-                    }
+                    await store.registerMultipleAthletes(id, registerAthleteIds, cat)
                     setRegisterModal(false)
                     setRegisterAthleteIds([])
                     setRegisterCategory("")

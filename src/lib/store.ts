@@ -272,6 +272,35 @@ export async function registerAthleteInTournament(
   return reg
 }
 
+export async function registerMultipleAthletes(
+  tournamentId: string,
+  athleteIds: string[],
+  category?: string,
+  groupName?: string
+): Promise<AthleteRegistration[]> {
+  const data = getData()
+  const tournament = data.tournaments.find((t) => t.id === tournamentId)
+  const cat = category || tournament?.categories[0] || "4e5"
+  if (!tournament?.categories.includes(cat)) return []
+  const created: AthleteRegistration[] = []
+  for (const athleteId of athleteIds) {
+    if (data.athlete_registrations.some((r) => r.tournament_id === tournamentId && r.athlete_id === athleteId)) continue
+    const reg: AthleteRegistration = {
+      id: crypto.randomUUID(),
+      tournament_id: tournamentId,
+      athlete_id: athleteId,
+      status: "pending",
+      category: cat,
+      group_name: groupName || "A",
+      created_at: new Date().toISOString(),
+    }
+    data.athlete_registrations.push(reg)
+    created.push(reg)
+  }
+  if (created.length > 0) await saveData(data)
+  return created
+}
+
 export function startTournament(tournamentId: string, category?: string, groupName?: string) {
   const data = getData()
   const tournament = data.tournaments.find((t) => t.id === tournamentId)
