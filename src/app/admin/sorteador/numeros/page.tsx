@@ -11,7 +11,7 @@ import { Select } from "@/components/ui/select"
 import * as store from "@/lib/store"
 import type { Tournament } from "@/lib/types"
 
-type AthleteWithNumber = { athlete_id: string; name: string; number?: number; category?: string }
+type AthleteWithNumber = { athlete_id: string; name: string; number?: number; category?: string; group_name?: string }
 
 export default function SortearNumeros() {
   const { user, loading } = useAuth()
@@ -20,6 +20,7 @@ export default function SortearNumeros() {
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [selectedTournament, setSelectedTournament] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("")
+  const [selectedGroup, setSelectedGroup] = useState("")
   const [athletes, setAthletes] = useState<AthleteWithNumber[]>([])
   const [hasDrawn, setHasDrawn] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
@@ -46,10 +47,10 @@ export default function SortearNumeros() {
       return
     }
     const cat = hasMultipleCategories && selectedCategory ? selectedCategory : undefined
-    const regs = store.getRegisteredAthletes(selectedTournament, cat)
+    const regs = store.getRegisteredAthletes(selectedTournament, cat, selectedGroup || undefined)
     const approved = regs.filter((r) => r.status === "approved")
     const hasNumbers = approved.some((r) => r.draw_number != null)
-    const mapped = approved.map((r) => ({ athlete_id: r.athlete_id, name: r.name, number: r.draw_number, category: r.category }))
+    const mapped = approved.map((r) => ({ athlete_id: r.athlete_id, name: r.name, number: r.draw_number, category: r.category, group_name: r.group_name }))
     const withoutNum = mapped.filter((a) => a.number == null)
     setAthletesWithoutNumber(withoutNum)
     if (hasNumbers) {
@@ -76,7 +77,7 @@ export default function SortearNumeros() {
 
   useEffect(() => {
     loadAthletes()
-  }, [selectedTournament, selectedCategory])
+  }, [selectedTournament, selectedCategory, selectedGroup])
 
   const animateDraw = useCallback(() => {
     if (hasMultipleCategories && !selectedCategory) return
@@ -100,7 +101,7 @@ export default function SortearNumeros() {
       if (step >= totalSteps) {
         clearInterval(interval)
         const cat = hasMultipleCategories && selectedCategory ? selectedCategory : undefined
-        const result = store.drawSingleNumber(selectedTournament, cat)
+        const result = store.drawSingleNumber(selectedTournament, cat, selectedGroup || undefined)
         if (result) {
           setCurrentAthleteName(result.name)
           setRollingNumber(result.number)
@@ -115,7 +116,7 @@ export default function SortearNumeros() {
         }
       }
     }, 200)
-  }, [athletes, athletesWithoutNumber, selectedTournament, selectedCategory, hasMultipleCategories])
+  }, [athletes, athletesWithoutNumber, selectedTournament, selectedCategory, selectedGroup, hasMultipleCategories])
 
   if (loading) {
     return (
@@ -153,19 +154,37 @@ export default function SortearNumeros() {
               setSelectedCategory("")
             }}
           />
-          {hasMultipleCategories && selectedTournament && (
-            <Select
-              label="Categoria"
-              options={[
-                { value: "", label: "Selecione a categoria..." },
-                ...tournamentCategories.map((cat) => ({
-                  value: cat,
-                  label: cat === "4e5" ? "Categoria 4e5" : "Categoria 6e7",
-                })),
-              ]}
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            />
+          {selectedTournament && (
+            <div className="flex gap-3">
+              {hasMultipleCategories && (
+                <div className="flex-1">
+                  <Select
+                    label="Categoria"
+                    options={[
+                      { value: "", label: "Todas" },
+                      ...tournamentCategories.map((cat) => ({
+                        value: cat,
+                        label: cat === "4e5" ? "Categoria 4e5" : "Categoria 6e7",
+                      })),
+                    ]}
+                    value={selectedCategory}
+                    onChange={(e) => { setSelectedCategory(e.target.value); setSelectedGroup("") }}
+                  />
+                </div>
+              )}
+              <div className="flex-1">
+                <Select
+                  label="Grupo"
+                  options={[
+                    { value: "", label: "Todos" },
+                    { value: "A", label: "Grupo A" },
+                    { value: "B", label: "Grupo B" },
+                  ]}
+                  value={selectedGroup}
+                  onChange={(e) => setSelectedGroup(e.target.value)}
+                />
+              </div>
+            </div>
           )}
         </div>
       </Card>

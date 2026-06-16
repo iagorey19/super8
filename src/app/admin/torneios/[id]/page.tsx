@@ -34,6 +34,7 @@ export default function TournamentDetail() {
   const [registerModal, setRegisterModal] = useState(false)
   const [registerAthleteIds, setRegisterAthleteIds] = useState<string[]>([])
   const [registerCategory, setRegisterCategory] = useState("")
+  const [registerGroup, setRegisterGroup] = useState("A")
   const [saving, setSaving] = useState(false)
   const [allAthletes, setAllAthletes] = useState<any[]>([])
   useEffect(() => {
@@ -77,39 +78,29 @@ export default function TournamentDetail() {
 
   const categories = tournament.categories || ["4e5"]
 
-  async function handleStart(cat: string) {
-    const catRegs = registrations.filter((r) => r.category === cat && r.status === "approved")
-    if (catRegs.length !== 8) {
-      alert(`Categoria ${cat}: é necessário 8 atletas aprovados. Atuais: ${catRegs.length}`)
+  async function handleStartAll() {
+    const groups = [...new Set(registrations.map((r) => `${r.category}-${r.group_name || "A"}`))].sort()
+    const missing: string[] = []
+    for (const key of groups) {
+      const [cat, grp] = key.split("-")
+      const grpRegs = registrations.filter((r) => r.category === cat && (r.group_name || "A") === grp && r.status === "approved")
+      if (grpRegs.length !== 8) missing.push(`${cat} Grupo ${grp} (${grpRegs.length}/8)`)
+    }
+    if (groups.length === 0) {
+      alert("Nenhum atleta registrado.")
       return
     }
-    setStartingCat(cat)
-    try {
-      store.startTournament(id, cat)
-      load()
-    } catch (e: any) {
-      alert(e.message)
-    } finally {
-      setStartingCat(null)
-    }
-  }
-
-  async function handleStartAll() {
-    const missing: string[] = []
-    for (const cat of categories) {
-      const catRegs = registrations.filter((r) => r.category === cat && r.status === "approved")
-      if (catRegs.length !== 8) missing.push(`${cat} (${catRegs.length}/8)`)
-    }
     if (missing.length > 0) {
-      alert(`É necessário 8 atletas aprovados por categoria:\n${missing.join("\n")}`)
+      alert(`É necessário 8 atletas aprovados por grupo:\n${missing.join("\n")}`)
       return
     }
     setStartingCat("all")
-    for (const cat of categories) {
+    for (const key of groups) {
+      const [cat, grp] = key.split("-")
       try {
-        store.startTournament(id, cat)
+        store.startTournament(id, cat, grp)
       } catch (e: any) {
-        alert(`Erro ao iniciar ${cat}: ${e.message}`)
+        alert(`Erro ao iniciar ${cat} Grupo ${grp}: ${e.message}`)
       }
     }
     load()
@@ -224,166 +215,162 @@ export default function TournamentDetail() {
       {categories.map((cat) => {
         const catRegs = registrations.filter((r) => r.category === cat)
         const catMatches = matches.filter((m) => m.category === cat)
-        const catApproved = catRegs.filter((r) => r.status === "approved").length
-        const catFinished = catMatches.filter((m) => m.status === "finished").length
-        const catLive = catMatches.filter((m) => m.status === "live").length
+        const groups = [...new Set(catRegs.map((r) => r.group_name || "A"))].sort()
 
         return (
           <Card key={cat}>
             <CardHeader
               title={cat === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}
-              subtitle={`${catRegs.length} inscritos, ${catApproved} aprovados`}
+              subtitle={`${catRegs.length} inscritos`}
               action={
-                <div className="flex gap-2">
-                  {tournament.status === "upcoming" && (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => {
-                        setRegisterAthleteIds([])
-                        setRegisterCategory(cat)
-                        setRegisterModal(true)
-                      }}
-                    >
-                      + Atleta
-                    </Button>
-                  )}
-                  {tournament.status === "upcoming" && (
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {catApproved}/8 atletas
-                    </span>
-                  )}
-                </div>
+                tournament.status === "upcoming" && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      setRegisterAthleteIds([])
+                      setRegisterCategory(cat)
+                      setRegisterGroup("A")
+                      setRegisterModal(true)
+                    }}
+                  >
+                    + Atleta
+                  </Button>
+                )
               }
             />
-            {catRegs.length > 0 && (
-              <Table headers={["Nome", "Status", "Check-in", "Nº Sorteio", "Ações"]}>
-                {catRegs.map((r) => (
-                  <tr key={r.id}>
-                    <Td className="font-medium">{r.name}</Td>
-                    <Td>
-                      <Badge className={getStatusColor(r.status)}>
-                        {getStatusLabel(r.status)}
-                      </Badge>
-                    </Td>
-                    <Td>
-                      {r.status === "approved" ? (
-                        r.confirmed ? (
-                          <span className="text-green-600 dark:text-green-400 font-medium text-sm">✅</span>
-                        ) : (
-                          <span className="text-yellow-600 font-medium text-sm">⏳</span>
-                        )
-                      ) : (
-                        <span className="text-gray-300 dark:text-gray-600">—</span>
-                      )}
-                    </Td>
-                    <Td>{r.draw_number ?? "-"}</Td>
-                    <Td>
-                      <div className="flex gap-1">
-                        {r.status === "pending" && (
-                          <>
+            {groups.map((grp) => {
+              const grpRegs = catRegs.filter((r => (r.group_name || "A") === grp))
+              const grpApproved = grpRegs.filter((r) => r.status === "approved").length
+              const grpMatches = catMatches.filter((m) => (m.group_name || "A") === grp)
+              const grpFinished = grpMatches.filter((m) => m.status === "finished").length
+              const grpLive = grpMatches.filter((m) => m.status === "live").length
+              return (
+                <div key={grp} className="border-t border-gray-200 dark:border-gray-700 first:border-t-0">
+                  <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-800/50">
+                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Grupo {grp}</span>
+                    <div className="flex items-center gap-3">
+                      {tournament.status === "upcoming" && (
+                        <>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">{grpApproved}/8</span>
+                          {grpApproved === 8 && (
                             <Button
                               size="sm"
-                              variant="success"
-                              className="px-1.5 sm:px-3 text-xs sm:text-sm"
-                              onClick={() => {
-                                store.approveAthlete(r.id)
-                                load()
-                              }}
-                            >
-                              <span className="sm:hidden">✓</span>
-                              <span className="hidden sm:inline">Aprovar</span>
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              className="px-1.5 sm:px-3 text-xs sm:text-sm"
-                              onClick={() => {
-                                store.rejectAthlete(r.id)
-                                load()
-                              }}
-                            >
-                              <span className="sm:hidden">✗</span>
-                              <span className="hidden sm:inline">Rejeitar</span>
-                            </Button>
-                          </>
-                        )}
-                        {r.status === "approved" && (
-                          <>
-                            {r.confirmed ? (
-                              <span className="text-green-600 dark:text-green-400 font-medium text-sm px-2">✅</span>
-                            ) : (
-                              <Button
-                                size="sm"
-                                variant="secondary"
-                                className="px-1.5 sm:px-3 text-xs sm:text-sm"
-                                onClick={() => {
-                                  store.confirmAttendance(tournament.id, r.athlete_id)
+                              disabled={startingCat === `${cat}-${grp}`}
+                              onClick={async () => {
+                                setStartingCat(`${cat}-${grp}`)
+                                try {
+                                  store.startTournament(id, cat, grp)
                                   load()
-                                }}
-                              >
-                                Check-in
-                              </Button>
-                            )}
-                          </>
-                        )}
-                        {tournament.status === "upcoming" && r.status === "approved" && !r.confirmed && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="px-1.5 sm:px-3 text-xs sm:text-sm"
-                            onClick={() => {
-                              store.createNotification(r.athlete_id, "geral", "Confirme sua presença!", `O torneio ${tournament.title} está chegando! Confirme sua presença no sistema.`)
-                              alert(`Lembrete enviado para ${r.name}!`)
-                            }}
-                          >
-                            Lembrar
-                          </Button>
-                        )}
-                        {tournament.status === "upcoming" && (
-                          <Button
-                            size="sm"
-                            variant="danger"
-                            className="px-1.5 sm:px-3 text-xs sm:text-sm"
-                            disabled={saving}
-                            onClick={async () => {
-                              if (!window.confirm(`Remover ${r.name} do torneio?`)) return
-                              setSaving(true)
-                              try {
-                                await store.unregisterAthlete(r.id)
-                              } catch (e) {
-                                alert("Erro ao remover atleta. Tente novamente.")
-                              } finally {
-                                load()
-                                setSaving(false)
-                              }
-                            }}
-                          >
-                            {saving ? "Removendo..." : "Remover"}
-                          </Button>
-                        )}
+                                } catch (e: any) {
+                                  alert(e.message)
+                                } finally {
+                                  setStartingCat(null)
+                                }
+                              }}
+                            >
+                              {startingCat === `${cat}-${grp}` ? "Iniciando..." : "Iniciar"}
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {grpRegs.length > 0 && (
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[650px] text-sm">
+                        <thead>
+                          <tr className="border-b border-gray-200 dark:border-gray-700">
+                            {["Nome", "Status", "Check-in", "Nº Sorteio", "Ações"].map((h) => (
+                              <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                          {grpRegs.map((r) => (
+                            <tr key={r.id}>
+                              <td className="px-4 py-3 text-gray-700 dark:text-gray-300 font-medium">{r.name}</td>
+                              <td className="px-4 py-3">
+                                <Badge className={getStatusColor(r.status)}>
+                                  {getStatusLabel(r.status)}
+                                </Badge>
+                              </td>
+                              <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
+                                {r.status === "approved" ? (
+                                  r.confirmed ? (
+                                    <span className="text-green-600 dark:text-green-400 font-medium text-sm">✅</span>
+                                  ) : (
+                                    <span className="text-yellow-600 font-medium text-sm">⏳</span>
+                                  )
+                                ) : (
+                                  <span className="text-gray-300 dark:text-gray-600">—</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{r.draw_number ?? "-"}</td>
+                              <td className="px-4 py-3">
+                                <div className="flex gap-1">
+                                  {r.status === "pending" && (
+                                    <>
+                                      <Button size="sm" variant="success" className="px-1.5 sm:px-3 text-xs sm:text-sm" onClick={() => { store.approveAthlete(r.id); load() }}>
+                                        <span className="sm:hidden">✓</span>
+                                        <span className="hidden sm:inline">Aprovar</span>
+                                      </Button>
+                                      <Button size="sm" variant="secondary" className="px-1.5 sm:px-3 text-xs sm:text-sm" onClick={() => { store.rejectAthlete(r.id); load() }}>
+                                        <span className="sm:hidden">✗</span>
+                                        <span className="hidden sm:inline">Rejeitar</span>
+                                      </Button>
+                                    </>
+                                  )}
+                                  {r.status === "approved" && (
+                                    r.confirmed ? (
+                                      <span className="text-green-600 dark:text-green-400 font-medium text-sm px-2">✅</span>
+                                    ) : (
+                                      <Button size="sm" variant="secondary" className="px-1.5 sm:px-3 text-xs sm:text-sm" onClick={() => { store.confirmAttendance(tournament.id, r.athlete_id); load() }}>
+                                        Check-in
+                                      </Button>
+                                    )
+                                  )}
+                                  {tournament.status === "upcoming" && r.status === "approved" && !r.confirmed && (
+                                    <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm" onClick={() => { store.createNotification(r.athlete_id, "geral", "Confirme sua presença!", `O torneio ${tournament.title} está chegando! Confirme sua presença no sistema.`); alert(`Lembrete enviado para ${r.name}!`) }}>
+                                      Lembrar
+                                    </Button>
+                                  )}
+                                  {tournament.status === "upcoming" && (
+                                    <Button size="sm" variant="danger" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={saving} onClick={async () => {
+                                      if (!window.confirm(`Remover ${r.name} do torneio?`)) return
+                                      setSaving(true)
+                                      try { await store.unregisterAthlete(r.id) } catch (e) { alert("Erro ao remover atleta. Tente novamente.") } finally { load(); setSaving(false) }
+                                    }}>
+                                      {saving ? "Removendo..." : "Remover"}
+                                    </Button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                  {grpMatches.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-4 py-3">
+                      <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200">
+                        <p className="text-sm text-blue-600 font-medium">Total de Jogos</p>
+                        <p className="text-2xl font-bold text-blue-700">{grpMatches.length}</p>
                       </div>
-                    </Td>
-                  </tr>
-                ))}
-              </Table>
-            )}
-            {catMatches.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-                <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200">
-                  <p className="text-sm text-blue-600 font-medium">Total de Jogos</p>
-                  <p className="text-2xl font-bold text-blue-700">{catMatches.length}</p>
+                      <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200">
+                        <p className="text-sm text-green-600 dark:text-green-400 font-medium">Finalizados</p>
+                        <p className="text-2xl font-bold text-green-700 dark:text-green-400">{grpFinished}</p>
+                      </div>
+                      <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200">
+                        <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">Ao Vivo</p>
+                        <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">{grpLive}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200">
-                  <p className="text-sm text-green-600 dark:text-green-400 font-medium">Finalizados</p>
-                  <p className="text-2xl font-bold text-green-700 dark:text-green-400">{catFinished}</p>
-                </div>
-                <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200">
-                  <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">Ao Vivo</p>
-                  <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">{catLive}</p>
-                </div>
-              </div>
-            )}
+              )
+            })}
           </Card>
         )
       })}
@@ -507,23 +494,38 @@ export default function TournamentDetail() {
 
       <Modal
         open={registerModal}
-        onClose={() => { setRegisterModal(false); setRegisterAthleteIds([]); setRegisterCategory("") }}
+        onClose={() => { setRegisterModal(false); setRegisterAthleteIds([]); setRegisterCategory(""); setRegisterGroup("A") }}
         title="Registrar Atletas no Torneio"
       >
         <div className="space-y-4">
-          {tournament.categories.length > 1 && (
-            <Select
-              label="Categoria"
-              options={[
-                ...tournament.categories.map((cat) => ({
-                  value: cat,
-                  label: cat === "4e5" ? "Categoria 4e5" : "Categoria 6e7",
-                })),
-              ]}
-              value={registerCategory}
-              onChange={(e) => setRegisterCategory(e.target.value)}
-            />
-          )}
+          <div className="flex gap-3">
+            {(tournament.categories.length > 1) && (
+              <div className="flex-1">
+                <Select
+                  label="Categoria"
+                  options={[
+                    ...tournament.categories.map((cat) => ({
+                      value: cat,
+                      label: cat === "4e5" ? "Categoria 4e5" : "Categoria 6e7",
+                    })),
+                  ]}
+                  value={registerCategory}
+                  onChange={(e) => setRegisterCategory(e.target.value)}
+                />
+              </div>
+            )}
+            <div className="flex-1">
+              <Select
+                label="Grupo"
+                options={[
+                  { value: "A", label: "Grupo A" },
+                  { value: "B", label: "Grupo B" },
+                ]}
+                value={registerGroup}
+                onChange={(e) => setRegisterGroup(e.target.value)}
+              />
+            </div>
+          </div>
           <div>
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Atletas disponíveis ({allAthletes.length})
@@ -566,7 +568,7 @@ export default function TournamentDetail() {
               {registerAthleteIds.length} selecionado(s)
             </span>
             <div className="flex gap-3">
-              <Button variant="secondary" onClick={() => { setRegisterModal(false); setRegisterAthleteIds([]); setRegisterCategory("") }}>
+              <Button variant="secondary" onClick={() => { setRegisterModal(false); setRegisterAthleteIds([]); setRegisterCategory(""); setRegisterGroup("A") }}>
                 Cancelar
               </Button>
               <Button
@@ -575,10 +577,11 @@ export default function TournamentDetail() {
                   setSaving(true)
                   try {
                     const cat = registerCategory || tournament.categories[0]
-                    await store.registerMultipleAthletes(id, registerAthleteIds, cat)
+                    await store.registerMultipleAthletes(id, registerAthleteIds, cat, registerGroup)
                     setRegisterModal(false)
                     setRegisterAthleteIds([])
                     setRegisterCategory("")
+                    setRegisterGroup("A")
                   } catch (e) {
                     alert("Erro ao registrar atleta(s). Tente novamente.")
                   } finally {
