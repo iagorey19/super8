@@ -18,7 +18,10 @@ export default function PublicJogosPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("")
   const [courtNames, setCourtNames] = useState<string[]>([])
 
-  const getCourtName = (court: string) => courtNames[parseInt(court) - 1] || `Quadra ${court}`
+  const getCourtName = (court: string) => {
+    const n = parseInt(court.replace(/[A-Za-z]/g, ""), 10)
+    return courtNames[isNaN(n) ? 0 : n - 1] || `Quadra ${court}`
+  }
 
   const loadData = useCallback(() => {
     const t = store.getTournamentById(id)

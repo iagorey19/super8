@@ -43,11 +43,20 @@ export default function TournamentDetail() {
 
   function load() {
     const t = store.getTournamentById(id)
-    setTournament(t)
+    setTournament(t ? { ...t } : undefined)
     if (t) {
       setRegistrations(store.getRegisteredAthletes(t.id))
       setMatches(store.getTournamentMatches(t.id))
     }
+  }
+
+  function handleCourtNameChange(idx: number, val: string) {
+    store.updateCourtName(id, idx, val)
+    setTournament((prev) => {
+      if (!prev) return prev
+      const names = store.getCourtNames(id)
+      return { ...prev, court_names: [...names] }
+    })
   }
 
   useEffect(() => {
@@ -390,11 +399,8 @@ export default function TournamentDetail() {
                     {catName === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}
                   </span>
                   <Input
-                    value={name}
-                    onChange={(e) => {
-                      store.updateCourtName(id, idx, e.target.value)
-                      load()
-                    }}
+                    defaultValue={name}
+                    onBlur={(e) => handleCourtNameChange(idx, e.target.value)}
                     className="flex-1"
                   />
                 </div>

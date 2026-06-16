@@ -34,6 +34,11 @@ export default function JogosPage() {
     ? matches.filter((m) => m.category === selectedCategory)
     : matches
 
+  function courtIndex(court: string): number {
+    const n = parseInt(court.replace(/[A-Za-z]/g, ""), 10)
+    return isNaN(n) ? 0 : n - 1
+  }
+
   const courtNames = tournament ? getCourtNames(id) : []
   const rounds = [1, 2, 3, 4, 5, 6, 7]
   const uniqueCourts = [...new Set(filteredMatches.map((m) => m.court))].sort()
@@ -145,7 +150,7 @@ export default function JogosPage() {
               {uniqueCourts.map((court) => (
                 <div key={court} className="contents">
                   <div className="bg-white dark:bg-gray-800 p-3 text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    {courtNames[parseInt(court) - 1] || `Quadra ${court}`}
+                    {courtNames[courtIndex(court)] || `Quadra ${court}`}
                     <span className="text-xs text-gray-400 dark:text-gray-500">({court})</span>
                   </div>
                   {rounds.map((round) => {
@@ -210,7 +215,7 @@ export default function JogosPage() {
                           )}
                         </div>
                         <span className="text-xs font-medium text-gray-400 dark:text-gray-500">
-                          {courtNames[parseInt(match.court) - 1] || `Quadra ${match.court}`}
+                          {courtNames[courtIndex(match.court)] || `Quadra ${match.court}`}
                         </span>
                       </div>
                       <div className="flex items-center justify-between gap-4">
