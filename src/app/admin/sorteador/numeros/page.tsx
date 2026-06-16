@@ -82,20 +82,27 @@ export default function SortearNumeros() {
     if (hasMultipleCategories && !selectedCategory) return
     if (athletesWithoutNumber.length === 0) return
     setIsAnimating(true)
+
+    const names = athletesWithoutNumber.map((a) => a.name)
+    const usedNumbers = new Set(athletes.filter((a) => a.number != null).map((a) => a.number))
+    const availableNumbers = [1, 2, 3, 4, 5, 6, 7, 8].filter((n) => !usedNumbers.has(n))
+
     setDrawingAthlete(athletesWithoutNumber[0])
-    setCurrentAthleteName(athletesWithoutNumber[0].name)
+    setCurrentAthleteName(names[0])
     setCurrentCategory(athletesWithoutNumber[0].category || selectedCategory)
 
     const totalSteps = 15
     let step = 0
     const interval = setInterval(() => {
-      setRollingNumber(Math.floor(Math.random() * 8) + 1)
+      setCurrentAthleteName(names[step % names.length])
+      setRollingNumber(availableNumbers[Math.floor(Math.random() * availableNumbers.length)])
       step++
       if (step >= totalSteps) {
         clearInterval(interval)
         const cat = hasMultipleCategories && selectedCategory ? selectedCategory : undefined
         const result = store.drawSingleNumber(selectedTournament, cat)
         if (result) {
+          setCurrentAthleteName(result.name)
           setRollingNumber(result.number)
           loadAthletes()
           setTimeout(() => {
@@ -103,10 +110,12 @@ export default function SortearNumeros() {
             setRollingNumber(null)
             setIsAnimating(false)
           }, 1500)
+        } else {
+          setIsAnimating(false)
         }
       }
     }, 200)
-  }, [athletesWithoutNumber, selectedTournament, selectedCategory, hasMultipleCategories])
+  }, [athletes, athletesWithoutNumber, selectedTournament, selectedCategory, hasMultipleCategories])
 
   if (loading) {
     return (

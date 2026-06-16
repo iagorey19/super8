@@ -11,7 +11,7 @@ export function Table({
 }) {
   return (
     <div className={`overflow-x-auto ${className}`}>
-      <table className="w-full text-sm">
+      <table className="w-full min-w-[650px] text-sm">
         <thead>
           <tr className="border-b border-gray-200 dark:border-gray-700">
             {headers.map((h, i) => (

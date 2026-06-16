@@ -285,22 +285,26 @@ export default function TournamentDetail() {
                             <Button
                               size="sm"
                               variant="success"
+                              className="px-1.5 sm:px-3 text-xs sm:text-sm"
                               onClick={() => {
                                 store.approveAthlete(r.id)
                                 load()
                               }}
                             >
-                              Aprovar
+                              <span className="sm:hidden">✓</span>
+                              <span className="hidden sm:inline">Aprovar</span>
                             </Button>
                             <Button
                               size="sm"
                               variant="secondary"
+                              className="px-1.5 sm:px-3 text-xs sm:text-sm"
                               onClick={() => {
                                 store.rejectAthlete(r.id)
                                 load()
                               }}
                             >
-                              Rejeitar
+                              <span className="sm:hidden">✗</span>
+                              <span className="hidden sm:inline">Rejeitar</span>
                             </Button>
                           </>
                         )}
@@ -312,6 +316,7 @@ export default function TournamentDetail() {
                               <Button
                                 size="sm"
                                 variant="secondary"
+                                className="px-1.5 sm:px-3 text-xs sm:text-sm"
                                 onClick={() => {
                                   store.confirmAttendance(tournament.id, r.athlete_id)
                                   load()
@@ -326,6 +331,7 @@ export default function TournamentDetail() {
                           <Button
                             size="sm"
                             variant="ghost"
+                            className="px-1.5 sm:px-3 text-xs sm:text-sm"
                             onClick={() => {
                               store.createNotification(r.athlete_id, "geral", "Confirme sua presença!", `O torneio ${tournament.title} está chegando! Confirme sua presença no sistema.`)
                               alert(`Lembrete enviado para ${r.name}!`)
@@ -338,16 +344,17 @@ export default function TournamentDetail() {
                           <Button
                             size="sm"
                             variant="danger"
+                            className="px-1.5 sm:px-3 text-xs sm:text-sm"
                             disabled={saving}
                             onClick={async () => {
                               if (!window.confirm(`Remover ${r.name} do torneio?`)) return
                               setSaving(true)
                               try {
                                 await store.unregisterAthlete(r.id)
-                                load()
                               } catch (e) {
                                 alert("Erro ao remover atleta. Tente novamente.")
                               } finally {
+                                load()
                                 setSaving(false)
                               }
                             }}
@@ -574,10 +581,10 @@ export default function TournamentDetail() {
                     setRegisterModal(false)
                     setRegisterAthleteIds([])
                     setRegisterCategory("")
-                    load()
                   } catch (e) {
                     alert("Erro ao registrar atleta(s). Tente novamente.")
                   } finally {
+                    load()
                     setSaving(false)
                   }
                 }}
