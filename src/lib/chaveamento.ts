@@ -15,7 +15,7 @@ export function generatePairings(
   athleteIds: string[],
   category: string,
   groupName: string,
-  courtPrefix: string
+  courtOffset: number
 ) {
   if (athleteIds.length !== 8) {
     throw new Error("São necessários exatamente 8 atletas")
@@ -26,13 +26,14 @@ export function generatePairings(
 
   WHIST_SCHEDULE.forEach(({ round, courtA, courtB }) => {
     ;[
-      { court: "A", t1: courtA.t1, t2: courtA.t2 },
-      { court: "B", t1: courtB.t1, t2: courtB.t2 },
+      { court: 1, t1: courtA.t1, t2: courtA.t2 },
+      { court: 2, t1: courtB.t1, t2: courtB.t2 },
     ].forEach(({ court, t1, t2 }) => {
       const p1 = athleteIds[t1[0] - 1]
       const p2 = athleteIds[t1[1] - 1]
       const p3 = athleteIds[t2[0] - 1]
       const p4 = athleteIds[t2[1] - 1]
+      const courtNumber = courtOffset + court
 
       const pairingId = crypto.randomUUID()
       pairings.push({
@@ -41,7 +42,7 @@ export function generatePairings(
         category,
         group_name: groupName,
         round,
-        court: `${courtPrefix}${court}`,
+        court: String(courtNumber),
         player1_id: p1,
         player2_id: p2,
         player3_id: p3,
@@ -55,7 +56,7 @@ export function generatePairings(
         category,
         group_name: groupName,
         round,
-        court: `${courtPrefix}${court}`,
+        court: String(courtNumber),
         team1_player1_id: p1,
         team1_player2_id: p2,
         team2_player1_id: p3,

@@ -229,18 +229,26 @@ export function updateTournament(
   }
 }
 
+function expectedCourtCount(categories?: string[]): number {
+  return (categories?.length || 1) * 2
+}
+
 export function getCourtNames(tournamentId: string): string[] {
   const data = getData()
   const t = data.tournaments.find((tour) => tour.id === tournamentId)
-  if (t?.court_names && t.court_names.length > 0) return t.court_names
-  return ["Quadra 1", "Quadra 2"]
+  const count = expectedCourtCount(t?.categories)
+  if (t?.court_names && t.court_names.length === count) return t.court_names
+  return Array.from({ length: count }, (_, i) => `Quadra ${i + 1}`)
 }
 
 export function updateCourtName(tournamentId: string, index: number, name: string) {
   const data = getData()
   const t = data.tournaments.find((tour) => tour.id === tournamentId)
   if (!t) return
-  if (!t.court_names) t.court_names = ["Quadra 1", "Quadra 2"]
+  const count = expectedCourtCount(t.categories)
+  if (!t.court_names || t.court_names.length !== count) {
+    t.court_names = Array.from({ length: count }, (_, i) => `Quadra ${i + 1}`)
+  }
   if (index >= 0 && index < t.court_names.length) {
     t.court_names[index] = name || `Quadra ${index + 1}`
     saveData(data)
@@ -333,9 +341,9 @@ export function startTournament(tournamentId: string, category?: string, groupNa
   const athleteIds = sorted.map((r) => r.athlete_id)
 
   const catIndex = tournament.categories.indexOf(cat)
-  const courtPrefix = String.fromCharCode(65 + catIndex)
+  const courtOffset = catIndex * 2
 
-  const { pairings, matches } = generatePairings(tournamentId, athleteIds, cat, grp, courtPrefix)
+  const { pairings, matches } = generatePairings(tournamentId, athleteIds, cat, grp, courtOffset)
   data.pairings.push(...pairings)
   data.matches.push(...matches)
 
