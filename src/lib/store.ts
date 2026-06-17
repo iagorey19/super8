@@ -1231,7 +1231,7 @@ export function drawSingleNumber(tournamentId: string, category?: string, groupN
   const usedNumbers = new Set(withNumber.map((r) => r.draw_number))
   const availableNumbers = [1, 2, 3, 4, 5, 6, 7, 8].filter((n) => !usedNumbers.has(n))
 
-  const idx = Math.floor(Math.random() * withoutNumber.length)
+  const idx = 0
   const chosen = withoutNumber[idx]
   const num = availableNumbers[Math.floor(Math.random() * availableNumbers.length)]
 

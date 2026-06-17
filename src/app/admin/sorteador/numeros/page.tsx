@@ -85,17 +85,18 @@ export default function SortearNumeros() {
     setIsAnimating(true)
     setDrawingAthlete(null)
     setRollingNumber(null)
-    setCurrentAthleteName("")
     setCurrentCategory("")
 
-    const names = athletesWithoutNumber.map((a) => a.name)
+    const first = athletesWithoutNumber[0]
+    setCurrentAthleteName(first.name)
+    setCurrentCategory(first.category || selectedCategory)
+
     const usedNumbers = new Set(athletes.filter((a) => a.number != null).map((a) => a.number))
     const availableNumbers = [1, 2, 3, 4, 5, 6, 7, 8].filter((n) => !usedNumbers.has(n))
 
     const totalSteps = 15
     let step = 0
     const interval = setInterval(() => {
-      setCurrentAthleteName(names[step % names.length])
       setRollingNumber(availableNumbers[Math.floor(Math.random() * availableNumbers.length)])
       step++
       if (step >= totalSteps) {
@@ -103,7 +104,6 @@ export default function SortearNumeros() {
         const cat = hasMultipleCategories && selectedCategory ? selectedCategory : undefined
         const result = store.drawSingleNumber(selectedTournament, cat, selectedGroup || undefined)
         if (result) {
-          setCurrentAthleteName(result.name)
           setRollingNumber(result.number)
           setDrawingAthlete({ athlete_id: result.athlete_id, name: result.name, number: result.number, category: cat, group_name: selectedGroup || undefined })
           setIsAnimating(false)
