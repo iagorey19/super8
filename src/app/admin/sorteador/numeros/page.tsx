@@ -203,8 +203,8 @@ export default function SortearNumeros() {
                   disabled={hasMultipleCategories && !selectedCategory || athletesWithoutNumber.length === 0}
                 >
                   {athletesWithoutNumber.length > 0
-                    ? `Sortear ${athletesWithoutNumber[0].name} 🎲`
-                    : "Sortear Número"}
+                    ? "Sortear 🎲"
+                    : "Sortear"}
                 </Button>
               ) : null
             }
@@ -228,9 +228,9 @@ export default function SortearNumeros() {
                   </div>
                 </>
               ) : drawingAthlete ? (
-                <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl border-2 border-amber-300 p-8 space-y-4">
+                <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/30 dark:to-yellow-900/30 rounded-2xl border-2 border-amber-300 dark:border-amber-700 p-8 space-y-4">
                   <p className="text-lg font-medium text-gray-600 dark:text-gray-400">Resultado do Sorteio</p>
-                  <p className="text-4xl font-black text-gray-900 dark:text-white">{drawingAthlete.name}</p>
+                  <p className="text-4xl font-black text-gray-900 dark:text-amber-100">{drawingAthlete.name}</p>
                   <div className="text-8xl font-black text-amber-600 dark:text-amber-400">
                     {drawingAthlete.number}
                   </div>
