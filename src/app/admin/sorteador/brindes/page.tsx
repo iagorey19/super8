@@ -119,13 +119,7 @@ export default function SortearBrindes() {
             }
 
             const found = participants.find((p) => p.name === result.winner.name)
-            if (found) {
-              setWinner(found)
-            } else {
-              const newParticipant = { id: crypto.randomUUID(), name: result.winner.name }
-              setWinner(newParticipant)
-              setParticipants((prev) => [...prev, newParticipant])
-            }
+            setWinner(found || { id: result.winner.id, name: result.winner.name })
 
             setScrollingName("")
             setIsAnimating(false)
@@ -273,12 +267,20 @@ export default function SortearBrindes() {
                 </p>
               )}
               <div className="flex justify-center gap-3 pt-4">
-                <Button variant="danger" onClick={handleRemoveWinner}>
-                  Remover Vencedor da Lista
-                </Button>
-                <Button variant="secondary" onClick={handleKeepWinner}>
-                  Manter na Lista
-                </Button>
+                {participants.some((p) => p.name === winner.name) ? (
+                  <>
+                    <Button variant="danger" onClick={handleRemoveWinner}>
+                      Remover Vencedor da Lista
+                    </Button>
+                    <Button variant="secondary" onClick={handleKeepWinner}>
+                      Manter na Lista
+                    </Button>
+                  </>
+                ) : (
+                  <Button variant="secondary" onClick={handleKeepWinner}>
+                    OK
+                  </Button>
+                )}
               </div>
             </div>
           )}
