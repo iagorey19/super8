@@ -83,14 +83,14 @@ export default function SortearNumeros() {
     if (hasMultipleCategories && !selectedCategory) return
     if (athletesWithoutNumber.length === 0) return
     setIsAnimating(true)
+    setDrawingAthlete(null)
+    setRollingNumber(null)
+    setCurrentAthleteName("")
+    setCurrentCategory("")
 
     const names = athletesWithoutNumber.map((a) => a.name)
     const usedNumbers = new Set(athletes.filter((a) => a.number != null).map((a) => a.number))
     const availableNumbers = [1, 2, 3, 4, 5, 6, 7, 8].filter((n) => !usedNumbers.has(n))
-
-    setDrawingAthlete(athletesWithoutNumber[0])
-    setCurrentAthleteName(names[0])
-    setCurrentCategory(athletesWithoutNumber[0].category || selectedCategory)
 
     const totalSteps = 15
     let step = 0
@@ -105,12 +105,9 @@ export default function SortearNumeros() {
         if (result) {
           setCurrentAthleteName(result.name)
           setRollingNumber(result.number)
+          setDrawingAthlete({ athlete_id: result.athlete_id, name: result.name, number: result.number, category: cat, group_name: selectedGroup || undefined })
+          setIsAnimating(false)
           loadAthletes()
-          setTimeout(() => {
-            setDrawingAthlete(null)
-            setRollingNumber(null)
-            setIsAnimating(false)
-          }, 1500)
         } else {
           setIsAnimating(false)
         }
@@ -213,20 +210,37 @@ export default function SortearNumeros() {
             }
           />
 
-          {isAnimating && drawingAthlete && (
+          {(isAnimating || drawingAthlete) && (
             <div className="text-center py-8 space-y-6">
-              <div className="animate-pulse">
-                <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Sorteando...</p>
-                <p className="text-3xl font-black text-gray-900 dark:text-white">{currentAthleteName}</p>
-                {currentCategory && (
-                  <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 mt-2">
-                    {currentCategory === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}
-                  </Badge>
-                )}
-              </div>
-              <div className="text-8xl font-black text-amber-600 dark:text-amber-400 animate-pulse">
-                {rollingNumber}
-              </div>
+              {isAnimating ? (
+                <>
+                  <div className="animate-pulse">
+                    <p className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Sorteando...</p>
+                    <p className="text-3xl font-black text-gray-900 dark:text-white">{currentAthleteName}</p>
+                    {currentCategory && (
+                      <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 mt-2">
+                        {currentCategory === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="text-8xl font-black text-amber-600 dark:text-amber-400 animate-pulse">
+                    {rollingNumber}
+                  </div>
+                </>
+              ) : drawingAthlete ? (
+                <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl border-2 border-amber-300 p-8 space-y-4">
+                  <p className="text-lg font-medium text-gray-600 dark:text-gray-400">Resultado do Sorteio</p>
+                  <p className="text-4xl font-black text-gray-900 dark:text-white">{drawingAthlete.name}</p>
+                  <div className="text-8xl font-black text-amber-600 dark:text-amber-400">
+                    {drawingAthlete.number}
+                  </div>
+                  {currentCategory && (
+                    <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300">
+                      {currentCategory === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}
+                    </Badge>
+                  )}
+                </div>
+              ) : null}
             </div>
           )}
 

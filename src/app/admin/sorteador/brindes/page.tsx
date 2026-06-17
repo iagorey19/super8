@@ -82,9 +82,7 @@ export default function SortearBrindes() {
 
   function handleAutoRaffle(brindeId: string) {
     if (!selectedTournamentId) return
-
-    const participantsNames = participants.map((p) => p.name)
-    if (participantsNames.length === 0) {
+    if (participants.length === 0) {
       alert("Adicione participantes primeiro.")
       return
     }
@@ -92,10 +90,11 @@ export default function SortearBrindes() {
     setIsAnimating(true)
     setWinner(null)
 
+    const names = participants.map((p) => p.name)
     let step = 0
     const totalSteps = 20
     scrollRef.current = setInterval(() => {
-      const randomName = participantsNames[Math.floor(Math.random() * participantsNames.length)]
+      const randomName = names[Math.floor(Math.random() * names.length)]
       setScrollingName(randomName)
       step++
 
@@ -104,7 +103,7 @@ export default function SortearBrindes() {
         const slowSteps = 10
         let slow = 0
         const slowInterval = setInterval(() => {
-          const randomName = participantsNames[Math.floor(Math.random() * participantsNames.length)]
+          const randomName = names[Math.floor(Math.random() * names.length)]
           setScrollingName(randomName)
           slow++
 
@@ -120,7 +119,14 @@ export default function SortearBrindes() {
             }
 
             const found = participants.find((p) => p.name === result.winner.name)
-            setWinner(found || { id: result.winner.id, name: result.winner.name })
+            if (found) {
+              setWinner(found)
+            } else {
+              const newParticipant = { id: crypto.randomUUID(), name: result.winner.name }
+              setWinner(newParticipant)
+              setParticipants((prev) => [...prev, newParticipant])
+            }
+
             setScrollingName("")
             setIsAnimating(false)
             setRecords(store.getRaffleRecords(selectedTournamentId))
@@ -174,7 +180,7 @@ export default function SortearBrindes() {
 
   function handleRemoveWinner() {
     if (winner) {
-      setParticipants((prev) => prev.filter((p) => p.name !== winner.name))
+      setParticipants((prev) => prev.filter((p) => p.id !== winner.id))
       setWinner(null)
     }
   }
@@ -219,6 +225,64 @@ export default function SortearBrindes() {
           value={selectedTournamentId}
           onChange={(e) => setSelectedTournamentId(e.target.value)}
         />
+      </Card>
+
+      <Card>
+        <CardHeader title="Realizar Sorteio" />
+        <div className="space-y-6">
+          <div className="max-w-sm">
+            <Input
+              label="Prêmio"
+              placeholder="Ex: Camiseta oficial"
+              value={prize}
+              onChange={(e) => setPrize(e.target.value)}
+            />
+          </div>
+
+          {isAnimating && (
+            <div className="text-center py-8">
+              <div className="text-6xl font-black text-amber-600 dark:text-amber-400 animate-pulse mb-4">
+                {scrollingName}
+              </div>
+              <p className="text-gray-400 dark:text-gray-500">Sorteando...</p>
+            </div>
+          )}
+
+          {!isAnimating && !winner && (
+            <div className="text-center">
+              <Button
+                size="lg"
+                onClick={handleDraw}
+                disabled={participants.length === 0}
+              >
+                SORTEAR 🎲
+              </Button>
+            </div>
+          )}
+
+          {winner && !isAnimating && (
+            <div className="text-center bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl border-2 border-amber-300 p-8 space-y-3">
+              <div className="text-5xl">🎉</div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">VENCEDOR</h2>
+              <div className="text-4xl font-black text-amber-600 dark:text-amber-400">
+                {winner.name}
+              </div>
+              {prize.trim() && (
+                <p className="text-lg text-gray-500 dark:text-gray-400">
+                  Prêmio: <span className="font-semibold text-gray-700 dark:text-gray-300">{prize.trim()}</span>
+                </p>
+              )}
+              <div className="flex justify-center gap-3 pt-4">
+                <Button variant="danger" onClick={handleRemoveWinner}>
+                  Remover Vencedor da Lista
+                </Button>
+                <Button variant="secondary" onClick={handleKeepWinner}>
+                  Manter na Lista
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       </Card>
 
       {sorteioBrindes.length > 0 && (
@@ -284,64 +348,6 @@ export default function SortearBrindes() {
                   </button>
                 </span>
               ))}
-            </div>
-          )}
-        </div>
-      </Card>
-
-      <Card>
-        <CardHeader title="Realizar Sorteio" />
-        <div className="space-y-6">
-          <div className="max-w-sm">
-            <Input
-              label="Prêmio"
-              placeholder="Ex: Camiseta oficial"
-              value={prize}
-              onChange={(e) => setPrize(e.target.value)}
-            />
-          </div>
-
-          {isAnimating && (
-            <div className="text-center py-8">
-              <div className="text-6xl font-black text-amber-600 dark:text-amber-400 animate-pulse mb-4">
-                {scrollingName}
-              </div>
-              <p className="text-gray-400 dark:text-gray-500">Sorteando...</p>
-            </div>
-          )}
-
-          {!isAnimating && !winner && (
-            <div className="text-center">
-              <Button
-                size="lg"
-                onClick={handleDraw}
-                disabled={participants.length === 0}
-              >
-                SORTEAR 🎲
-              </Button>
-            </div>
-          )}
-
-          {winner && !isAnimating && (
-            <div className="text-center bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl border-2 border-amber-300 p-8 space-y-3">
-              <div className="text-5xl">🎉</div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">VENCEDOR</h2>
-              <div className="text-4xl font-black text-amber-600 dark:text-amber-400">
-                {winner.name}
-              </div>
-              {prize.trim() && (
-                <p className="text-lg text-gray-500 dark:text-gray-400">
-                  Prêmio: <span className="font-semibold text-gray-700 dark:text-gray-300">{prize.trim()}</span>
-                </p>
-              )}
-              <div className="flex justify-center gap-3 pt-4">
-                <Button variant="danger" onClick={handleRemoveWinner}>
-                  Remover Vencedor da Lista
-                </Button>
-                <Button variant="secondary" onClick={handleKeepWinner}>
-                  Manter na Lista
-                </Button>
-              </div>
             </div>
           )}
         </div>
