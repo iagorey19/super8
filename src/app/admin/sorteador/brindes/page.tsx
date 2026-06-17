@@ -299,7 +299,14 @@ export default function SortearBrindes() {
               return (
                 <div key={b.id} className="bg-green-50 dark:bg-green-900/20 border border-green-200 rounded-lg p-3 flex items-center gap-3">
                   <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{b.description}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {b.description}
+                      {b.quantity > 1 && (
+                        <span className="ml-2 text-xs text-amber-600 dark:text-amber-400 font-semibold">
+                          x{b.quantity}
+                        </span>
+                      )}
+                    </p>
                     <p className="text-xs text-gray-400 dark:text-gray-500">Doado por: {apoiador?.name || "Desconhecido"}</p>
                   </div>
                   <Button size="sm" variant="success" onClick={() => handleAutoRaffle(b.id)}>
