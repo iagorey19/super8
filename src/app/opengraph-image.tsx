@@ -2,8 +2,13 @@ import { ImageResponse } from "next/og"
 
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
+export const dynamic = "force-dynamic"
 
-export default function OGImage() {
+export default async function OGImage() {
+  const baseUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000"
+
   return new ImageResponse(
     (
       <div
@@ -19,7 +24,7 @@ export default function OGImage() {
         }}
       >
         <img
-          src="https://super8-three.vercel.app/logo.jpg"
+          src={`${baseUrl}/logo.jpg`}
           width={200}
           height={200}
           style={{ borderRadius: 16 }}
