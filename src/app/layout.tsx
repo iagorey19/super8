@@ -21,11 +21,9 @@ export const metadata: Metadata = {
     description: "Aplicativo Oficial Do Evento",
     images: [
       {
-        url: `${siteUrl}/opengraph-image`,
-        width: 1200,
-        height: 630,
-        alt: "THE SUPER 8 — Torneio de Padel",
-        type: "image/png",
+        url: `${siteUrl}/logo.jpg`,
+        alt: "THE SUPER 8",
+        type: "image/jpeg",
       },
     ],
   },
@@ -33,7 +31,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "THE SUPER 8",
     description: "Aplicativo Oficial Do Evento",
-    images: [`${siteUrl}/opengraph-image`],
+    images: [`${siteUrl}/logo.jpg`],
   },
 }
 
