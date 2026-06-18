@@ -33,9 +33,7 @@ export default function Home() {
             <h1 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">
               THE SUPER 8
             </h1>
-            <p className="mt-2 text-gray-500 dark:text-gray-400">
-              Gestão de Torneios de Padel
-            </p>
+
           </div>
 
           <div className="space-y-3">
