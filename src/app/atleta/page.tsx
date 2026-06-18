@@ -20,7 +20,8 @@ export default function AthleteDashboard() {
   const [registration, setRegistration] = useState<AthleteRegistration | undefined>()
   const [myCategory, setMyCategory] = useState<string>("")
   const [profileModal, setProfileModal] = useState(false)
-  const [profileForm, setProfileForm] = useState({ name: "", email: "", phone: "" })
+  const [profileForm, setProfileForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "" })
+  const [showPassword, setShowPassword] = useState(false)
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
   const [raffleRecords, setRaffleRecords] = useState<RaffleRecord[]>([])
   const [apoiadores, setApoiadores] = useState<any[]>([])
@@ -58,12 +59,22 @@ export default function AthleteDashboard() {
 
   function handleSaveProfile() {
     if (profileForm.name && profileForm.email && user) {
-      store.updateAthlete(user.id, profileForm)
+      if (profileForm.password && profileForm.password !== profileForm.confirmPassword) {
+        setToast({ type: "error", message: "Senhas não conferem" })
+        setTimeout(() => setToast(null), 3000)
+        return
+      }
+      store.updateAthlete(user.id, {
+        name: profileForm.name,
+        email: profileForm.email,
+        phone: profileForm.phone,
+        ...(profileForm.password ? { password: profileForm.password } : {}),
+      })
       const session = store.getSession()
       if (session) {
         try {
           sessionStorage.setItem("super8-session", JSON.stringify({
-            user: { ...session.user, ...profileForm },
+            user: { ...session.user, name: profileForm.name, email: profileForm.email, phone: profileForm.phone },
           }))
         } catch {
           // storage unavailable
@@ -91,7 +102,8 @@ export default function AthleteDashboard() {
           <p className="text-gray-500 dark:text-gray-400 mt-1">Bem-vindo ao THE SUPER 8</p>
         </div>
         <Button size="sm" variant="ghost" onClick={() => {
-          setProfileForm({ name: user.name, email: user.email, phone: user.phone || "" })
+          setProfileForm({ name: user.name, email: user.email, phone: user.phone || "", password: "", confirmPassword: "" })
+          setShowPassword(false)
           setProfileModal(true)
         }}>
           Editar Perfil
@@ -266,6 +278,31 @@ export default function AthleteDashboard() {
             placeholder="(11) 99999-9999"
             value={profileForm.phone}
             onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+          />
+          <hr className="border-gray-200 dark:border-gray-700" />
+          <div className="relative">
+            <Input
+              label="Nova Senha"
+              type={showPassword ? "text" : "password"}
+              placeholder="Deixe em branco para manter"
+              value={profileForm.password}
+              onChange={(e) => setProfileForm({ ...profileForm, password: e.target.value })}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-lg"
+              tabIndex={-1}
+            >
+              {showPassword ? "🙈" : "👁️"}
+            </button>
+          </div>
+          <Input
+            label="Confirmar Senha"
+            type={showPassword ? "text" : "password"}
+            placeholder="Repita a nova senha"
+            value={profileForm.confirmPassword}
+            onChange={(e) => setProfileForm({ ...profileForm, confirmPassword: e.target.value })}
           />
           <div className="flex gap-3 pt-2">
             <Button variant="secondary" className="flex-1" onClick={() => setProfileModal(false)}>

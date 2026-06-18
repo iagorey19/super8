@@ -164,13 +164,14 @@ export function deleteTournament(tournamentId: string) {
   saveData(data)
 }
 
-export function updateAthlete(athleteId: string, updates: { name?: string; email?: string; phone?: string }) {
+export function updateAthlete(athleteId: string, updates: { name?: string; email?: string; phone?: string; password?: string }) {
   const data = getData()
   const user = data.users.find((u) => u.id === athleteId && u.role === "athlete")
   if (user) {
     if (updates.name !== undefined) user.name = updates.name
     if (updates.email !== undefined) user.email = updates.email
     if (updates.phone !== undefined) user.phone = updates.phone || undefined
+    if (updates.password !== undefined) user.password = updates.password
     saveData(data)
   }
 }

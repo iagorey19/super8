@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const { login } = useAuth()
@@ -66,14 +67,24 @@ export default function LoginPage() {
             autoComplete="email"
           />
 
-          <Input
-            label="Senha"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-          />
+          <div className="relative">
+            <Input
+              label="Senha"
+              type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-lg"
+              tabIndex={-1}
+            >
+              {showPassword ? "🙈" : "👁️"}
+            </button>
+          </div>
 
           <Button type="submit" className="w-full" disabled={submitting}>
             {submitting ? "Entrando..." : "Entrar"}
