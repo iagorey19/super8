@@ -1,7 +1,7 @@
 {
   "name": "THE SUPER 8",
-  "short_name": "SUPER 8",
-  "description": "Sistema de gerenciamento de torneios de padel",
+  "short_name": "THE SUPER 8",
+  "description": "Aplicativo Oficial Do Evento",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f9fafb",
