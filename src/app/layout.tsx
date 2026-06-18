@@ -5,10 +5,27 @@ import { DataLoader } from "@/components/data-loader"
 import { PWAPrompt } from "@/components/pwa-prompt"
 import "./globals.css"
 
+const siteUrl = "https://super8-three.vercel.app"
+
 export const metadata: Metadata = {
   title: "THE SUPER 8 - Gestão de Torneios",
   description: "Sistema de gerenciamento de torneios de padel",
   manifest: "/manifest.json",
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: siteUrl,
+    siteName: "THE SUPER 8",
+    title: "THE SUPER 8 - Gestão de Torneios",
+    description: "Sistema de gerenciamento de torneios de padel",
+    images: [{ url: `${siteUrl}/logo.jpg`, width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "THE SUPER 8 - Gestão de Torneios",
+    description: "Sistema de gerenciamento de torneios de padel",
+    images: [`${siteUrl}/logo.jpg`],
+  },
 }
 
 export const viewport: Viewport = {
