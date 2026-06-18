@@ -1,15 +1,22 @@
 import { ImageResponse } from "next/og"
+import fs from "fs"
+import path from "path"
 
+export const runtime = "nodejs"
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 export const alt = "THE SUPER 8 — Torneio de Padel"
 
 export default async function OGImage() {
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : "http://localhost:3000"
-
-  const logoSrc = `${baseUrl}/logo.jpg`
+  // Read logo directly from filesystem (reliable in Vercel serverless)
+  let logoBase64 = ""
+  try {
+    const logoPath = path.join(process.cwd(), "public", "logo.jpg")
+    const logoBuffer = fs.readFileSync(logoPath)
+    logoBase64 = `data:image/jpeg;base64,${logoBuffer.toString("base64")}`
+  } catch (err: unknown) {
+    console.error("[OG-IMAGE] Erro ao ler a logo:", err)
+  }
 
   return new ImageResponse(
     (
@@ -43,16 +50,39 @@ export default async function OGImage() {
         />
 
         {/* Logo — large and centered */}
-        <img
-          src={logoSrc}
-          width={380}
-          height={380}
-          style={{
-            borderRadius: 24,
-            objectFit: "contain",
-            zIndex: 1,
-          }}
-        />
+        {logoBase64 ? (
+          <img
+            src={logoBase64}
+            width={380}
+            height={380}
+            style={{
+              borderRadius: 24,
+              objectFit: "contain",
+              zIndex: 1,
+              border: "2px solid rgba(245, 158, 11, 0.3)",
+              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3)",
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: 380,
+              height: 380,
+              borderRadius: 24,
+              background: "#1a2744",
+              border: "2px solid rgba(245, 158, 11, 0.3)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 64,
+              fontWeight: 900,
+              color: "#ffffff",
+              zIndex: 1,
+            }}
+          >
+            S8
+          </div>
+        )}
 
         {/* Subtitle */}
         <p
