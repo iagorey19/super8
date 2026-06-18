@@ -281,10 +281,25 @@ export default function SortearNumeros() {
         </Card>
       )}
 
-      <div className="text-center">
-        <Link href="/admin" className="text-sm text-amber-600 dark:text-amber-400 hover:text-amber-800 font-medium">
+      <div className="text-center space-y-3">
+        <Link href="/admin" className="block text-sm text-amber-600 dark:text-amber-400 hover:text-amber-800 font-medium">
           ← Nova Edição
         </Link>
+        {selectedTournament && hasDrawn && (
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => {
+              if (window.confirm("Tem certeza? Isso vai limpar todos os números sorteados.")) {
+                store.resetNumberDraw(selectedTournament, hasMultipleCategories && selectedCategory ? selectedCategory : undefined, selectedGroup || undefined)
+                loadAthletes()
+                setHasDrawn(false)
+              }
+            }}
+          >
+            Resetar Números
+          </Button>
+        )}
       </div>
     </div>
   )

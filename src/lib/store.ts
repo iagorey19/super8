@@ -164,6 +164,24 @@ export function deleteTournament(tournamentId: string) {
   saveData(data)
 }
 
+export function resetTournament(tournamentId: string) {
+  const data = getData()
+  const tournament = data.tournaments.find((t) => t.id === tournamentId)
+  if (!tournament) return
+  data.pairings = data.pairings.filter((p) => p.tournament_id !== tournamentId)
+  data.matches = data.matches.filter((m) => m.tournament_id !== tournamentId)
+  data.tournament_results = data.tournament_results.filter((r) => r.tournament_id !== tournamentId)
+  data.athlete_registrations.forEach((r) => {
+    if (r.tournament_id === tournamentId) {
+      r.draw_number = undefined
+      r.confirmed = undefined
+      r.confirmed_at = undefined
+    }
+  })
+  tournament.status = "upcoming"
+  saveData(data)
+}
+
 export function updateAthlete(athleteId: string, updates: { name?: string; email?: string; phone?: string; password?: string }) {
   const data = getData()
   const user = data.users.find((u) => u.id === athleteId && u.role === "athlete")
@@ -1252,6 +1270,25 @@ export function drawSingleNumber(tournamentId: string, category?: string, groupN
   }
 }
 
+export function resetNumberDraw(tournamentId: string, category?: string, groupName?: string) {
+  const data = getData()
+  const cat = category || "4e5"
+  const grp = groupName || "A"
+  data.athlete_registrations.forEach((r) => {
+    if (
+      r.tournament_id === tournamentId &&
+      r.category === cat &&
+      (r.group_name === grp || (!r.group_name && grp === "A"))
+    ) {
+      r.draw_number = undefined
+    }
+  })
+  data.tournament_results = data.tournament_results.filter(
+    (r) => !(r.tournament_id === tournamentId && r.category === cat && r.group_name === grp)
+  )
+  saveData(data)
+}
+
 export function rafflePrize(
   participants: string[],
   excludeIds: string[] = []
@@ -1516,6 +1553,14 @@ export function recordRaffle(tournamentId: string, description: string, winnerNa
     winner_name: winnerName,
     created_at: new Date().toISOString(),
   })
+  saveData(data)
+}
+
+export function resetRaffleRecords(tournamentId: string) {
+  const data = getData()
+  if (data.raffle_records) {
+    data.raffle_records = data.raffle_records.filter((r) => r.tournament_id !== tournamentId)
+  }
   saveData(data)
 }
 

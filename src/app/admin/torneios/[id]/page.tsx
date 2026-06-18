@@ -177,6 +177,16 @@ export default function TournamentDetail() {
               {startingCat === "all" ? "Iniciando..." : "Iniciar Torneio"}
             </Button>
           )}
+          {tournament.status !== "upcoming" && (
+            <Button variant="danger" size="sm" onClick={() => {
+              if (window.confirm("Tem certeza? Isso vai apagar todas as partidas, resultados e números sorteados, e voltar o torneio para 'upcoming'.")) {
+                store.resetTournament(id)
+                load()
+              }
+            }}>
+              Resetar Torneio
+            </Button>
+          )}
         </div>
       </Card>
 

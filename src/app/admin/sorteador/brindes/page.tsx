@@ -384,6 +384,19 @@ export default function SortearBrindes() {
           </div>
         </Card>
       )}
+
+      {records.length > 0 && selectedTournamentId && (
+        <div className="text-center">
+          <Button variant="danger" size="sm" onClick={() => {
+            if (window.confirm("Tem certeza? Isso vai limpar todo o histórico de sorteios deste torneio.")) {
+              store.resetRaffleRecords(selectedTournamentId)
+              setRecords([])
+            }
+          }}>
+            Resetar Sorteios
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
