@@ -192,14 +192,25 @@ export default function TournamentDetail() {
             </Button>
           )}
           {tournament.status !== "upcoming" && (
-            <Button variant="danger" size="sm" onClick={() => {
-              if (window.confirm("Tem certeza? Isso vai apagar todas as partidas, resultados e números sorteados, e voltar o torneio para 'upcoming'.")) {
-                store.resetTournament(id)
-                load()
-              }
-            }}>
-              Resetar Torneio
-            </Button>
+            <>
+              <Button variant="danger" size="sm" onClick={() => {
+                if (window.confirm("Tem certeza? Isso vai apagar todas as partidas, resultados e números sorteados, e voltar o torneio para 'upcoming'.")) {
+                  store.resetTournament(id)
+                  load()
+                }
+              }}>
+                Resetar Torneio
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => {
+                if (window.confirm("Recalcular resultados deste torneio com o novo critério de desempate?")) {
+                  store.recalculateTournamentResults(id)
+                  alert("Resultados recalculados!")
+                  load()
+                }
+              }}>
+                Recalcular Resultados
+              </Button>
+            </>
           )}
         </div>
       </Card>

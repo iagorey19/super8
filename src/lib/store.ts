@@ -656,18 +656,18 @@ export function resetAllScores(tournamentId: string, category?: string, groupNam
   saveData(data)
 }
 
-export function recalculateAllResults() {
+export function recalculateTournamentResults(tournamentId: string) {
   const data = getData()
   const keys = new Set<string>()
 
-  data.tournament_results.forEach((r) => {
-    keys.add(`${r.tournament_id}|${r.category}|${r.group_name || "A"}`)
-  })
+  data.tournament_results
+    .filter((r) => r.tournament_id === tournamentId)
+    .forEach((r) => {
+      keys.add(`${r.category}|${r.group_name || "A"}`)
+    })
 
   keys.forEach((key) => {
-    const [tournamentId, category, groupName] = key.split("|")
-    const tournament = data.tournaments.find((t) => t.id === tournamentId)
-    if (!tournament) return
+    const [category, groupName] = key.split("|")
 
     const regs = data.athlete_registrations
       .filter(
@@ -695,7 +695,8 @@ export function recalculateAllResults() {
     const results = calculateTournamentResults(athleteIds, matches, athleteNames, category, groupName)
 
     data.tournament_results = data.tournament_results.filter(
-      (r) => !(r.tournament_id === tournamentId && r.category === category && (r.group_name || "A") === groupName)
+      (r) =>
+        !(r.tournament_id === tournamentId && r.category === category && (r.group_name || "A") === groupName)
     )
 
     results.forEach((r) => {
