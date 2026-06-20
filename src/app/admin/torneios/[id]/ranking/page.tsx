@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { getRankings, getLiveRankings, getTournamentById, getUserName, getApoiadores, getSponsorships, getRaffleRecords } from "@/lib/store"
 import { formatCurrency, getStatusLabel } from "@/lib/utils"
 import type { Tournament, TournamentResult, RaffleRecord } from "@/lib/types"
+import { RankingInfo } from "@/components/ui/ranking-info"
 
 const positionStyle = (pos: number) => {
   if (pos === 1) return "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 border-yellow-300 font-bold"
@@ -113,6 +114,8 @@ export default function TournamentRankingPage() {
           ))}
         </div>
       )}
+
+      <RankingInfo />
 
       <Card>
         <CardHeader

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Table, Td } from "@/components/ui/table"
 import * as store from "@/lib/store"
+import { RankingInfo } from "@/components/ui/ranking-info"
 
 const CATEGORIES = ["4e5", "6e7"]
 
@@ -46,6 +47,8 @@ export default function AthleteRanking() {
           Atualizar
         </Button>
       </div>
+
+      <RankingInfo />
 
       <Card>
         <CardHeader title="Ranking do Torneio" subtitle={tournamentTitle} />

@@ -19,6 +19,7 @@ export default function AthleteDashboard() {
   const [athletePosition, setAthletePosition] = useState<number | null>(null)
   const [registration, setRegistration] = useState<AthleteRegistration | undefined>()
   const [myCategory, setMyCategory] = useState<string>("")
+  const [annualRankPos, setAnnualRankPos] = useState<number | null>(null)
   const [profileModal, setProfileModal] = useState(false)
   const [profileForm, setProfileForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "" })
   const [showPassword, setShowPassword] = useState(false)
@@ -42,6 +43,10 @@ export default function AthleteDashboard() {
       const liveRanking = store.getLiveRankings(t.id, cat)
       const pos = liveRanking.findIndex((r) => r.athlete_id === user.id)
       if (pos >= 0) setAthletePosition(pos + 1)
+
+      const annual = store.getAnnualRanking(cat)
+      const annualPos = annual.findIndex((r) => r.athlete_id === user.id)
+      setAnnualRankPos(annualPos >= 0 ? annualPos + 1 : null)
       setRaffleRecords(store.getRaffleRecords(t.id))
       setApoiadores(store.getApoiadores(t.id))
       setSponsors(store.getSponsorships(t.id))
@@ -183,7 +188,7 @@ export default function AthleteDashboard() {
       )}
 
       {registration?.status !== "pending" && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <Card className="text-center">
             <p className="text-3xl font-bold text-gray-900 dark:text-white">{matchesCount}</p>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Seus Jogos</p>
@@ -192,7 +197,13 @@ export default function AthleteDashboard() {
             <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">
               {athletePosition !== null ? `${athletePosition}º` : "--"}
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Sua Posição</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Sua Posição no Torneio</p>
+          </Card>
+          <Card className="text-center">
+            <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+              {annualRankPos !== null ? `${annualRankPos}º` : "--"}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Ranking Anual</p>
           </Card>
         </div>
       )}
