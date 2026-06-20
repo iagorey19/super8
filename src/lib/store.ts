@@ -401,7 +401,7 @@ export function updateMatchScore(
 ): Match | null {
   const data = getData()
   const match = data.matches.find((m) => m.id === matchId)
-  if (!match || match.status === "finished") return null
+  if (!match) return null
 
   const tournament = data.tournaments.find((t) => t.id === match.tournament_id)
   const maxScore = tournament?.max_score || 5
@@ -417,6 +417,33 @@ export function updateMatchScore(
   if (match.score_team1 === maxScore || match.score_team2 === maxScore) {
     match.status = "finished"
     checkTournamentCompletion(data, match.tournament_id, match.category || "4e5", match.group_name || "A")
+  }
+
+  saveData(data)
+  return { ...match }
+}
+
+export function decrementMatchScore(
+  matchId: string,
+  team: 1 | 2
+): Match | null {
+  const data = getData()
+  const match = data.matches.find((m) => m.id === matchId)
+  if (!match) return null
+
+  const tournament = data.tournaments.find((t) => t.id === match.tournament_id)
+  const maxScore = tournament?.max_score || 5
+
+  if (team === 1) {
+    if (match.score_team1 <= 0) return null
+    match.score_team1 = Math.max(match.score_team1 - 1, 0)
+  } else {
+    if (match.score_team2 <= 0) return null
+    match.score_team2 = Math.max(match.score_team2 - 1, 0)
+  }
+
+  if (match.score_team1 < maxScore && match.score_team2 < maxScore) {
+    match.status = "live"
   }
 
   saveData(data)
