@@ -141,7 +141,7 @@ export interface Revenue {
 
 export interface Photo {
   id: string
-  tournament_id: string
+  tournament_id?: string
   url: string
   caption?: string
   uploaded_by: string

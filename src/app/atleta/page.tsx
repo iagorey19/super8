@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Modal } from "@/components/ui/modal"
 import * as store from "@/lib/store"
 import { formatDate, getStatusColor, getStatusLabel } from "@/lib/utils"
-import type { Tournament, AthleteRegistration, RaffleRecord } from "@/lib/types"
+import type { Tournament, AthleteRegistration, RaffleRecord, Photo } from "@/lib/types"
 
 export default function AthleteDashboard() {
   const { user, loading } = useAuth()
@@ -27,6 +27,7 @@ export default function AthleteDashboard() {
   const [raffleRecords, setRaffleRecords] = useState<RaffleRecord[]>([])
   const [apoiadores, setApoiadores] = useState<any[]>([])
   const [sponsors, setSponsors] = useState<any[]>([])
+  const [photos, setPhotos] = useState<Photo[]>([])
 
   const loadData = useCallback(async () => {
     if (!user) return
@@ -50,6 +51,7 @@ export default function AthleteDashboard() {
       setRaffleRecords(store.getRaffleRecords(t.id))
       setApoiadores(store.getApoiadores(t.id))
       setSponsors(store.getSponsorships(t.id))
+      setPhotos(store.getPhotos())
     }
   }, [user])
 
@@ -266,6 +268,29 @@ export default function AthleteDashboard() {
                   <p className="text-xs text-gray-500 dark:text-gray-400">{r.brinde_description}</p>
                 </div>
               </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {photos.length > 0 && (
+        <Card>
+          <CardHeader title="📸 Fotos" />
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {photos.map((photo) => (
+              <a
+                key={photo.id}
+                href={photo.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800"
+              >
+                <img
+                  src={photo.url}
+                  alt={photo.caption || "Foto"}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </a>
             ))}
           </div>
         </Card>

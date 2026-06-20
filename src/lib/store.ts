@@ -1294,15 +1294,15 @@ export function getFinancialSummary(tournamentId?: string) {
 }
 
 export function createPhoto(
-  tournamentId: string,
   url: string,
   caption: string | undefined,
-  uploadedBy: string
+  uploadedBy: string,
+  tournamentId?: string
 ): Photo {
   const data = getData()
   const photo: Photo = {
     id: crypto.randomUUID(),
-    tournament_id: tournamentId,
+    ...(tournamentId ? { tournament_id: tournamentId } : {}),
     url,
     caption,
     uploaded_by: uploadedBy,

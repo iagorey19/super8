@@ -18,23 +18,23 @@ export default function AdminFotos() {
   const router = useRouter()
 
   const [tournaments, setTournaments] = useState<Tournament[]>([])
-  const [selectedTournament, setSelectedTournament] = useState("")
+  const [selectedFilter, setSelectedFilter] = useState("")
   const [photos, setPhotos] = useState<Photo[]>([])
   const [modalOpen, setModalOpen] = useState(false)
-  const [form, setForm] = useState({ url: "", caption: "" })
+  const [form, setForm] = useState({ url: "", caption: "", tournamentId: "" })
   const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set())
-  const [currentTournament, setCurrentTournament] = useState<Tournament | null>(null)
 
   function loadTournaments() {
     setTournaments(store.getTournaments())
   }
 
   function loadPhotos() {
-    if (!selectedTournament) {
-      setPhotos([])
-      return
+    const all = store.getPhotos()
+    if (selectedFilter === "" || selectedFilter === "geral") {
+      setPhotos(selectedFilter === "geral" ? all.filter((p) => !p.tournament_id) : all)
+    } else {
+      setPhotos(all.filter((p) => p.tournament_id === selectedFilter))
     }
-    setPhotos(store.getPhotos(selectedTournament))
     setBrokenImages(new Set())
   }
 
@@ -47,18 +47,19 @@ export default function AdminFotos() {
   }, [user, loading, router])
 
   useEffect(() => {
-    setCurrentTournament(selectedTournament ? store.getTournamentById(selectedTournament) ?? null : null)
-  }, [selectedTournament])
-
-  useEffect(() => {
     loadPhotos()
-  }, [selectedTournament])
+  }, [selectedFilter])
 
   function handleAddPhoto() {
     if (!form.url.trim()) return
-    store.createPhoto(selectedTournament, form.url.trim(), form.caption.trim() || undefined, user!.id)
+    store.createPhoto(
+      form.url.trim(),
+      form.caption.trim() || undefined,
+      user!.id,
+      form.tournamentId || undefined
+    )
     setModalOpen(false)
-    setForm({ url: "", caption: "" })
+    setForm({ url: "", caption: "", tournamentId: "" })
     loadPhotos()
   }
 
@@ -84,48 +85,31 @@ export default function AdminFotos() {
           <Select
             label=""
             options={[
-              { value: "", label: "Selecione um torneio..." },
+              { value: "", label: "Todas as Fotos" },
+              { value: "geral", label: "📁 Geral" },
               ...tournaments.map((t) => ({ value: t.id, label: `${t.title} - ${t.edition}` })),
             ]}
-            value={selectedTournament}
-            onChange={(e) => setSelectedTournament(e.target.value)}
+            value={selectedFilter}
+            onChange={(e) => setSelectedFilter(e.target.value)}
           />
         </div>
       </div>
 
-      {currentTournament && currentTournament.categories.length > 1 && (
-        <div className="flex gap-2">
-          {currentTournament.categories.map((cat) => (
-            <Badge key={cat} className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300">
-              {cat === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}
-            </Badge>
-          ))}
-        </div>
-      )}
+      <div className="flex justify-end">
+        <Button onClick={() => setModalOpen(true)}>Adicionar Foto</Button>
+      </div>
 
-      {selectedTournament && (
-        <div className="flex justify-end">
-          <Button onClick={() => setModalOpen(true)}>Adicionar Foto</Button>
-        </div>
-      )}
-
-      {!selectedTournament && (
-        <Card>
-          <p className="text-gray-500 dark:text-gray-400 text-center py-8">Selecione um torneio para ver as fotos.</p>
-        </Card>
-      )}
-
-      {selectedTournament && photos.length === 0 && (
+      {photos.length === 0 && (
         <Card>
           <div className="text-center py-12 space-y-3">
             <div className="text-6xl">📸</div>
             <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">Nenhuma foto ainda</p>
-            <p className="text-gray-400 dark:text-gray-500 text-sm">Adicione a primeira foto do torneio!</p>
+            <p className="text-gray-400 dark:text-gray-500 text-sm">Adicione a primeira foto!</p>
           </div>
         </Card>
       )}
 
-      {selectedTournament && photos.length > 0 && (
+      {photos.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {photos.map((photo) => (
             <div
@@ -142,7 +126,7 @@ export default function AdminFotos() {
               ) : (
                 <img
                   src={photo.url}
-                  alt={photo.caption || "Foto do torneio"}
+                  alt={photo.caption || "Foto"}
                   className="aspect-[4/3] w-full object-cover group-hover:scale-105 transition-transform duration-300"
                   onError={() => handleImageError(photo.id)}
                 />
@@ -173,7 +157,7 @@ export default function AdminFotos() {
 
       <Modal
         open={modalOpen}
-        onClose={() => { setModalOpen(false); setForm({ url: "", caption: "" }) }}
+        onClose={() => { setModalOpen(false); setForm({ url: "", caption: "", tournamentId: "" }) }}
         title="Adicionar Foto"
       >
         <div className="space-y-4">
@@ -189,10 +173,19 @@ export default function AdminFotos() {
             value={form.caption}
             onChange={(e) => setForm({ ...form, caption: e.target.value })}
           />
+          <Select
+            label="Vincular a torneio (opcional)"
+            options={[
+              { value: "", label: "Sem vínculo (Geral)" },
+              ...tournaments.map((t) => ({ value: t.id, label: `${t.title} - ${t.edition}` })),
+            ]}
+            value={form.tournamentId}
+            onChange={(e) => setForm({ ...form, tournamentId: e.target.value })}
+          />
           <div className="flex justify-end gap-3 pt-2">
             <Button
               variant="secondary"
-              onClick={() => { setModalOpen(false); setForm({ url: "", caption: "" }) }}
+              onClick={() => { setModalOpen(false); setForm({ url: "", caption: "", tournamentId: "" }) }}
             >
               Cancelar
             </Button>
