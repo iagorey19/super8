@@ -193,7 +193,8 @@ export default function TournamentDetail() {
           {tournament.status !== "upcoming" && (
             <>
               <Button variant="danger" size="sm" onClick={() => {
-                if (window.confirm("Tem certeza? Isso vai apagar todas as partidas, resultados e números sorteados, e voltar o torneio para 'upcoming'.")) {
+                const typed = window.prompt(`Digite "RESETAR" para confirmar:\n\nIsso vai apagar todas as partidas, resultados e números sorteados, e voltar o torneio para "upcoming".`)
+                if (typed === "RESETAR") {
                   store.resetTournament(id)
                   load()
                 }
