@@ -157,19 +157,59 @@ export function GradePreview({ registrations, matches, courtNames, category, gro
       ctx.fillText(text, x + w / 2, y + h / 2)
     }
 
-    function drawMultiCell(x: number, y: number, w: number, h: number, lines: string[], colors?: string[], sizes?: number[]) {
-      ctx.clearRect(x + 1, y + 1, w - 2, h - 2)
-      const total = lines.length
-      const lineH = h / total
-      lines.forEach((line, i) => {
-        const color = colors?.[i] || "#111827"
-        const size = sizes?.[i] || 12
-        ctx.fillStyle = color
-        ctx.font = `${size}px 'Segoe UI', Arial, sans-serif`
+    function textWidth(text: string, size: number, bold: boolean) {
+      ctx.font = `${bold ? "bold " : ""}${size}px 'Segoe UI', Arial, sans-serif`
+      return ctx.measureText(text).width
+    }
+
+    function drawDataCell(x: number, y: number, w: number, h: number, cell: GridCell) {
+      const padX = 8
+      const maxW = w - padX * 2
+      const fontSize = 12
+      const vsSize = 11
+      const colorText = "#111827"
+      const colorVs = "#9ca3af"
+
+      const l1 = `${cell.team1[0]} / ${cell.team1[1]}`
+      const l3 = `${cell.team2[0]} / ${cell.team2[1]}`
+
+      ctx.fillStyle = "#ffffff"
+      ctx.fillRect(x, y, w, h)
+
+      const w1 = textWidth(l1, fontSize, false)
+      const w3 = textWidth(l3, fontSize, false)
+
+      if (w1 <= maxW && w3 <= maxW) {
+        const total = 3
+        const lineH = h / total
+        ctx.fillStyle = colorText
+        ctx.font = `${fontSize}px 'Segoe UI', Arial, sans-serif`
         ctx.textAlign = "center"
         ctx.textBaseline = "middle"
-        ctx.fillText(line, x + w / 2, y + lineH * i + lineH / 2)
-      })
+        ctx.fillText(l1, x + w / 2, y + lineH * 0 + lineH / 2)
+        ctx.fillStyle = colorVs
+        ctx.font = `${vsSize}px 'Segoe UI', Arial, sans-serif`
+        ctx.fillText("vs", x + w / 2, y + lineH * 1 + lineH / 2)
+        ctx.fillStyle = colorText
+        ctx.font = `${fontSize}px 'Segoe UI', Arial, sans-serif`
+        ctx.fillText(l3, x + w / 2, y + lineH * 2 + lineH / 2)
+      } else {
+        const total = 5
+        const lineH = h / total
+        ctx.font = `${fontSize}px 'Segoe UI', Arial, sans-serif`
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillStyle = colorText
+        ctx.fillText(cell.team1[0], x + w / 2, y + lineH * 0 + lineH / 2)
+        ctx.fillText(cell.team1[1], x + w / 2, y + lineH * 1 + lineH / 2)
+        ctx.fillStyle = colorVs
+        ctx.font = `${vsSize}px 'Segoe UI', Arial, sans-serif`
+        ctx.fillText("vs", x + w / 2, y + lineH * 2 + lineH / 2)
+        ctx.fillStyle = colorText
+        ctx.font = `${fontSize}px 'Segoe UI', Arial, sans-serif`
+        ctx.fillText(cell.team2[0], x + w / 2, y + lineH * 3 + lineH / 2)
+        ctx.fillText(cell.team2[1], x + w / 2, y + lineH * 4 + lineH / 2)
+      }
     }
 
     const numCols = rounds.length + 1
@@ -194,11 +234,7 @@ export function GradePreview({ registrations, matches, courtNames, category, gro
         } else {
           const cell = cellFor(uniqueCourts[r - 1], rounds[c - 1])
           if (cell) {
-            drawMultiCell(cx, cy, cw, ch,
-              [`${cell.team1[0]} / ${cell.team1[1]}`, "vs", `${cell.team2[0]} / ${cell.team2[1]}`],
-              ["#111827", "#9ca3af", "#111827"],
-              [13, 11, 13]
-            )
+            drawDataCell(cx, cy, cw, ch, cell)
           }
         }
       }
