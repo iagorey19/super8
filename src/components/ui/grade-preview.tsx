@@ -31,6 +31,7 @@ interface GradePreviewProps {
   category: string
   groupName: string
   categoryLabel?: string
+  courtOffset?: number
 }
 
 const COL_W = 220
@@ -39,7 +40,7 @@ const ROW_H = 36
 const ROW_DATA_H = 82
 const SCALE = 3
 
-export function GradePreview({ registrations, matches, courtNames, category, groupName, categoryLabel }: GradePreviewProps) {
+export function GradePreview({ registrations, matches, courtNames, category, groupName, categoryLabel, courtOffset = 0 }: GradePreviewProps) {
   const [copied, setCopied] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
 
@@ -77,10 +78,11 @@ export function GradePreview({ registrations, matches, courtNames, category, gro
           const p3 = athletes[t2[0] - 1]
           const p4 = athletes[t2[1] - 1]
           if (!p1 || !p2 || !p3 || !p4) return
+          const courtLabelName = courtNames[courtIdx + courtOffset]
           gridCells.push({
             round,
             court: String(courtIdx),
-            courtLabel: courtNames[courtIdx] || `Quadra ${courtIdx + 1}`,
+            courtLabel: courtLabelName || `Quadra ${courtIdx + 1 + courtOffset}`,
             team1: [p1.name, p2.name],
             team2: [p3.name, p4.name],
           })

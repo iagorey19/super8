@@ -11,6 +11,7 @@ import {
   updateMatchScore,
   decrementMatchScore,
   resetAllScores,
+  swapMatchTeams,
   getUserName,
 } from "@/lib/store"
 import { getStatusColor, getStatusLabel } from "@/lib/utils"
@@ -65,6 +66,13 @@ export default function PlacarPage() {
   const handleDecrement = (matchId: string, team: 1 | 2) => {
     decrementMatchScore(matchId, team)
     loadData()
+  }
+
+  const handleSwap = (matchId: string) => {
+    if (window.confirm("Trocar as duplas de lado?")) {
+      swapMatchTeams(matchId)
+      loadData()
+    }
   }
 
   const handleReset = () => {
@@ -171,6 +179,13 @@ export default function PlacarPage() {
                 >
                   {getStatusLabel(match.status)}
                 </span>
+                <button
+                  onClick={() => handleSwap(match.id)}
+                  className="text-xs text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 underline ml-2"
+                  title="Trocar duplas de lado"
+                >
+                  Trocar
+                </button>
               </div>
 
               <div className="flex items-center gap-3 mb-4">

@@ -450,6 +450,41 @@ export function decrementMatchScore(
   return { ...match }
 }
 
+export function swapMatchTeams(matchId: string): Match | null {
+  const data = getData()
+  const match = data.matches.find((m) => m.id === matchId)
+  if (!match) return null
+
+  const t1p1 = match.team1_player1_id
+  const t1p2 = match.team1_player2_id
+  const t2p1 = match.team2_player1_id
+  const t2p2 = match.team2_player2_id
+
+  match.team1_player1_id = t2p1
+  match.team1_player2_id = t2p2
+  match.team2_player1_id = t1p1
+  match.team2_player2_id = t1p2
+
+  const score1 = match.score_team1
+  match.score_team1 = match.score_team2
+  match.score_team2 = score1
+
+  const pairing = data.pairings.find((p) => p.id === match.pairing_id)
+  if (pairing) {
+    const pp1 = pairing.player1_id
+    const pp2 = pairing.player2_id
+    const pp3 = pairing.player3_id
+    const pp4 = pairing.player4_id
+    pairing.player1_id = pp3
+    pairing.player2_id = pp4
+    pairing.player3_id = pp1
+    pairing.player4_id = pp2
+  }
+
+  saveData(data)
+  return { ...match }
+}
+
 function checkTournamentCompletion(data: AppData, tournamentId: string, category: string, groupName: string) {
   const matches = data.matches.filter(
     (m) => m.tournament_id === tournamentId && m.category === category && m.group_name === groupName

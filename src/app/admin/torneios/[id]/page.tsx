@@ -414,6 +414,7 @@ export default function TournamentDetail() {
                         category={cat}
                         groupName={grp}
                         categoryLabel={cat === "4e5" ? "Cat. 4e5" : "Cat. 6e7"}
+                        courtOffset={(tournament.categories || ["4e5"]).indexOf(cat) * 2}
                       />
                     </div>
                   )}
