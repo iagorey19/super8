@@ -12,7 +12,7 @@ import {
   decrementMatchScore,
   resetAllScores,
   swapMatchTeams,
-  regenerateWhistRound,
+  regenerateWhistFromRound,
   getUserName,
 } from "@/lib/store"
 import { getStatusColor, getStatusLabel } from "@/lib/utils"
@@ -77,15 +77,9 @@ export default function PlacarPage() {
   }
 
   const handleFixRound = () => {
-    const cats = [...new Set(matches.map((m) => m.category).filter(Boolean))]
-    const grps = [...new Set(matches.map((m) => m.group_name || "A"))]
-    const msg = `Recriar partidas da Rodada ${currentRound} usando a schedule Whist corrigida?\nCategorias: ${cats.join(", ")}\nGrupos: ${grps.join(", ")}\n\nOs jogadores serão atualizados, mas os placares atuais serão mantidos.`
+    const msg = `Recriar partidas da Rodada ${currentRound} até a 7 usando a schedule Whist corrigida?\n\nOs jogadores serão atualizados, mas os placares das partidas já em andamento serão mantidos.`
     if (window.confirm(msg)) {
-      cats.forEach((cat) => {
-        grps.forEach((grp) => {
-          regenerateWhistRound(id, cat, grp, currentRound)
-        })
-      })
+      regenerateWhistFromRound(id, currentRound)
       loadData()
     }
   }
