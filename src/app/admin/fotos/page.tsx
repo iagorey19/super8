@@ -1,11 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Modal } from "@/components/ui/modal"
@@ -21,8 +20,12 @@ export default function AdminFotos() {
   const [selectedFilter, setSelectedFilter] = useState("")
   const [photos, setPhotos] = useState<Photo[]>([])
   const [modalOpen, setModalOpen] = useState(false)
+  const [uploadMode, setUploadMode] = useState<"file" | "url">("file")
   const [form, setForm] = useState({ url: "", caption: "", tournamentId: "" })
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
   const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set())
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   function loadTournaments() {
     setTournaments(store.getTournaments())
@@ -50,7 +53,32 @@ export default function AdminFotos() {
     loadPhotos()
   }, [selectedFilter])
 
-  function handleAddPhoto() {
+  async function handleUploadFile() {
+    if (!selectedFile) return
+    setUploading(true)
+    try {
+      const body = new FormData()
+      body.append("file", selectedFile)
+      const res = await fetch("/api/upload", { method: "POST", body })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      store.createPhoto(
+        data.url,
+        form.caption.trim() || undefined,
+        user!.id,
+        form.tournamentId || undefined
+      )
+      setModalOpen(false)
+      resetForm()
+      loadPhotos()
+    } catch (e) {
+      alert("Erro ao fazer upload: " + (e instanceof Error ? e.message : "desconhecido"))
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  function handleAddUrl() {
     if (!form.url.trim()) return
     store.createPhoto(
       form.url.trim(),
@@ -59,8 +87,14 @@ export default function AdminFotos() {
       form.tournamentId || undefined
     )
     setModalOpen(false)
-    setForm({ url: "", caption: "", tournamentId: "" })
+    resetForm()
     loadPhotos()
+  }
+
+  function resetForm() {
+    setForm({ url: "", caption: "", tournamentId: "" })
+    setSelectedFile(null)
+    setUploadMode("file")
   }
 
   function handleImageError(photoId: string) {
@@ -157,22 +191,67 @@ export default function AdminFotos() {
 
       <Modal
         open={modalOpen}
-        onClose={() => { setModalOpen(false); setForm({ url: "", caption: "", tournamentId: "" }) }}
+        onClose={() => { setModalOpen(false); resetForm() }}
         title="Adicionar Foto"
       >
         <div className="space-y-4">
-          <Input
-            label="URL da Imagem"
-            placeholder="https://exemplo.com/foto.jpg"
-            value={form.url}
-            onChange={(e) => setForm({ ...form, url: e.target.value })}
-          />
+          <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+            <button
+              onClick={() => setUploadMode("file")}
+              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${uploadMode === "file" ? "bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-white" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"}`}
+            >
+              Do Computador
+            </button>
+            <button
+              onClick={() => setUploadMode("url")}
+              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${uploadMode === "url" ? "bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-white" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"}`}
+            >
+              URL Externa
+            </button>
+          </div>
+
+          {uploadMode === "file" ? (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Selecionar Arquivo
+              </label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100 dark:file:bg-amber-900/30 dark:file:text-amber-400"
+              />
+              {selectedFile && (
+                <div className="mt-2 flex items-center gap-3">
+                  <img
+                    src={URL.createObjectURL(selectedFile)}
+                    alt="Preview"
+                    className="w-20 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                  />
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="font-medium text-gray-700 dark:text-gray-300">{selectedFile.name}</p>
+                    <p>{(selectedFile.size / 1024 / 1024).toFixed(1)} MB</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Input
+              label="URL da Imagem"
+              placeholder="https://exemplo.com/foto.jpg"
+              value={form.url}
+              onChange={(e) => setForm({ ...form, url: e.target.value })}
+            />
+          )}
+
           <Input
             label="Legenda (opcional)"
             placeholder="Ex: Final da partida"
             value={form.caption}
             onChange={(e) => setForm({ ...form, caption: e.target.value })}
           />
+
           <Select
             label="Vincular a torneio (opcional)"
             options={[
@@ -182,16 +261,23 @@ export default function AdminFotos() {
             value={form.tournamentId}
             onChange={(e) => setForm({ ...form, tournamentId: e.target.value })}
           />
+
           <div className="flex justify-end gap-3 pt-2">
             <Button
               variant="secondary"
-              onClick={() => { setModalOpen(false); setForm({ url: "", caption: "", tournamentId: "" }) }}
+              onClick={() => { setModalOpen(false); resetForm() }}
             >
               Cancelar
             </Button>
-            <Button onClick={handleAddPhoto} disabled={!form.url.trim()}>
-              Salvar
-            </Button>
+            {uploadMode === "file" ? (
+              <Button onClick={handleUploadFile} disabled={!selectedFile || uploading}>
+                {uploading ? "Enviando..." : "Salvar"}
+              </Button>
+            ) : (
+              <Button onClick={handleAddUrl} disabled={!form.url.trim()}>
+                Salvar
+              </Button>
+            )}
           </div>
         </div>
       </Modal>
