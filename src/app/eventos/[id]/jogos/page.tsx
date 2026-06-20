@@ -125,6 +125,9 @@ export default function PublicJogosPage() {
           <Button size="sm" variant={view === "grade" ? "primary" : "secondary"} onClick={() => setView("grade")}>
             Grade
           </Button>
+          <Button size="sm" variant="secondary" onClick={loadData}>
+            🔄
+          </Button>
         </div>
       </div>
 

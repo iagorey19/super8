@@ -184,23 +184,23 @@ export default function PlacarPage() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                   <button
-                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold text-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-30"
+                    className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold text-lg sm:text-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-30"
                     disabled={match.score_team1 <= 0}
                     onClick={() => handleDecrement(match.id, 1)}
                   >
                     −
                   </button>
-                  <p className="text-5xl font-black text-gray-900 dark:text-white tabular-nums leading-none min-w-[3rem] text-center">
+                  <p className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white tabular-nums leading-none min-w-[2rem] sm:min-w-[3rem] text-center">
                     {match.score_team1}
                   </p>
-                  <span className="text-3xl font-bold text-gray-300 dark:text-gray-600">:</span>
-                  <p className="text-5xl font-black text-gray-900 dark:text-white tabular-nums leading-none min-w-[3rem] text-center">
+                  <span className="text-2xl sm:text-3xl font-bold text-gray-300 dark:text-gray-600">:</span>
+                  <p className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white tabular-nums leading-none min-w-[2rem] sm:min-w-[3rem] text-center">
                     {match.score_team2}
                   </p>
                   <button
-                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold text-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-30"
+                    className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold text-lg sm:text-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-30"
                     disabled={match.score_team2 <= 0}
                     onClick={() => handleDecrement(match.id, 2)}
                   >
@@ -219,11 +219,11 @@ export default function PlacarPage() {
                 </div>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex gap-2 sm:gap-3">
                 <Button
                   variant="success"
                   size="lg"
-                  className="flex-1 text-lg font-bold py-4"
+                  className="flex-1 text-base sm:text-lg font-bold py-3 sm:py-4"
                   disabled={match.score_team1 >= (tournament?.max_score || 5)}
                   onClick={() => handleScore(match.id, 1)}
                 >
@@ -232,7 +232,7 @@ export default function PlacarPage() {
                 <Button
                   variant="success"
                   size="lg"
-                  className="flex-1 text-lg font-bold py-4"
+                  className="flex-1 text-base sm:text-lg font-bold py-3 sm:py-4"
                   disabled={match.score_team2 >= (tournament?.max_score || 5)}
                   onClick={() => handleScore(match.id, 2)}
                 >

@@ -20,12 +20,15 @@ export default function JogosPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("")
   const [view, setView] = useState<"lista" | "grade">("lista")
 
-  useEffect(() => {
+  function loadData() {
     const t = getTournamentById(id)
     setTournament(t || null)
-    const allMatches = getTournamentMatches(id)
-    setMatches(allMatches)
+    setMatches(getTournamentMatches(id))
     setLoading(false)
+  }
+
+  useEffect(() => {
+    loadData()
   }, [id])
 
   const categories = tournament?.categories || ["4e5"]
@@ -95,8 +98,11 @@ export default function JogosPage() {
           <Button size="sm" variant={view === "grade" ? "primary" : "secondary"} onClick={() => setView("grade")}>
             Grade
           </Button>
-          <Button onClick={() => router.push(`/admin/torneios/${id}/placar`)}>
-            Atualizar Placar
+          <Button size="sm" variant="secondary" onClick={loadData}>
+            🔄
+          </Button>
+          <Button size="sm" onClick={() => router.push(`/admin/torneios/${id}/placar`)}>
+            Placar
           </Button>
         </div>
       </div>
