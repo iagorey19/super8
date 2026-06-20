@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -20,7 +20,8 @@ export default function EventoDetalhePage() {
   const [sponsors, setSponsors] = useState<any[]>([])
   const [apoiadores, setApoiadores] = useState<any[]>([])
 
-  useEffect(() => {
+  const loadData = useCallback(async () => {
+    try { await store.refreshFromServer() } catch {}
     const t = store.getTournamentById(id)
     setTournament(t ?? null)
     if (t) {
@@ -30,6 +31,12 @@ export default function EventoDetalhePage() {
       setApoiadores(store.getApoiadores(id))
     }
   }, [id])
+
+  useEffect(() => {
+    loadData()
+    const interval = setInterval(loadData, 5000)
+    return () => clearInterval(interval)
+  }, [loadData])
 
   if (!tournament) {
     return (
@@ -45,8 +52,15 @@ export default function EventoDetalhePage() {
         <Link href="/eventos" className="text-sm text-amber-600 hover:text-amber-700 font-medium">
           &larr; Todos os eventos
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{tournament.title}</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{tournament.edition}</p>
+        <div className="flex items-start justify-between flex-wrap gap-2">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{tournament.title}</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{tournament.edition}</p>
+          </div>
+          <Button size="sm" variant="secondary" onClick={loadData}>
+            Atualizar
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

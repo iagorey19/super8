@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Table, Td } from "@/components/ui/table"
 import * as store from "@/lib/store"
@@ -16,7 +17,8 @@ export default function AthleteRanking() {
   const [tournamentTitle, setTournamentTitle] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("4e5")
 
-  const refresh = () => {
+  const refresh = useCallback(async () => {
+    try { await store.refreshFromServer() } catch {}
     const t = store.getCurrentTournament()
     if (t) {
       setTournamentTitle(`${t.title} ${t.edition || ""}`)
@@ -26,19 +28,24 @@ export default function AthleteRanking() {
       if (!selectedCategory) setSelectedCategory(cat)
     }
     setAnnualRanking(store.getAnnualRanking(selectedCategory))
-  }
+  }, [selectedCategory, user])
 
   useEffect(() => {
     refresh()
     const interval = setInterval(refresh, 5000)
     return () => clearInterval(interval)
-  }, [selectedCategory])
+  }, [refresh])
 
   if (!user) return null
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Ranking</h1>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Ranking</h1>
+        <Button size="sm" variant="secondary" onClick={refresh}>
+          Atualizar
+        </Button>
+      </div>
 
       <Card>
         <CardHeader title="Ranking do Torneio" subtitle={tournamentTitle} />

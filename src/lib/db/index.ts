@@ -20,18 +20,19 @@ export function setData(data: AppData) {
 export async function init(): Promise<void> {
   if (_ready) return
   if (_initPromise) return _initPromise
-  _initPromise = (async () => {
-    try {
-      const res = await fetch("/api/data")
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      _data = await res.json()
-      _ready = true
-    } catch (e) {
-      _initPromise = null
-      throw e
-    }
-  })()
-  return _initPromise
+  await reloadFromServer()
+}
+
+export async function reloadFromServer(): Promise<void> {
+  try {
+    const res = await fetch("/api/data")
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    _data = await res.json()
+    _ready = true
+  } catch (e) {
+    console.error("reloadFromServer failed:", e)
+    throw e
+  }
 }
 
 export async function persist(): Promise<void> {

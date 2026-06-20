@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import * as store from "@/lib/store"
 import { getStatusColor, getStatusLabel } from "@/lib/utils"
 import type { Match, RaffleRecord } from "@/lib/types"
@@ -14,8 +15,9 @@ export default function AthleteMatches() {
   const [tournamentTitle, setTournamentTitle] = useState("")
   const [raffleRecords, setRaffleRecords] = useState<RaffleRecord[]>([])
 
-  const refresh = () => {
+  const refresh = useCallback(async () => {
     if (!user) return
+    try { await store.refreshFromServer() } catch {}
     const t = store.getCurrentTournament()
     if (t) {
       setTournamentTitle(`${t.title} ${t.edition || ""}`)
@@ -23,13 +25,13 @@ export default function AthleteMatches() {
       setMatches(m)
       setRaffleRecords(store.getRaffleRecords(t.id))
     }
-  }
+  }, [user])
 
   useEffect(() => {
     refresh()
     const interval = setInterval(refresh, 5000)
     return () => clearInterval(interval)
-  }, [user])
+  }, [refresh])
 
   if (!user) return null
 
@@ -58,11 +60,16 @@ export default function AthleteMatches() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Meus Jogos</h1>
-        {isTournamentEnded && (
-          <Badge className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">Torneio Encerrado</Badge>
-        )}
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="secondary" onClick={refresh}>
+            Atualizar
+          </Button>
+          {isTournamentEnded && (
+            <Badge className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">Torneio Encerrado</Badge>
+          )}
+        </div>
       </div>
 
       {tournamentTitle && (

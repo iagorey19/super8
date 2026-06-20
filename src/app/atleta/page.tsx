@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { Card, CardHeader } from "@/components/ui/card"
@@ -27,8 +27,9 @@ export default function AthleteDashboard() {
   const [apoiadores, setApoiadores] = useState<any[]>([])
   const [sponsors, setSponsors] = useState<any[]>([])
 
-  useEffect(() => {
+  const loadData = useCallback(async () => {
     if (!user) return
+    try { await store.refreshFromServer() } catch {}
     const t = store.getCurrentTournament()
     setTournament(t)
     if (t && user) {
@@ -46,6 +47,12 @@ export default function AthleteDashboard() {
       setSponsors(store.getSponsorships(t.id))
     }
   }, [user])
+
+  useEffect(() => {
+    loadData()
+    const interval = setInterval(loadData, 5000)
+    return () => clearInterval(interval)
+  }, [loadData])
 
   if (loading) {
     return (
@@ -101,13 +108,18 @@ export default function AthleteDashboard() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Olá, {user.name}!</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">Bem-vindo ao THE SUPER 8</p>
         </div>
-        <Button size="sm" variant="ghost" onClick={() => {
-          setProfileForm({ name: user.name, email: user.email, phone: user.phone || "", password: "", confirmPassword: "" })
-          setShowPassword(false)
-          setProfileModal(true)
-        }}>
-          Editar Perfil
-        </Button>
+        <div className="flex gap-2">
+          <Button size="sm" variant="secondary" onClick={loadData}>
+            Atualizar
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => {
+            setProfileForm({ name: user.name, email: user.email, phone: user.phone || "", password: "", confirmPassword: "" })
+            setShowPassword(false)
+            setProfileModal(true)
+          }}>
+            Editar Perfil
+          </Button>
+        </div>
       </div>
 
       {tournament ? (

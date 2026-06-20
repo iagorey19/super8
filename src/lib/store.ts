@@ -28,6 +28,10 @@ export async function initData() {
   await db.init()
 }
 
+export async function refreshFromServer() {
+  await db.reloadFromServer()
+}
+
 function getData(): AppData {
   return db.getData()
 }
