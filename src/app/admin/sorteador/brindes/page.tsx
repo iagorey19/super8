@@ -37,6 +37,9 @@ export default function SortearBrindes() {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null)
 
+  const [manualPrize, setManualPrize] = useState("")
+  const [manualWinnerId, setManualWinnerId] = useState("")
+
   useEffect(() => {
     const all = store.getTournaments()
     setTournaments(all)
@@ -287,6 +290,41 @@ export default function SortearBrindes() {
               </div>
             </div>
           )}
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader title="Atribuição Manual" />
+        <div className="space-y-4">
+          <Select
+            label="Selecione o vencedor"
+            options={[
+              { value: "", label: "Selecione..." },
+              ...participants.map((p) => ({ value: p.name, label: p.name })),
+            ]}
+            value={manualWinnerId}
+            onChange={(e) => setManualWinnerId(e.target.value)}
+          />
+          <div className="max-w-sm">
+            <Input
+              label="Prêmio"
+              placeholder="Ex: Camiseta oficial"
+              value={manualPrize}
+              onChange={(e) => setManualPrize(e.target.value)}
+            />
+          </div>
+          <Button
+            disabled={!manualWinnerId || !manualPrize.trim() || !selectedTournamentId}
+            onClick={() => {
+              store.recordRaffle(selectedTournamentId, manualPrize.trim(), manualWinnerId)
+              setRecords(store.getRaffleRecords(selectedTournamentId))
+              setManualWinnerId("")
+              setManualPrize("")
+              alert("Brinde atribuído com sucesso!")
+            }}
+          >
+            Atribuir Brinde
+          </Button>
         </div>
       </Card>
 
