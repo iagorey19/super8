@@ -366,21 +366,35 @@ export default function SortearBrindes() {
         <Card>
           <CardHeader title="Histórico de Sorteios" />
           <div className="space-y-2">
-            {records.map((record, idx) => (
-              <div
-                key={record.id}
-                className="flex items-center justify-between bg-gray-50 dark:bg-gray-950 rounded-lg px-4 py-3"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-lg">🎁</span>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{record.winner_name}</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">{record.brinde_description}</p>
+              {records.map((record, idx) => (
+                <div
+                  key={record.id}
+                  className="flex items-center justify-between bg-gray-50 dark:bg-gray-950 rounded-lg px-4 py-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">🎁</span>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{record.winner_name}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">{record.brinde_description}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="text-xs text-amber-600 dark:text-amber-400 hover:underline"
+                      onClick={() => {
+                        const novaDesc = prompt("Editar descrição do brinde:", record.brinde_description)
+                        if (novaDesc && novaDesc !== record.brinde_description) {
+                          store.updateRaffleDescription(record.id, novaDesc)
+                          setRecords(store.getRaffleRecords(selectedTournamentId))
+                        }
+                      }}
+                    >
+                      Editar
+                    </button>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">#{idx + 1}</span>
                   </div>
                 </div>
-                <span className="text-xs text-gray-400 dark:text-gray-500">#{idx + 1}</span>
-              </div>
-            ))}
+              ))}
           </div>
         </Card>
       )}
