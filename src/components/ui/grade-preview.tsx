@@ -4,7 +4,7 @@ import { useState, useRef } from "react"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { getUserName } from "@/lib/store"
-import html2canvas from "html2canvas"
+import { toPng } from "dom-to-image-more"
 import jsPDF from "jspdf"
 
 const WHIST_SCHEDULE = [
@@ -136,10 +136,10 @@ export function GradePreview({ registrations, matches, courtNames, category, gro
     e.stopPropagation()
     if (!gridRef.current) return
     try {
-      const canvas = await html2canvas(gridRef.current, { backgroundColor: "#ffffff", useCORS: true })
+      const dataUrl = await toPng(gridRef.current, { bgcolor: "#ffffff" })
       const link = document.createElement("a")
       link.download = `grade-${category}-grupo-${groupName}.png`
-      link.href = canvas.toDataURL()
+      link.href = dataUrl
       link.click()
     } catch (err) {
       alert("Erro ao gerar PNG: " + (err instanceof Error ? err.message : "desconhecido"))
@@ -162,12 +162,17 @@ export function GradePreview({ registrations, matches, courtNames, category, gro
     e.stopPropagation()
     if (!gridRef.current) return
     try {
-      const canvas = await html2canvas(gridRef.current, { backgroundColor: "#ffffff", useCORS: true })
-      const imgData = canvas.toDataURL("image/png")
+      const dataUrl = await toPng(gridRef.current, { bgcolor: "#ffffff" })
+      const img = new Image()
+      img.src = dataUrl
+      await new Promise((resolve, reject) => {
+        img.onload = resolve
+        img.onerror = reject
+      })
       const pdf = new jsPDF("l", "mm", "a4")
       const pdfWidth = pdf.internal.pageSize.getWidth()
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight)
+      const pdfHeight = (img.height * pdfWidth) / img.width
+      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight)
       pdf.save(`grade-${category}-grupo-${groupName}.pdf`)
     } catch (err) {
       alert("Erro ao gerar PDF: " + (err instanceof Error ? err.message : "desconhecido"))
