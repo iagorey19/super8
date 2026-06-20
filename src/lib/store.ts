@@ -656,6 +656,67 @@ export function resetAllScores(tournamentId: string, category?: string, groupNam
   saveData(data)
 }
 
+export function recalculateAllResults() {
+  const data = getData()
+  const keys = new Set<string>()
+
+  data.tournament_results.forEach((r) => {
+    keys.add(`${r.tournament_id}|${r.category}|${r.group_name || "A"}`)
+  })
+
+  keys.forEach((key) => {
+    const [tournamentId, category, groupName] = key.split("|")
+    const tournament = data.tournaments.find((t) => t.id === tournamentId)
+    if (!tournament) return
+
+    const regs = data.athlete_registrations
+      .filter(
+        (r) =>
+          r.tournament_id === tournamentId &&
+          r.category === category &&
+          (r.group_name || "A") === groupName &&
+          r.status === "approved"
+      )
+      .sort((a, b) => (a.draw_number || 999) - (b.draw_number || 999))
+
+    if (regs.length !== 8) return
+    const athleteIds = regs.map((r) => r.athlete_id)
+
+    const athleteNames: Record<string, string> = {}
+    athleteIds.forEach((id) => {
+      const user = data.users.find((u) => u.id === id)
+      if (user) athleteNames[id] = user.name
+    })
+
+    const matches = data.matches.filter(
+      (m) => m.tournament_id === tournamentId && m.category === category && m.group_name === groupName
+    )
+
+    const results = calculateTournamentResults(athleteIds, matches, athleteNames, category, groupName)
+
+    data.tournament_results = data.tournament_results.filter(
+      (r) => !(r.tournament_id === tournamentId && r.category === category && (r.group_name || "A") === groupName)
+    )
+
+    results.forEach((r) => {
+      data.tournament_results.push({
+        id: crypto.randomUUID(),
+        tournament_id: tournamentId,
+        category: r.category,
+        group_name: r.group_name,
+        athlete_id: r.athlete_id,
+        round_scores: r.round_scores,
+        total_games: r.total_games,
+        position: r.position,
+        points: r.points,
+      })
+    })
+  })
+
+  data.annual_rankings = []
+  saveData(data)
+}
+
 function updateAnnualRankings(data: AppData, category: string) {
   const year = new Date().getFullYear()
 

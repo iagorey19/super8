@@ -149,6 +149,30 @@ export default function AdminDashboard() {
       )}
 
       <Card>
+        <CardHeader
+          title="Ferramentas"
+          action={
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                if (window.confirm("Recalcular rankings de todos os torneios com o novo critério de desempate?")) {
+                  store.recalculateAllResults()
+                  alert("Rankings recalculados!")
+                  window.location.reload()
+                }
+              }}
+            >
+              Recalcular Rankings
+            </Button>
+          }
+        />
+        <p className="px-4 pb-4 text-sm text-gray-500 dark:text-gray-400">
+          Recalcula os resultados de todos os torneios usando o critério: total de games → saldo → confronto direto.
+        </p>
+      </Card>
+
+      <Card>
         <CardHeader title="Resumo Financeiro" />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200">
