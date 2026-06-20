@@ -13,8 +13,10 @@ import {
   resetAllScores,
   regenerateWhistFromRound,
   updateMatchPlayers,
+  updateMatchCourt,
   getRegisteredAthletes,
   getUserName,
+  getCourtNames,
   finalizeTournament,
 } from "@/lib/store"
 import { getStatusColor, getStatusLabel } from "@/lib/utils"
@@ -30,6 +32,7 @@ export default function PlacarPage() {
   const [currentRound, setCurrentRound] = useState(1)
   const initialRoundSet = useRef(false)
   const [locked, setLocked] = useState(true)
+  const [editingCourts, setEditingCourts] = useState(false)
 
   const loadData = useCallback(() => {
     const t = getTournamentById(id)
@@ -223,15 +226,37 @@ export default function PlacarPage() {
         })}
       </div>
 
+      <div className="flex items-center justify-between">
+        <div />
+        <Button size="sm" variant="ghost" onClick={() => setEditingCourts(!editingCourts)}>
+          {editingCourts ? "✔ Concluído" : "✎ Editar Quadras"}
+        </Button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {roundMatches.map((match) => (
           <div key={match.id}>
             <Card className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    {match.court}
-                  </span>
+                  {editingCourts ? (
+                    <select
+                      value={match.court}
+                      onChange={(e) => {
+                        updateMatchCourt(match.id, e.target.value)
+                        loadData()
+                      }}
+                      className="text-xs font-semibold border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    >
+                      {getCourtNames(id).map((name) => (
+                        <option key={name} value={name}>{name}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      {match.court}
+                    </span>
+                  )}
                   {match.category && (
                     <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 text-xs">
                       {getCategoryBadge(match.category)}

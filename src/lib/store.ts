@@ -516,6 +516,15 @@ export function updateMatchPlayers(
   saveData(data)
 }
 
+export function updateMatchCourt(matchId: string, court: string) {
+  const data = getData()
+  const match = data.matches.find((m) => m.id === matchId)
+  if (match) {
+    match.court = court
+    saveData(data)
+  }
+}
+
 export async function regenerateWhistFromRound(tournamentId: string, fromRound: number): Promise<number> {
   const data = getData()
   let updated = 0
