@@ -485,6 +485,33 @@ export function swapMatchTeams(matchId: string): Match | null {
   return { ...match }
 }
 
+export function updateMatchPlayers(
+  matchId: string,
+  t1p1: string,
+  t1p2: string,
+  t2p1: string,
+  t2p2: string
+) {
+  const data = getData()
+  const match = data.matches.find((m) => m.id === matchId)
+  if (!match) return
+
+  match.team1_player1_id = t1p1
+  match.team1_player2_id = t1p2
+  match.team2_player1_id = t2p1
+  match.team2_player2_id = t2p2
+
+  const pairing = data.pairings.find((p) => p.id === match.pairing_id)
+  if (pairing) {
+    pairing.player1_id = t1p1
+    pairing.player2_id = t1p2
+    pairing.player3_id = t2p1
+    pairing.player4_id = t2p2
+  }
+
+  saveData(data)
+}
+
 export async function regenerateWhistFromRound(tournamentId: string, fromRound: number): Promise<number> {
   const data = getData()
   let updated = 0

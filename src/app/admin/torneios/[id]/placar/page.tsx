@@ -13,6 +13,8 @@ import {
   resetAllScores,
   swapMatchTeams,
   regenerateWhistFromRound,
+  updateMatchPlayers,
+  getRegisteredAthletes,
   getUserName,
 } from "@/lib/store"
 import { getStatusColor, getStatusLabel } from "@/lib/utils"
@@ -77,6 +79,31 @@ export default function PlacarPage() {
   }
 
   const [fixing, setFixing] = useState(false)
+  const [editingMatchId, setEditingMatchId] = useState<string | null>(null)
+  const [editPlayers, setEditPlayers] = useState<{ t1p1: string; t1p2: string; t2p1: string; t2p2: string } | null>(null)
+
+  const handleEditMatch = (match: Match) => {
+    setEditingMatchId(match.id)
+    setEditPlayers({
+      t1p1: match.team1_player1_id,
+      t1p2: match.team1_player2_id,
+      t2p1: match.team2_player1_id,
+      t2p2: match.team2_player2_id,
+    })
+  }
+
+  const handleSaveEdit = (matchId: string) => {
+    if (!editPlayers) return
+    updateMatchPlayers(matchId, editPlayers.t1p1, editPlayers.t1p2, editPlayers.t2p1, editPlayers.t2p2)
+    setEditingMatchId(null)
+    setEditPlayers(null)
+    loadData()
+  }
+
+  const handleCancelEdit = () => {
+    setEditingMatchId(null)
+    setEditPlayers(null)
+  }
 
   const handleFixRound = async () => {
     const msg = `Recriar partidas da Rodada ${currentRound} até a 7 usando a schedule Whist corrigida?\n\nOs jogadores serão atualizados, mas os placares das partidas já em andamento serão mantidos.`
@@ -207,74 +234,141 @@ export default function PlacarPage() {
                 >
                   Trocar
                 </button>
-              </div>
-
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex-1 text-center">
-                  <p className="font-bold text-gray-900 dark:text-white text-base leading-tight">
-                    {getUserName(match.team1_player1_id)}
-                  </p>
-                  <span className="text-xs text-gray-400 dark:text-gray-500">/</span>
-                  <p className="font-bold text-gray-900 dark:text-white text-base leading-tight">
-                    {getUserName(match.team1_player2_id)}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                  <button
-                    className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold text-lg sm:text-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-30"
-                    disabled={match.score_team1 <= 0}
-                    onClick={() => handleDecrement(match.id, 1)}
-                  >
-                    −
-                  </button>
-                  <p className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white tabular-nums leading-none min-w-[2rem] sm:min-w-[3rem] text-center">
-                    {match.score_team1}
-                  </p>
-                  <span className="text-2xl sm:text-3xl font-bold text-gray-300 dark:text-gray-600">:</span>
-                  <p className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white tabular-nums leading-none min-w-[2rem] sm:min-w-[3rem] text-center">
-                    {match.score_team2}
-                  </p>
-                  <button
-                    className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold text-lg sm:text-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-30"
-                    disabled={match.score_team2 <= 0}
-                    onClick={() => handleDecrement(match.id, 2)}
-                  >
-                    −
-                  </button>
-                </div>
-
-                <div className="flex-1 text-center">
-                  <p className="font-bold text-gray-900 dark:text-white text-base leading-tight">
-                    {getUserName(match.team2_player1_id)}
-                  </p>
-                  <span className="text-xs text-gray-400 dark:text-gray-500">/</span>
-                  <p className="font-bold text-gray-900 dark:text-white text-base leading-tight">
-                    {getUserName(match.team2_player2_id)}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-2 sm:gap-3">
-                <Button
-                  variant="success"
-                  size="lg"
-                  className="flex-1 text-base sm:text-lg font-bold py-3 sm:py-4"
-                  disabled={match.score_team1 >= (tournament?.max_score || 5)}
-                  onClick={() => handleScore(match.id, 1)}
+                <button
+                  onClick={() => handleEditMatch(match)}
+                  className="text-xs text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 underline ml-2"
+                  title="Editar jogadores"
                 >
-                  +1
-                </Button>
-                <Button
-                  variant="success"
-                  size="lg"
-                  className="flex-1 text-base sm:text-lg font-bold py-3 sm:py-4"
-                  disabled={match.score_team2 >= (tournament?.max_score || 5)}
-                  onClick={() => handleScore(match.id, 2)}
-                >
-                  +1
-                </Button>
+                  ✎ Editar
+                </button>
               </div>
+
+              {editingMatchId === match.id && editPlayers ? (
+                <div className="space-y-3 mb-4">
+                  <div className="flex gap-2">
+                    <div className="flex-1 space-y-1">
+                      <p className="text-xs text-gray-400 font-medium text-center">Time 1</p>
+                      <select
+                        value={editPlayers.t1p1}
+                        onChange={(e) => setEditPlayers({ ...editPlayers, t1p1: e.target.value })}
+                        className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      >
+                        {getRegisteredAthletes(id, match.category, match.group_name).map((a) => (
+                          <option key={a.athlete_id} value={a.athlete_id}>{a.name}</option>
+                        ))}
+                      </select>
+                      <select
+                        value={editPlayers.t1p2}
+                        onChange={(e) => setEditPlayers({ ...editPlayers, t1p2: e.target.value })}
+                        className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      >
+                        {getRegisteredAthletes(id, match.category, match.group_name).map((a) => (
+                          <option key={a.athlete_id} value={a.athlete_id}>{a.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex items-center px-3 text-gray-300 dark:text-gray-600 font-bold text-lg">vs</div>
+                    <div className="flex-1 space-y-1">
+                      <p className="text-xs text-gray-400 font-medium text-center">Time 2</p>
+                      <select
+                        value={editPlayers.t2p1}
+                        onChange={(e) => setEditPlayers({ ...editPlayers, t2p1: e.target.value })}
+                        className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      >
+                        {getRegisteredAthletes(id, match.category, match.group_name).map((a) => (
+                          <option key={a.athlete_id} value={a.athlete_id}>{a.name}</option>
+                        ))}
+                      </select>
+                      <select
+                        value={editPlayers.t2p2}
+                        onChange={(e) => setEditPlayers({ ...editPlayers, t2p2: e.target.value })}
+                        className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      >
+                        {getRegisteredAthletes(id, match.category, match.group_name).map((a) => (
+                          <option key={a.athlete_id} value={a.athlete_id}>{a.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="primary" size="sm" className="flex-1" onClick={() => handleSaveEdit(match.id)}>
+                      Salvar
+                    </Button>
+                    <Button variant="ghost" size="sm" className="flex-1" onClick={handleCancelEdit}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex-1 text-center">
+                    <p className="font-bold text-gray-900 dark:text-white text-base leading-tight">
+                      {getUserName(match.team1_player1_id)}
+                    </p>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">/</span>
+                    <p className="font-bold text-gray-900 dark:text-white text-base leading-tight">
+                      {getUserName(match.team1_player2_id)}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                    <button
+                      className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold text-lg sm:text-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-30"
+                      disabled={match.score_team1 <= 0}
+                      onClick={() => handleDecrement(match.id, 1)}
+                    >
+                      −
+                    </button>
+                    <p className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white tabular-nums leading-none min-w-[2rem] sm:min-w-[3rem] text-center">
+                      {match.score_team1}
+                    </p>
+                    <span className="text-2xl sm:text-3xl font-bold text-gray-300 dark:text-gray-600">:</span>
+                    <p className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white tabular-nums leading-none min-w-[2rem] sm:min-w-[3rem] text-center">
+                      {match.score_team2}
+                    </p>
+                    <button
+                      className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold text-lg sm:text-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-30"
+                      disabled={match.score_team2 <= 0}
+                      onClick={() => handleDecrement(match.id, 2)}
+                    >
+                      −
+                    </button>
+                  </div>
+
+                  <div className="flex-1 text-center">
+                    <p className="font-bold text-gray-900 dark:text-white text-base leading-tight">
+                      {getUserName(match.team2_player1_id)}
+                    </p>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">/</span>
+                    <p className="font-bold text-gray-900 dark:text-white text-base leading-tight">
+                      {getUserName(match.team2_player2_id)}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {editingMatchId !== match.id && (
+                <div className="flex gap-2 sm:gap-3">
+                  <Button
+                    variant="success"
+                    size="lg"
+                    className="flex-1 text-base sm:text-lg font-bold py-3 sm:py-4"
+                    disabled={match.score_team1 >= (tournament?.max_score || 5)}
+                    onClick={() => handleScore(match.id, 1)}
+                  >
+                    +1
+                  </Button>
+                  <Button
+                    variant="success"
+                    size="lg"
+                    className="flex-1 text-base sm:text-lg font-bold py-3 sm:py-4"
+                    disabled={match.score_team2 >= (tournament?.max_score || 5)}
+                    onClick={() => handleScore(match.id, 2)}
+                  >
+                    +1
+                  </Button>
+                </div>
+              )}
             </Card>
           </div>
         ))}
