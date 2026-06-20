@@ -592,8 +592,6 @@ function checkTournamentCompletion(data: AppData, tournamentId: string, category
   const allFinished = matches.every((m) => m.status === "finished")
 
   if (allFinished) {
-    const tournament = data.tournaments.find((t) => t.id === tournamentId)
-
     const sortedRegs = data.athlete_registrations
       .filter(
         (r) =>
@@ -634,14 +632,63 @@ function checkTournamentCompletion(data: AppData, tournamentId: string, category
 
     updateAnnualRankings(data, category)
 
-    const allMatches = data.matches.filter((m) => m.tournament_id === tournamentId)
-    const allDone = allMatches.every((m) => m.status === "finished")
-    if (allDone && tournament) {
-      tournament.status = "completed"
-    }
-
     saveData(data)
   }
+}
+
+export function finalizeTournament(tournamentId: string) {
+  const data = getData()
+  const tournament = data.tournaments.find((t) => t.id === tournamentId)
+  if (!tournament) return
+
+  const cats = tournament.categories || ["4e5"]
+
+  cats.forEach((cat) => {
+    const groups = [...new Set(data.athlete_registrations.filter((r) => r.tournament_id === tournamentId && r.category === cat).map((r) => r.group_name || "A"))]
+    groups.forEach((grp) => {
+      const matches = data.matches.filter((m) => m.tournament_id === tournamentId && m.category === cat && (m.group_name || "A") === grp)
+      if (matches.length === 0) return
+
+      const allFinished = matches.every((m) => m.status === "finished")
+      if (allFinished) return // already has results from checkTournamentCompletion
+
+      const sortedRegs = data.athlete_registrations
+        .filter((r) => r.tournament_id === tournamentId && r.category === cat && (r.group_name || "A") === grp && r.status === "approved")
+        .sort((a, b) => (a.draw_number || 999) - (b.draw_number || 999))
+      const athleteIds = sortedRegs.map((r) => r.athlete_id)
+
+      const athleteNames: Record<string, string> = {}
+      athleteIds.forEach((id) => {
+        const user = data.users.find((u) => u.id === id)
+        if (user) athleteNames[id] = user.name
+      })
+
+      const results = calculateTournamentResults(athleteIds, matches, athleteNames, cat, grp)
+
+      data.tournament_results = data.tournament_results.filter(
+        (r) => !(r.tournament_id === tournamentId && r.category === cat && (r.group_name || "A") === grp)
+      )
+
+      results.forEach((r) => {
+        data.tournament_results.push({
+          id: crypto.randomUUID(),
+          tournament_id: tournamentId,
+          category: r.category,
+          group_name: r.group_name,
+          athlete_id: r.athlete_id,
+          round_scores: r.round_scores,
+          total_games: r.total_games,
+          position: r.position,
+          points: r.points,
+        })
+      })
+
+      updateAnnualRankings(data, cat)
+    })
+  })
+
+  tournament.status = "completed"
+  saveData(data)
 }
 
 export function resetAllScores(tournamentId: string, category?: string, groupName?: string) {

@@ -16,6 +16,7 @@ import {
   updateMatchPlayers,
   getRegisteredAthletes,
   getUserName,
+  finalizeTournament,
 } from "@/lib/store"
 import { getStatusColor, getStatusLabel } from "@/lib/utils"
 import type { Match, Tournament } from "@/lib/types"
@@ -178,12 +179,24 @@ export default function PlacarPage() {
           <Button variant="secondary" size="sm" onClick={loadData}>
             Atualizar
           </Button>
-          <Button variant="secondary" size="sm" onClick={handleFixRound} disabled={fixing}>
-            {fixing ? "Corrigindo..." : "↻ Corrigir"}
-          </Button>
-          <Button variant="danger" size="sm" onClick={handleReset}>
-            Reiniciar Placar
-          </Button>
+          {tournament.status !== "completed" && (
+            <>
+              <Button variant="secondary" size="sm" onClick={handleFixRound} disabled={fixing}>
+                {fixing ? "Corrigindo..." : "↻ Corrigir"}
+              </Button>
+              <Button variant="danger" size="sm" onClick={handleReset}>
+                Reiniciar Placar
+              </Button>
+              <Button variant="success" size="sm" onClick={() => {
+                if (window.confirm("Finalizar evento? As partidas pendentes serão encerradas e os resultados calculados.")) {
+                  finalizeTournament(id)
+                  loadData()
+                }
+              }}>
+                Finalizar Evento
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
