@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -24,6 +24,7 @@ export default function PlacarPage() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
   const [currentRound, setCurrentRound] = useState(1)
+  const initialRoundSet = useRef(false)
 
   const loadData = useCallback(() => {
     const t = getTournamentById(id)
@@ -31,14 +32,17 @@ export default function PlacarPage() {
     const allMatches = getTournamentMatches(id)
     setMatches(allMatches)
 
-    const firstUnfinished = [1, 2, 3, 4, 5, 6, 7].find((r) => {
-      const roundMatches = allMatches.filter((m) => m.round === r)
-      return roundMatches.length > 0 && roundMatches.some((m) => m.status !== "finished")
-    })
-    if (firstUnfinished) {
-      setCurrentRound(firstUnfinished)
-    } else if (allMatches.length > 0) {
-      setCurrentRound(7)
+    if (!initialRoundSet.current) {
+      const firstUnfinished = [1, 2, 3, 4, 5, 6, 7].find((r) => {
+        const roundMatches = allMatches.filter((m) => m.round === r)
+        return roundMatches.length > 0 && roundMatches.some((m) => m.status !== "finished")
+      })
+      if (firstUnfinished) {
+        setCurrentRound(firstUnfinished)
+      } else if (allMatches.length > 0) {
+        setCurrentRound(7)
+      }
+      initialRoundSet.current = true
     }
 
     setLoading(false)
