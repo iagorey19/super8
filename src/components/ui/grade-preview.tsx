@@ -4,7 +4,6 @@ import { useState, useRef } from "react"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { getUserName } from "@/lib/store"
-import { toPng } from "dom-to-image-more"
 import jsPDF from "jspdf"
 
 const WHIST_SCHEDULE = [
@@ -34,10 +33,15 @@ interface GradePreviewProps {
   categoryLabel?: string
 }
 
+const COL_W = 220
+const COL0_W = 140
+const ROW_H = 36
+const ROW_DATA_H = 82
+const SCALE = 3
+
 export function GradePreview({ registrations, matches, courtNames, category, groupName, categoryLabel }: GradePreviewProps) {
   const [copied, setCopied] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
-  const gridRef = useRef<HTMLDivElement>(null)
 
   const rounds = [1, 2, 3, 4, 5, 6, 7]
 
@@ -122,6 +126,93 @@ export function GradePreview({ registrations, matches, courtNames, category, gro
     return rows.map((r) => r.map((c) => `"${c}"`).join(",")).join("\n")
   }
 
+  function renderCanvas(): HTMLCanvasElement {
+    const cw = COL0_W + rounds.length * COL_W
+    const ch = ROW_H + uniqueCourts.length * ROW_DATA_H
+
+    const canvas = document.createElement("canvas")
+    canvas.width = cw * SCALE
+    canvas.height = ch * SCALE
+    const ctx = canvas.getContext("2d")!
+    ctx.scale(SCALE, SCALE)
+
+    ctx.fillStyle = "#ffffff"
+    ctx.fillRect(0, 0, cw, ch)
+
+    function drawCell(x: number, y: number, w: number, h: number, fill: string) {
+      ctx.fillStyle = fill
+      ctx.fillRect(x, y, w, h)
+      ctx.strokeStyle = "#d1d5db"
+      ctx.lineWidth = 1
+      ctx.strokeRect(x, y, w, h)
+    }
+
+    function drawText(x: number, y: number, w: number, h: number, text: string, opts?: { bold?: boolean; color?: string; size?: number }) {
+      const color = opts?.color || "#111827"
+      const size = opts?.size || 13
+      ctx.fillStyle = color
+      ctx.font = `${opts?.bold ? "bold " : ""}${size}px 'Segoe UI', Arial, sans-serif`
+      ctx.textAlign = "center"
+      ctx.textBaseline = "middle"
+      ctx.fillText(text, x + w / 2, y + h / 2)
+    }
+
+    function drawMultiCell(x: number, y: number, w: number, h: number, lines: string[], colors?: string[], sizes?: number[]) {
+      ctx.clearRect(x + 1, y + 1, w - 2, h - 2)
+      const total = lines.length
+      const lineH = h / total
+      lines.forEach((line, i) => {
+        const color = colors?.[i] || "#111827"
+        const size = sizes?.[i] || 12
+        ctx.fillStyle = color
+        ctx.font = `${size}px 'Segoe UI', Arial, sans-serif`
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText(line, x + w / 2, y + lineH * i + lineH / 2)
+      })
+    }
+
+    const numCols = rounds.length + 1
+    const numRows = uniqueCourts.length + 1
+
+    const colW = (i: number) => (i === 0 ? COL0_W : COL_W)
+
+    for (let r = 0; r < numRows; r++) {
+      for (let c = 0; c < numCols; c++) {
+        const cx = c === 0 ? 0 : COL0_W + (c - 1) * COL_W
+        const cy = r === 0 ? 0 : ROW_H + (r - 1) * ROW_DATA_H
+        const cw = colW(c)
+        const ch = r === 0 ? ROW_H : ROW_DATA_H
+        const fill = r === 0 ? "#f3f4f6" : "#ffffff"
+        drawCell(cx, cy, cw, ch, fill)
+
+        if (r === 0) {
+          const text = c === 0 ? "Quadra" : `${rounds[c - 1]}ª Rodada`
+          drawText(cx, cy, cw, ch, text, { bold: true, color: "#374151", size: 13 })
+        } else if (c === 0) {
+          drawText(cx, cy, cw, ch, cellFor(uniqueCourts[r - 1], 1)?.courtLabel || `Quadra ${uniqueCourts[r - 1]}`, { bold: true, color: "#374151", size: 12 })
+        } else {
+          const cell = cellFor(uniqueCourts[r - 1], rounds[c - 1])
+          if (cell) {
+            drawMultiCell(cx, cy, cw, ch,
+              [`${cell.team1[0]} / ${cell.team1[1]}`, "vs", `${cell.team2[0]} / ${cell.team2[1]}`],
+              ["#111827", "#9ca3af", "#111827"],
+              [13, 11, 13]
+            )
+          }
+        }
+      }
+    }
+
+    return canvas
+  }
+
+  function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((b) => b ? resolve(b) : reject(new Error("toBlob failed")), "image/png")
+    })
+  }
+
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(generateText())
@@ -134,13 +225,14 @@ export function GradePreview({ registrations, matches, courtNames, category, gro
 
   async function exportPNG(e: React.MouseEvent) {
     e.stopPropagation()
-    if (!gridRef.current) return
     try {
-      const dataUrl = await toPng(gridRef.current, { bgcolor: "#ffffff" })
+      const canvas = renderCanvas()
+      const blob = await canvasToBlob(canvas)
       const link = document.createElement("a")
       link.download = `grade-${category}-grupo-${groupName}.png`
-      link.href = dataUrl
+      link.href = URL.createObjectURL(blob)
       link.click()
+      URL.revokeObjectURL(link.href)
     } catch (err) {
       alert("Erro ao gerar PNG: " + (err instanceof Error ? err.message : "desconhecido"))
     }
@@ -160,18 +252,12 @@ export function GradePreview({ registrations, matches, courtNames, category, gro
 
   async function exportPDF(e: React.MouseEvent) {
     e.stopPropagation()
-    if (!gridRef.current) return
     try {
-      const dataUrl = await toPng(gridRef.current, { bgcolor: "#ffffff" })
-      const img = new Image()
-      img.src = dataUrl
-      await new Promise((resolve, reject) => {
-        img.onload = resolve
-        img.onerror = reject
-      })
+      const canvas = renderCanvas()
+      const dataUrl = canvas.toDataURL("image/png")
       const pdf = new jsPDF("l", "mm", "a4")
       const pdfWidth = pdf.internal.pageSize.getWidth()
-      const pdfHeight = (img.height * pdfWidth) / img.width
+      const pdfHeight = (canvas.height / SCALE * pdfWidth) / (canvas.width / SCALE)
       pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight)
       pdf.save(`grade-${category}-grupo-${groupName}.pdf`)
     } catch (err) {
@@ -215,7 +301,7 @@ export function GradePreview({ registrations, matches, courtNames, category, gro
           </div>
         }
       />
-      <div className="overflow-x-auto p-4" ref={gridRef}>
+      <div className="overflow-x-auto p-4">
         <div className="min-w-[850px]">
           <div
             className="grid gap-px bg-gray-200 dark:bg-gray-700 rounded-xl"
