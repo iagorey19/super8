@@ -132,17 +132,23 @@ export function GradePreview({ registrations, matches, courtNames, category, gro
     }
   }
 
-  async function exportPNG() {
+  async function exportPNG(e: React.MouseEvent) {
+    e.stopPropagation()
     if (!gridRef.current) return
-    const canvas = await html2canvas(gridRef.current, { backgroundColor: "#ffffff" })
-    const link = document.createElement("a")
-    link.download = `grade-${category}-grupo-${groupName}.png`
-    link.href = canvas.toDataURL()
-    link.click()
+    try {
+      const canvas = await html2canvas(gridRef.current, { backgroundColor: "#ffffff", useCORS: true })
+      const link = document.createElement("a")
+      link.download = `grade-${category}-grupo-${groupName}.png`
+      link.href = canvas.toDataURL()
+      link.click()
+    } catch (err) {
+      alert("Erro ao gerar PNG: " + (err instanceof Error ? err.message : "desconhecido"))
+    }
     setExportOpen(false)
   }
 
-  function exportCSV() {
+  function exportCSV(e: React.MouseEvent) {
+    e.stopPropagation()
     const blob = new Blob(["\uFEFF" + generateCSV()], { type: "text/csv;charset=utf-8;" })
     const link = document.createElement("a")
     link.href = URL.createObjectURL(blob)
@@ -152,19 +158,25 @@ export function GradePreview({ registrations, matches, courtNames, category, gro
     setExportOpen(false)
   }
 
-  async function exportPDF() {
+  async function exportPDF(e: React.MouseEvent) {
+    e.stopPropagation()
     if (!gridRef.current) return
-    const canvas = await html2canvas(gridRef.current, { backgroundColor: "#ffffff" })
-    const imgData = canvas.toDataURL("image/png")
-    const pdf = new jsPDF("l", "mm", "a4")
-    const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight)
-    pdf.save(`grade-${category}-grupo-${groupName}.pdf`)
+    try {
+      const canvas = await html2canvas(gridRef.current, { backgroundColor: "#ffffff", useCORS: true })
+      const imgData = canvas.toDataURL("image/png")
+      const pdf = new jsPDF("l", "mm", "a4")
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight)
+      pdf.save(`grade-${category}-grupo-${groupName}.pdf`)
+    } catch (err) {
+      alert("Erro ao gerar PDF: " + (err instanceof Error ? err.message : "desconhecido"))
+    }
     setExportOpen(false)
   }
 
-  function exportTXT() {
+  function exportTXT(e: React.MouseEvent) {
+    e.stopPropagation()
     const blob = new Blob([generateText()], { type: "text/plain;charset=utf-8" })
     const link = document.createElement("a")
     link.href = URL.createObjectURL(blob)
@@ -187,7 +199,7 @@ export function GradePreview({ registrations, matches, courtNames, category, gro
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setExportOpen(false)} />
                 <div className="absolute right-0 top-full mt-1 z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg min-w-[160px] overflow-hidden">
-                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={handleCopy}>📋 Copiar texto</button>
+                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={(e) => { e.stopPropagation(); handleCopy(); }}>📋 Copiar texto</button>
                   <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={exportTXT}>📄 TXT</button>
                   <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={exportCSV}>📊 CSV</button>
                   <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={exportPNG}>🖼️ PNG</button>
