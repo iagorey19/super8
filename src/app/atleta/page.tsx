@@ -208,22 +208,6 @@ export default function AthleteDashboard() {
         </div>
       )}
 
-      {raffleRecords.length > 0 && (
-        <Card>
-          <CardHeader title="🎁 Sorteios" subtitle="Vencedores dos sorteios deste evento" />
-          <div className="space-y-2">
-            {raffleRecords.map((r) => (
-              <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200">
-                <div>
-                  <p className="font-medium text-gray-900 dark:text-white">{r.winner_name}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{r.brinde_description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
       {(sponsors.length > 0 || apoiadores.length > 0) && (
         <Card>
           <CardHeader title="🤝 Agradecimentos" />
@@ -267,6 +251,22 @@ export default function AthleteDashboard() {
                 </div>
               </div>
             )}
+          </div>
+        </Card>
+      )}
+
+      {raffleRecords.length > 0 && (
+        <Card>
+          <CardHeader title="🎁 Sorteios" subtitle="Vencedores dos sorteios deste evento" />
+          <div className="space-y-2">
+            {raffleRecords.map((r) => (
+              <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200">
+                <div>
+                  <p className="font-medium text-gray-900 dark:text-white">{r.winner_name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{r.brinde_description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </Card>
       )}
