@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, Td } from "@/components/ui/table"
 import * as store from "@/lib/store"
+import { RankingInfo } from "@/components/ui/ranking-info"
 import { getStatusLabel } from "@/lib/utils"
 import type { Tournament } from "@/lib/types"
 
@@ -106,6 +107,8 @@ export default function PublicRankingPage() {
           ))}
         </div>
       )}
+
+      <RankingInfo />
 
       <Card>
         <CardHeader
