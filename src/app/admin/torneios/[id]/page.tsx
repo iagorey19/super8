@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Modal } from "@/components/ui/modal"
 import { Table, Td } from "@/components/ui/table"
+import { GradePreview } from "@/components/ui/grade-preview"
 import * as store from "@/lib/store"
 import { formatDate, getStatusColor, getStatusLabel } from "@/lib/utils"
 import type { Tournament, User } from "@/lib/types"
@@ -341,13 +342,10 @@ export default function TournamentDetail() {
                                     </>
                                   )}
                                   {r.status === "approved" && (
-                                    r.confirmed ? (
-                                      <span className="text-green-600 dark:text-green-400 font-medium text-sm px-2">✅</span>
-                                    ) : (
-                                      <Button size="sm" variant="secondary" className="px-1.5 sm:px-3 text-xs sm:text-sm" onClick={() => { store.confirmAttendance(tournament.id, r.athlete_id); load() }}>
-                                        Check-in
-                                      </Button>
-                                    )
+                                    <Button size="sm" variant={r.confirmed ? "ghost" : "secondary"} className={`px-1.5 sm:px-3 text-xs sm:text-sm ${r.confirmed ? "text-green-600 dark:text-green-400" : ""}`} onClick={() => { store.toggleAttendance(tournament.id, r.athlete_id); load() }}>
+                                      {r.confirmed ? "✅" : <span className="sm:hidden">✅</span>}
+                                      <span className="hidden sm:inline">{r.confirmed ? "Check-in ✅" : "Check-in"}</span>
+                                    </Button>
                                   )}
                                   {tournament.status === "upcoming" && r.status === "approved" && !r.confirmed && (
                                     <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm" onClick={() => { store.createNotification(r.athlete_id, "geral", "Confirme sua presença!", `O torneio ${tournament.title} está chegando! Confirme sua presença no sistema.`); alert(`Lembrete enviado para ${r.name}!`) }}>
@@ -385,6 +383,17 @@ export default function TournamentDetail() {
                         <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">Ao Vivo</p>
                         <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">{grpLive}</p>
                       </div>
+                    </div>
+                  )}
+                  {tournament.status === "upcoming" && grpApproved === 8 && (
+                    <div className="px-4 py-3">
+                      <GradePreview
+                        registrations={grpRegs.filter(r => r.status === "approved")}
+                        courtNames={store.getCourtNames(id)}
+                        category={cat}
+                        groupName={grp}
+                        categoryLabel={cat === "4e5" ? "Cat. 4e5" : "Cat. 6e7"}
+                      />
                     </div>
                   )}
                 </div>

@@ -146,7 +146,7 @@ export default function AthleteDashboard() {
                       size="sm"
                       variant="primary"
                       onClick={() => {
-                        store.confirmAttendance(tournament.id, user.id)
+                        store.toggleAttendance(tournament.id, user.id)
                         const reg = store.getAthleteRegistration(tournament.id, user.id)
                         setRegistration(reg)
                       }}

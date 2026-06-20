@@ -1329,14 +1329,19 @@ export function getRegisteredAthletes(tournamentId: string, category?: string, g
   })
 }
 
-export function confirmAttendance(tournamentId: string, athleteId: string) {
+export function toggleAttendance(tournamentId: string, athleteId: string) {
   const data = getData()
   const reg = data.athlete_registrations.find(
     (r) => r.tournament_id === tournamentId && r.athlete_id === athleteId
   )
   if (reg) {
-    reg.confirmed = true
-    reg.confirmed_at = new Date().toISOString()
+    if (reg.confirmed) {
+      reg.confirmed = undefined
+      reg.confirmed_at = undefined
+    } else {
+      reg.confirmed = true
+      reg.confirmed_at = new Date().toISOString()
+    }
     saveData(data)
   }
 }

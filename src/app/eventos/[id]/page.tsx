@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { GradePreview } from "@/components/ui/grade-preview"
 import * as store from "@/lib/store"
 import { getStatusColor, getStatusLabel, getCategoryLabel } from "@/lib/utils"
 import type { Tournament, RaffleRecord } from "@/lib/types"
@@ -15,6 +16,7 @@ export default function EventoDetalhePage() {
   const id = params.id as string
   const [tournament, setTournament] = useState<Tournament | null>(null)
   const [raffleRecords, setRaffleRecords] = useState<RaffleRecord[]>([])
+  const [registrations, setRegistrations] = useState<any[]>([])
   const [sponsors, setSponsors] = useState<any[]>([])
   const [apoiadores, setApoiadores] = useState<any[]>([])
 
@@ -23,6 +25,7 @@ export default function EventoDetalhePage() {
     setTournament(t ?? null)
     if (t) {
       setRaffleRecords(store.getRaffleRecords(id))
+      setRegistrations(store.getRegisteredAthletes(id))
       setSponsors(store.getSponsorships(id))
       setApoiadores(store.getApoiadores(id))
     }
@@ -77,6 +80,30 @@ export default function EventoDetalhePage() {
             ))}
           </div>
         </Card>
+      )}
+
+      {tournament.status === "upcoming" && registrations.some((r) => r.draw_number != null) && (
+        <div className="space-y-4">
+          {(tournament.categories || ["4e5"]).map((cat) => {
+            const catRegs = registrations.filter((r) => r.category === cat)
+            const groups = [...new Set(catRegs.map((r) => r.group_name || "A"))].sort()
+            return groups.map((grp) => {
+              const grpRegs = catRegs.filter((r) => (r.group_name || "A") === grp && r.status === "approved")
+              const hasNumbers = grpRegs.every((r) => r.draw_number != null)
+              if (grpRegs.length !== 8 || !hasNumbers) return null
+              return (
+                <GradePreview
+                  key={`${cat}-${grp}`}
+                  registrations={grpRegs}
+                  courtNames={store.getCourtNames(id)}
+                  category={cat}
+                  groupName={grp}
+                  categoryLabel={cat === "4e5" ? "Cat. 4e5" : "Cat. 6e7"}
+                />
+              )
+            })
+          })}
+        </div>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
