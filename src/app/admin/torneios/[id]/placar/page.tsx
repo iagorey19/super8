@@ -30,6 +30,7 @@ export default function PlacarPage() {
   const [loading, setLoading] = useState(true)
   const [currentRound, setCurrentRound] = useState(1)
   const initialRoundSet = useRef(false)
+  const [locked, setLocked] = useState(true)
 
   const loadData = useCallback(() => {
     const t = getTournamentById(id)
@@ -202,6 +203,11 @@ export default function PlacarPage() {
               </Button>
             </>
           )}
+          {tournament.status === "completed" && (
+            <Button variant="secondary" size="sm" onClick={() => setLocked(!locked)}>
+              {locked ? "🔒 Bloqueado" : "🔓 Desbloqueado"}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -332,7 +338,7 @@ export default function PlacarPage() {
                   <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                     <button
                       className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold text-lg sm:text-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-30"
-                      disabled={match.score_team1 <= 0}
+                      disabled={match.score_team1 <= 0 || locked}
                       onClick={() => handleDecrement(match.id, 1)}
                     >
                       −
@@ -346,7 +352,7 @@ export default function PlacarPage() {
                     </p>
                     <button
                       className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold text-lg sm:text-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-30"
-                      disabled={match.score_team2 <= 0}
+                      disabled={match.score_team2 <= 0 || locked}
                       onClick={() => handleDecrement(match.id, 2)}
                     >
                       −
@@ -371,7 +377,7 @@ export default function PlacarPage() {
                     variant="success"
                     size="lg"
                     className="flex-1 text-base sm:text-lg font-bold py-3 sm:py-4"
-                    disabled={match.score_team1 >= (tournament?.max_score || 5)}
+                    disabled={match.score_team1 >= (tournament?.max_score || 5) || locked}
                     onClick={() => handleScore(match.id, 1)}
                   >
                     +1
@@ -380,7 +386,7 @@ export default function PlacarPage() {
                     variant="success"
                     size="lg"
                     className="flex-1 text-base sm:text-lg font-bold py-3 sm:py-4"
-                    disabled={match.score_team2 >= (tournament?.max_score || 5)}
+                    disabled={match.score_team2 >= (tournament?.max_score || 5) || locked}
                     onClick={() => handleScore(match.id, 2)}
                   >
                     +1
