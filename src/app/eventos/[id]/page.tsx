@@ -82,15 +82,14 @@ export default function EventoDetalhePage() {
         </Card>
       )}
 
-      {tournament.status === "upcoming" && registrations.some((r) => r.draw_number != null) && (
+      {(registrations.some((r) => r.draw_number != null)) && (
         <div className="space-y-4">
           {(tournament.categories || ["4e5"]).map((cat) => {
             const catRegs = registrations.filter((r) => r.category === cat)
             const groups = [...new Set(catRegs.map((r) => r.group_name || "A"))].sort()
             return groups.map((grp) => {
               const grpRegs = catRegs.filter((r) => (r.group_name || "A") === grp && r.status === "approved")
-              const hasNumbers = grpRegs.every((r) => r.draw_number != null)
-              if (grpRegs.length !== 8 || !hasNumbers) return null
+              if (grpRegs.length < 8) return null
               return (
                 <GradePreview
                   key={`${cat}-${grp}`}

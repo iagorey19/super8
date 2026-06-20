@@ -392,10 +392,11 @@ export default function TournamentDetail() {
                       </div>
                     </div>
                   )}
-                  {tournament.status === "upcoming" && grpApproved === 8 && (
+                  {(grpApproved === 8 || grpMatches.length > 0) && (
                     <div className="px-4 py-3">
                       <GradePreview
-                        registrations={grpRegs.filter(r => r.status === "approved")}
+                        registrations={tournament.status === "upcoming" ? grpRegs.filter(r => r.status === "approved") : undefined}
+                        matches={tournament.status !== "upcoming" ? grpMatches : undefined}
                         courtNames={store.getCourtNames(id)}
                         category={cat}
                         groupName={grp}
