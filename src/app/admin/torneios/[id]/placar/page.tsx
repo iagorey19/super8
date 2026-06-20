@@ -76,11 +76,20 @@ export default function PlacarPage() {
     }
   }
 
-  const handleFixRound = () => {
+  const [fixing, setFixing] = useState(false)
+
+  const handleFixRound = async () => {
     const msg = `Recriar partidas da Rodada ${currentRound} até a 7 usando a schedule Whist corrigida?\n\nOs jogadores serão atualizados, mas os placares das partidas já em andamento serão mantidos.`
-    if (window.confirm(msg)) {
-      regenerateWhistFromRound(id, currentRound)
+    if (!window.confirm(msg)) return
+    setFixing(true)
+    try {
+      const n = await regenerateWhistFromRound(id, currentRound)
       loadData()
+      alert(`${n} partidas atualizadas com a schedule correta!`)
+    } catch (e) {
+      alert("Erro ao corrigir: " + (e instanceof Error ? e.message : "desconhecido"))
+    } finally {
+      setFixing(false)
     }
   }
 
@@ -142,8 +151,8 @@ export default function PlacarPage() {
           <Button variant="secondary" size="sm" onClick={loadData}>
             Atualizar
           </Button>
-          <Button variant="secondary" size="sm" onClick={handleFixRound}>
-            ↻ Corrigir
+          <Button variant="secondary" size="sm" onClick={handleFixRound} disabled={fixing}>
+            {fixing ? "Corrigindo..." : "↻ Corrigir"}
           </Button>
           <Button variant="danger" size="sm" onClick={handleReset}>
             Reiniciar Placar

@@ -485,73 +485,73 @@ export function swapMatchTeams(matchId: string): Match | null {
   return { ...match }
 }
 
-export function regenerateWhistFromRound(tournamentId: string, fromRound: number) {
+export async function regenerateWhistFromRound(tournamentId: string, fromRound: number): Promise<number> {
   const data = getData()
-  const tournament = data.tournaments.find((t) => t.id === tournamentId)
-  if (!tournament) return
+  let updated = 0
 
-  const cats = [...new Set(data.matches.filter((m) => m.tournament_id === tournamentId).map((m) => m.category).filter(Boolean))]
-  const grps = [...new Set(data.matches.filter((m) => m.tournament_id === tournamentId).map((m) => m.group_name || "A"))]
+  const affectedMatches = data.matches.filter(
+    (m) => m.tournament_id === tournamentId && m.round >= fromRound
+  )
 
-  for (const cat of cats) {
-    for (const grp of grps) {
-      const catIndex = (tournament.categories || ["4e5"]).indexOf(cat)
-      const courtOffset = catIndex * 2
+  for (const match of affectedMatches) {
+    const cat = match.category || "4e5"
+    const grp = match.group_name || "A"
 
-      const sortedRegs = data.athlete_registrations
-        .filter(
-          (r) =>
-            r.tournament_id === tournamentId &&
-            r.category === cat &&
-            (r.group_name || "A") === grp &&
-            r.status === "approved"
-        )
-        .sort((a, b) => (a.draw_number || 999) - (b.draw_number || 999))
+    const tournament = data.tournaments.find((t) => t.id === tournamentId)
+    if (!tournament) continue
 
-      if (sortedRegs.length !== 8) continue
-      const athleteIds = sortedRegs.map((r) => r.athlete_id)
+    const catIndex = (tournament.categories || ["4e5"]).indexOf(cat)
+    const courtOffset = catIndex * 2
 
-      for (let round = fromRound; round <= 7; round++) {
-        const scheduleEntry = WHIST_SCHEDULE.find((s) => s.round === round)
-        if (!scheduleEntry) continue
+    const sortedRegs = data.athlete_registrations
+      .filter(
+        (r) =>
+          r.tournament_id === tournamentId &&
+          r.category === cat &&
+          (r.group_name || "A") === grp &&
+          r.status === "approved"
+      )
+      .sort((a, b) => (a.draw_number || 999) - (b.draw_number || 999))
 
-        const roundMatches = data.matches
-          .filter(
-            (m) =>
-              m.tournament_id === tournamentId &&
-              m.category === cat &&
-              (m.group_name || "A") === grp &&
-              m.round === round
-          )
-          .sort((a, b) => parseInt(a.court) - parseInt(b.court))
+    if (sortedRegs.length !== 8) continue
+    const athleteIds = sortedRegs.map((r) => r.athlete_id)
 
-        const scheduleCourts = [
-          { idx: 0, t1: scheduleEntry.courtA.t1, t2: scheduleEntry.courtA.t2 },
-          { idx: 1, t1: scheduleEntry.courtB.t1, t2: scheduleEntry.courtB.t2 },
-        ]
+    const scheduleEntry = WHIST_SCHEDULE.find((s) => s.round === match.round)
+    if (!scheduleEntry) continue
 
-        scheduleCourts.forEach(({ idx, t1, t2 }) => {
-          const match = roundMatches[idx]
-          if (!match) return
+    const roundMatches = data.matches
+      .filter(
+        (m) =>
+          m.tournament_id === tournamentId &&
+          (m.category || "4e5") === cat &&
+          (m.group_name || "A") === grp &&
+          m.round === match.round
+      )
+      .sort((a, b) => parseInt(a.court) - parseInt(b.court))
 
-          match.team1_player1_id = athleteIds[t1[0] - 1]
-          match.team1_player2_id = athleteIds[t1[1] - 1]
-          match.team2_player1_id = athleteIds[t2[0] - 1]
-          match.team2_player2_id = athleteIds[t2[1] - 1]
+    const matchIdx = roundMatches.indexOf(match)
+    if (matchIdx < 0 || matchIdx > 1) continue
 
-          const pairing = data.pairings.find((p) => p.id === match.pairing_id)
-          if (pairing) {
-            pairing.player1_id = athleteIds[t1[0] - 1]
-            pairing.player2_id = athleteIds[t1[1] - 1]
-            pairing.player3_id = athleteIds[t2[0] - 1]
-            pairing.player4_id = athleteIds[t2[1] - 1]
-          }
-        })
-      }
+    const sc = matchIdx === 0 ? scheduleEntry.courtA : scheduleEntry.courtB
+
+    match.team1_player1_id = athleteIds[sc.t1[0] - 1]
+    match.team1_player2_id = athleteIds[sc.t1[1] - 1]
+    match.team2_player1_id = athleteIds[sc.t2[0] - 1]
+    match.team2_player2_id = athleteIds[sc.t2[1] - 1]
+
+    const pairing = data.pairings.find((p) => p.id === match.pairing_id)
+    if (pairing) {
+      pairing.player1_id = athleteIds[sc.t1[0] - 1]
+      pairing.player2_id = athleteIds[sc.t1[1] - 1]
+      pairing.player3_id = athleteIds[sc.t2[0] - 1]
+      pairing.player4_id = athleteIds[sc.t2[1] - 1]
     }
+
+    updated++
   }
 
-  saveData(data)
+  await saveData(data)
+  return updated
 }
 
 function checkTournamentCompletion(data: AppData, tournamentId: string, category: string, groupName: string) {
