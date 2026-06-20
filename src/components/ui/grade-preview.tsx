@@ -1,6 +1,8 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardHeader } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 
 const WHIST_SCHEDULE = [
   { round: 1, courtA: { t1: [1, 6], t2: [3, 5] }, courtB: { t1: [2, 4], t2: [7, 8] } },
@@ -21,6 +23,7 @@ interface GradePreviewProps {
 }
 
 export function GradePreview({ registrations, courtNames, category, groupName, categoryLabel }: GradePreviewProps) {
+  const [copied, setCopied] = useState(false)
   const withNumbers = registrations.filter((r) => r.draw_number != null)
 
   if (withNumbers.length < 8) return null
@@ -62,11 +65,46 @@ export function GradePreview({ registrations, courtNames, category, groupName, c
 
   if (uniqueCourts.length === 0) return null
 
+  function generateText() {
+    const lines: string[] = []
+    const separator = "=".repeat(50)
+    lines.push(`Grade ${categoryLabel || category} — Grupo ${groupName}`)
+    lines.push(separator)
+    uniqueCourts.forEach((court) => {
+      const label = gridCells.find((c) => c.court === court)?.courtLabel || `Quadra ${court}`
+      const roundTexts = rounds.map((r) => {
+        const cell = gridCells.find((c) => c.court === court && c.round === r)
+        if (!cell) return ""
+        return `${cell.team1[0]}/${cell.team1[1]} vs ${cell.team2[0]}/${cell.team2[1]}`
+      })
+      lines.push(`\n${label}:`)
+      roundTexts.forEach((t, i) => {
+        if (t) lines.push(`  ${i + 1}ª: ${t}`)
+      })
+    })
+    return lines.join("\n")
+  }
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(generateText())
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      prompt("Copie o texto abaixo:", generateText())
+    }
+  }
+
   return (
     <Card>
       <CardHeader
         title={`Grade ${categoryLabel || category} — Grupo ${groupName}`}
         subtitle="Prévia baseada nos números sorteados"
+        action={
+          <Button size="sm" variant="secondary" onClick={handleCopy}>
+            {copied ? "Copiado!" : "Copiar Grade"}
+          </Button>
+        }
       />
       <div className="overflow-x-auto p-4">
         <div className="min-w-[850px]">
