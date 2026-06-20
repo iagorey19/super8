@@ -123,6 +123,52 @@ export default function AthletesPage() {
         </div>
       )}
 
+        <Card>
+          <CardHeader title="Solicitações Pendentes" subtitle="Atletas aguardando aprovação" />
+          <Table headers={["Nome", "Email", "Telefone", "Torneio", "Categoria", "Status", "Ações"]}>
+            {pending.length === 0 ? (
+              <tr>
+                <Td colSpan={7}>
+                  <p className="text-center text-gray-400 dark:text-gray-500 py-8">Nenhuma solicitação pendente</p>
+                </Td>
+              </tr>
+            ) : (
+              pending.map((p) => (
+                <tr key={p.registration_id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <Td className="font-medium text-gray-900 dark:text-white">{p.name}</Td>
+                  <Td>{p.email}</Td>
+                  <Td>{p.phone || "-"}</Td>
+                  <Td>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{p.tournament_title || "-"}</span>
+                  </Td>
+                  <Td>
+                    {p.category ? (
+                      <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300">{p.category}</Badge>
+                    ) : (
+                      <span className="text-gray-400 dark:text-gray-500">-</span>
+                    )}
+                  </Td>
+                  <Td>
+                    <Badge className="bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300">
+                      {getStatusLabel("pending")}
+                    </Badge>
+                  </Td>
+                  <Td>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="success" onClick={() => handleApprove(p.registration_id)}>
+                        Aprovar
+                      </Button>
+                      <Button size="sm" variant="danger" onClick={() => handleReject(p.registration_id)}>
+                        Rejeitar
+                      </Button>
+                    </div>
+                  </Td>
+                </tr>
+              ))
+            )}
+          </Table>
+        </Card>
+
       <Card>
         <CardHeader title="Atletas Cadastrados" />
         <Table headers={["Nome", "Email", "Telefone", "Ações"]}>
@@ -183,52 +229,6 @@ export default function AthletesPage() {
           )}
         </Table>
       </Card>
-
-        <Card>
-          <CardHeader title="Solicitações Pendentes" subtitle="Atletas aguardando aprovação" />
-          <Table headers={["Nome", "Email", "Telefone", "Torneio", "Categoria", "Status", "Ações"]}>
-            {pending.length === 0 ? (
-              <tr>
-                <Td colSpan={7}>
-                  <p className="text-center text-gray-400 dark:text-gray-500 py-8">Nenhuma solicitação pendente</p>
-                </Td>
-              </tr>
-            ) : (
-              pending.map((p) => (
-                <tr key={p.registration_id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <Td className="font-medium text-gray-900 dark:text-white">{p.name}</Td>
-                  <Td>{p.email}</Td>
-                  <Td>{p.phone || "-"}</Td>
-                  <Td>
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{p.tournament_title || "-"}</span>
-                  </Td>
-                  <Td>
-                    {p.category ? (
-                      <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300">{p.category}</Badge>
-                    ) : (
-                      <span className="text-gray-400 dark:text-gray-500">-</span>
-                    )}
-                  </Td>
-                  <Td>
-                    <Badge className="bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300">
-                      {getStatusLabel("pending")}
-                    </Badge>
-                  </Td>
-                  <Td>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="success" onClick={() => handleApprove(p.registration_id)}>
-                        Aprovar
-                      </Button>
-                      <Button size="sm" variant="danger" onClick={() => handleReject(p.registration_id)}>
-                        Rejeitar
-                      </Button>
-                    </div>
-                  </Td>
-                </tr>
-              ))
-            )}
-          </Table>
-        </Card>
 
       <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)} title={`Editar Atleta - ${editingAthlete?.name || ""}`}>
         <div className="space-y-4">
