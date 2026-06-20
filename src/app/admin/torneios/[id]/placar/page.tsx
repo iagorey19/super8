@@ -11,7 +11,6 @@ import {
   updateMatchScore,
   decrementMatchScore,
   resetAllScores,
-  swapMatchTeams,
   regenerateWhistFromRound,
   updateMatchPlayers,
   getRegisteredAthletes,
@@ -71,13 +70,6 @@ export default function PlacarPage() {
   const handleDecrement = (matchId: string, team: 1 | 2) => {
     decrementMatchScore(matchId, team)
     loadData()
-  }
-
-  const handleSwap = (matchId: string) => {
-    if (window.confirm("Trocar as duplas de lado?")) {
-      swapMatchTeams(matchId)
-      loadData()
-    }
   }
 
   const [fixing, setFixing] = useState(false)
@@ -251,13 +243,6 @@ export default function PlacarPage() {
                 >
                   {getStatusLabel(match.status)}
                 </span>
-                <button
-                  onClick={() => handleSwap(match.id)}
-                  className="text-xs text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 underline ml-2"
-                  title="Trocar duplas de lado"
-                >
-                  Trocar
-                </button>
                 <button
                   onClick={() => handleEditMatch(match)}
                   className="text-xs text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 underline ml-2"
