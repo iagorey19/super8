@@ -7,13 +7,13 @@ import { getUserName } from "@/lib/store"
 import jsPDF from "jspdf"
 
 const WHIST_SCHEDULE = [
-  { round: 1, courtA: { t1: [1, 6], t2: [3, 5] }, courtB: { t1: [2, 4], t2: [7, 8] } },
-  { round: 2, courtA: { t1: [1, 7], t2: [6, 8] }, courtB: { t1: [2, 5], t2: [3, 4] } },
-  { round: 3, courtA: { t1: [1, 3], t2: [2, 7] }, courtB: { t1: [4, 8], t2: [5, 6] } },
-  { round: 4, courtA: { t1: [1, 5], t2: [4, 7] }, courtB: { t1: [2, 8], t2: [3, 6] } },
-  { round: 5, courtA: { t1: [1, 8], t2: [2, 5] }, courtB: { t1: [3, 4], t2: [6, 7] } },
-  { round: 6, courtA: { t1: [1, 4], t2: [8, 3] }, courtB: { t1: [2, 6], t2: [5, 7] } },
-  { round: 7, courtA: { t1: [1, 2], t2: [4, 6] }, courtB: { t1: [3, 7], t2: [8, 5] } },
+  { round: 1, courtA: { t1: [1, 8], t2: [2, 7] }, courtB: { t1: [3, 6], t2: [4, 5] } },
+  { round: 2, courtA: { t1: [1, 7], t2: [8, 6] }, courtB: { t1: [2, 5], t2: [3, 4] } },
+  { round: 3, courtA: { t1: [1, 6], t2: [7, 5] }, courtB: { t1: [8, 4], t2: [2, 3] } },
+  { round: 4, courtA: { t1: [1, 5], t2: [6, 4] }, courtB: { t1: [7, 3], t2: [8, 2] } },
+  { round: 5, courtA: { t1: [1, 4], t2: [5, 3] }, courtB: { t1: [6, 2], t2: [7, 8] } },
+  { round: 6, courtA: { t1: [1, 3], t2: [4, 2] }, courtB: { t1: [5, 8], t2: [6, 7] } },
+  { round: 7, courtA: { t1: [1, 2], t2: [3, 8] }, courtB: { t1: [4, 7], t2: [5, 6] } },
 ]
 
 interface GridCell {

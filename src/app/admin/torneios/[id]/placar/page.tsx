@@ -12,6 +12,7 @@ import {
   decrementMatchScore,
   resetAllScores,
   swapMatchTeams,
+  regenerateWhistRound,
   getUserName,
 } from "@/lib/store"
 import { getStatusColor, getStatusLabel } from "@/lib/utils"
@@ -75,6 +76,20 @@ export default function PlacarPage() {
     }
   }
 
+  const handleFixRound = () => {
+    const cats = [...new Set(matches.map((m) => m.category).filter(Boolean))]
+    const grps = [...new Set(matches.map((m) => m.group_name || "A"))]
+    const msg = `Recriar partidas da Rodada ${currentRound} usando a schedule Whist corrigida?\nCategorias: ${cats.join(", ")}\nGrupos: ${grps.join(", ")}\n\nOs jogadores serão atualizados, mas os placares atuais serão mantidos.`
+    if (window.confirm(msg)) {
+      cats.forEach((cat) => {
+        grps.forEach((grp) => {
+          regenerateWhistRound(id, cat, grp, currentRound)
+        })
+      })
+      loadData()
+    }
+  }
+
   const handleReset = () => {
     if (window.confirm("Tem certeza que deseja reiniciar todos os placares?")) {
       resetAllScores(id)
@@ -132,6 +147,9 @@ export default function PlacarPage() {
         <div className="flex gap-2">
           <Button variant="secondary" size="sm" onClick={loadData}>
             Atualizar
+          </Button>
+          <Button variant="secondary" size="sm" onClick={handleFixRound}>
+            ↻ Corrigir
           </Button>
           <Button variant="danger" size="sm" onClick={handleReset}>
             Reiniciar Placar

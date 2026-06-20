@@ -22,7 +22,7 @@ import {
   TournamentResult,
   User,
 } from "./types"
-import { generatePairings, calculateTournamentResults } from "./chaveamento"
+import { generatePairings, calculateTournamentResults, WHIST_SCHEDULE } from "./chaveamento"
 
 export async function initData() {
   await db.init()
@@ -483,6 +483,62 @@ export function swapMatchTeams(matchId: string): Match | null {
 
   saveData(data)
   return { ...match }
+}
+
+export function regenerateWhistRound(tournamentId: string, category: string, groupName: string, round: number) {
+  const data = getData()
+
+  const sortedRegs = data.athlete_registrations
+    .filter(
+      (r) =>
+        r.tournament_id === tournamentId &&
+        r.category === category &&
+        (r.group_name || "A") === groupName &&
+        r.status === "approved"
+    )
+    .sort((a, b) => (a.draw_number || 999) - (b.draw_number || 999))
+
+  if (sortedRegs.length !== 8) return
+
+  const athleteIds = sortedRegs.map((r) => r.athlete_id)
+
+  const scheduleEntry = WHIST_SCHEDULE.find((s) => s.round === round)
+  if (!scheduleEntry) return
+
+  const tournament = data.tournaments.find((t) => t.id === tournamentId)
+  const catIndex = (tournament?.categories || ["4e5"]).indexOf(category)
+  const courtOffset = catIndex * 2
+
+  ;[
+    { court: 1, t1: scheduleEntry.courtA.t1, t2: scheduleEntry.courtA.t2 },
+    { court: 2, t1: scheduleEntry.courtB.t1, t2: scheduleEntry.courtB.t2 },
+  ].forEach(({ court, t1, t2 }) => {
+    const courtNumber = courtOffset + court
+    const match = data.matches.find(
+      (m) =>
+        m.tournament_id === tournamentId &&
+        m.category === category &&
+        (m.group_name || "A") === groupName &&
+        m.round === round &&
+        m.court === String(courtNumber)
+    )
+    if (!match) return
+
+    match.team1_player1_id = athleteIds[t1[0] - 1]
+    match.team1_player2_id = athleteIds[t1[1] - 1]
+    match.team2_player1_id = athleteIds[t2[0] - 1]
+    match.team2_player2_id = athleteIds[t2[1] - 1]
+
+    const pairing = data.pairings.find((p) => p.id === match.pairing_id)
+    if (pairing) {
+      pairing.player1_id = athleteIds[t1[0] - 1]
+      pairing.player2_id = athleteIds[t1[1] - 1]
+      pairing.player3_id = athleteIds[t2[0] - 1]
+      pairing.player4_id = athleteIds[t2[1] - 1]
+    }
+  })
+
+  saveData(data)
 }
 
 function checkTournamentCompletion(data: AppData, tournamentId: string, category: string, groupName: string) {
