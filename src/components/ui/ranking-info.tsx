@@ -21,13 +21,14 @@ export function RankingInfo() {
             <h4 className="font-semibold text-gray-900 dark:text-white mb-1">📊 Pontuação por Rodada</h4>
             <p>Cada rodada vale pontos de acordo com a colocação:</p>
             <ul className="list-disc list-inside mt-1 space-y-0.5">
-              <li><strong>1º lugar</strong> → 7 pontos</li>
-              <li><strong>2º lugar</strong> → 5 pontos</li>
-              <li><strong>3º lugar</strong> → 4 pontos</li>
-              <li><strong>4º lugar</strong> → 3 pontos</li>
-              <li><strong>5º lugar</strong> → 2 pontos</li>
-              <li><strong>6º lugar</strong> → 1 ponto</li>
-              <li><strong>7º e 8º lugar</strong> → 0 pontos</li>
+              <li><strong>1º lugar</strong> → 8 pontos</li>
+              <li><strong>2º lugar</strong> → 7 pontos</li>
+              <li><strong>3º lugar</strong> → 6 pontos</li>
+              <li><strong>4º lugar</strong> → 5 pontos</li>
+              <li><strong>5º lugar</strong> → 4 pontos</li>
+              <li><strong>6º lugar</strong> → 3 pontos</li>
+              <li><strong>7º lugar</strong> → 2 pontos</li>
+              <li><strong>8º lugar</strong> → 1 ponto</li>
             </ul>
           </div>
 
