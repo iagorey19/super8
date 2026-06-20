@@ -72,6 +72,44 @@ export function generatePairings(
   return { pairings, matches }
 }
 
+function getScored(match: Match, athleteId: string): number {
+  if (match.team1_player1_id === athleteId || match.team1_player2_id === athleteId) return match.score_team1
+  if (match.team2_player1_id === athleteId || match.team2_player2_id === athleteId) return match.score_team2
+  return 0
+}
+
+function getConceded(match: Match, athleteId: string): number {
+  if (match.team1_player1_id === athleteId || match.team1_player2_id === athleteId) return match.score_team2
+  if (match.team2_player1_id === athleteId || match.team2_player2_id === athleteId) return match.score_team1
+  return 0
+}
+
+function didWin(match: Match, athleteId: string): boolean {
+  const s = getScored(match, athleteId)
+  const c = getConceded(match, athleteId)
+  return s > c
+}
+
+function headToHead(a: string, b: string, matches: Match[]): number {
+  let aWins = 0
+  let bWins = 0
+
+  for (const match of matches) {
+    if (match.status !== "finished") continue
+    const players = [match.team1_player1_id, match.team1_player2_id, match.team2_player1_id, match.team2_player2_id]
+    if (!players.includes(a) || !players.includes(b)) continue
+
+    const aOnTeam1 = match.team1_player1_id === a || match.team1_player2_id === a
+    const bOnTeam1 = match.team1_player1_id === b || match.team1_player2_id === b
+    if (aOnTeam1 === bOnTeam1) continue
+
+    if (didWin(match, a)) aWins++
+    if (didWin(match, b)) bWins++
+  }
+
+  return aWins - bWins
+}
+
 export function calculateTournamentResults(
   athleteIds: string[],
   matches: Match[],
@@ -79,48 +117,39 @@ export function calculateTournamentResults(
   category: string,
   groupName: string
 ) {
-  const gamesMap: Record<string, number[]> = {}
+  const scoredMap: Record<string, number[]> = {}
+  const concededMap: Record<string, number[]> = {}
 
   athleteIds.forEach((id) => {
-    gamesMap[id] = []
+    scoredMap[id] = []
+    concededMap[id] = []
   })
 
-  const sortedMatches = [...matches].sort((a, b) => a.round - b.round)
+  const finishedMatches = matches.filter((m) => m.status === "finished")
 
-  sortedMatches.forEach((match) => {
-    if (match.status !== "finished") return
-
-    const t1p1 = match.team1_player1_id
-    const t1p2 = match.team1_player2_id
-    const t2p1 = match.team2_player1_id
-    const t2p2 = match.team2_player2_id
-
-    if (!gamesMap[t1p1]) gamesMap[t1p1] = []
-    if (!gamesMap[t1p2]) gamesMap[t1p2] = []
-    if (!gamesMap[t2p1]) gamesMap[t2p1] = []
-    if (!gamesMap[t2p2]) gamesMap[t2p2] = []
-
-    gamesMap[t1p1].push(match.score_team1)
-    gamesMap[t1p2].push(match.score_team1)
-    gamesMap[t2p1].push(match.score_team2)
-    gamesMap[t2p2].push(match.score_team2)
+  finishedMatches.forEach((match) => {
+    const ids = [match.team1_player1_id, match.team1_player2_id, match.team2_player1_id, match.team2_player2_id]
+    ids.forEach((id) => {
+      if (!scoredMap[id]) scoredMap[id] = []
+      if (!concededMap[id]) concededMap[id] = []
+      scoredMap[id].push(getScored(match, id))
+      concededMap[id].push(getConceded(match, id))
+    })
   })
 
   const results = athleteIds.map((id) => {
-    const scores = gamesMap[id] || []
-    const total = scores.reduce((sum, s) => sum + s, 0)
-    return { athlete_id: id, total_games: total, round_scores: scores }
+    const scored = scoredMap[id] || []
+    const conceded = concededMap[id] || []
+    const total = scored.reduce((sum, s) => sum + s, 0)
+    const saldo = total - conceded.reduce((sum, s) => sum + s, 0)
+    return { athlete_id: id, total_games: total, saldo, round_scores: scored }
   })
 
   results.sort((a, b) => {
     if (b.total_games !== a.total_games) return b.total_games - a.total_games
-    const aScores = a.round_scores
-    const bScores = b.round_scores
-    for (let i = 0; i < Math.max(aScores.length, bScores.length); i++) {
-      const aScore = aScores[i] ?? 0
-      const bScore = bScores[i] ?? 0
-      if (bScore !== aScore) return bScore - aScore
-    }
+    if (b.saldo !== a.saldo) return b.saldo - a.saldo
+    const h2h = headToHead(a.athlete_id, b.athlete_id, finishedMatches)
+    if (h2h !== 0) return h2h
     return 0
   })
 
