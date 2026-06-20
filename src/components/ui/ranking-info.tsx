@@ -41,7 +41,7 @@ export function RankingInfo() {
             <h4 className="font-semibold text-gray-900 dark:text-white mb-1">⚖️ Critério de Desempate</h4>
             <p>Em caso de empate na pontuação final, a ordem é definida por:</p>
             <ol className="list-decimal list-inside mt-1 space-y-0.5">
-              <li><strong>Total de games</strong> — quem jogou mais games (maior número de partidas realizadas)</li>
+              <li><strong>Total de games</strong> — quem fez mais games (soma dos games marcados em todas as partidas)</li>
               <li><strong>Saldo</strong> — diferença entre games marcados e sofridos (scored - conceded)</li>
               <li><strong>Confronto direto</strong> — quem venceu mais vezes o duelo direto entre os atletas empatados</li>
             </ol>
