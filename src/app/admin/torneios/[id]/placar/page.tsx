@@ -181,9 +181,14 @@ export default function PlacarPage() {
           </Button>
           {tournament.status !== "completed" && (
             <>
-              <Button variant="secondary" size="sm" onClick={handleFixRound} disabled={fixing}>
-                {fixing ? "Corrigindo..." : "↻ Corrigir"}
-              </Button>
+              <div className="relative group">
+                <Button variant="secondary" size="sm" onClick={handleFixRound} disabled={fixing}>
+                  {fixing ? "Corrigindo..." : "↻ Corrigir Escalação"}
+                </Button>
+                <div className="absolute right-0 top-full mt-1 w-64 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
+                  Recria as partidas da Rodada {currentRound} até a 7 usando a escala Whist corrigida. Os placares em andamento são mantidos.
+                </div>
+              </div>
               <Button variant="danger" size="sm" onClick={handleReset}>
                 Reiniciar Placar
               </Button>
