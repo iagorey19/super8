@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select } from "@/components/ui/select"
+import { Modal } from "@/components/ui/modal"
 import * as store from "@/lib/store"
 import type { RaffleRecord } from "@/lib/types"
 
@@ -33,6 +34,8 @@ export default function SortearBrindes() {
   const [selectedTournamentId, setSelectedTournamentId] = useState("")
   const [sorteioBrindes, setSorteioBrindes] = useState<any[]>([])
   const [apoiadores, setApoiadores] = useState<any[]>([])
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingRecordId, setEditingRecordId] = useState<string | null>(null)
 
   useEffect(() => {
     const all = store.getTournaments()
@@ -382,11 +385,8 @@ export default function SortearBrindes() {
                     <button
                       className="text-xs text-amber-600 dark:text-amber-400 hover:underline"
                       onClick={() => {
-                        const novaDesc = prompt("Editar descrição do brinde:", record.brinde_description)
-                        if (novaDesc && novaDesc !== record.brinde_description) {
-                          store.updateRaffleDescription(record.id, novaDesc)
-                          setRecords(store.getRaffleRecords(selectedTournamentId))
-                        }
+                        setEditingRecordId(record.id)
+                        setEditModalOpen(true)
                       }}
                     >
                       Editar
@@ -411,6 +411,60 @@ export default function SortearBrindes() {
           </Button>
         </div>
       )}
+
+      <Modal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Trocar Brinde"
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Selecione o brinde para substituir:
+          </p>
+          {sorteioBrindes.length === 0 ? (
+            <p className="text-sm text-gray-400 dark:text-gray-500">
+              Nenhum brinde disponível para troca.
+            </p>
+          ) : (
+            sorteioBrindes.map((b) => {
+              const apoiador = apoiadores.find((a: any) =>
+                a.brindes.some((br: any) => br.id === b.id)
+              )
+              return (
+                <button
+                  key={b.id}
+                  className="w-full text-left p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+                  onClick={() => {
+                    if (editingRecordId) {
+                      store.updateRaffleDescription(editingRecordId, b.description)
+                      setRecords(store.getRaffleRecords(selectedTournamentId))
+                      setEditModalOpen(false)
+                      setEditingRecordId(null)
+                    }
+                  }}
+                >
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {b.description}
+                    {b.quantity > 1 && (
+                      <span className="ml-2 text-xs text-amber-600 dark:text-amber-400 font-semibold">
+                        x{b.quantity}
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
+                    Doado por: {apoiador?.name || "Desconhecido"}
+                  </p>
+                </button>
+              )
+            })
+          )}
+          <div className="flex justify-end pt-2">
+            <Button variant="secondary" onClick={() => setEditModalOpen(false)}>
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

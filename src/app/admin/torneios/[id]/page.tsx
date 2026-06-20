@@ -51,8 +51,21 @@ export default function TournamentDetail() {
     }
   }
 
-  function handleCourtNameChange(idx: number, val: string) {
-    store.updateCourtName(id, idx, val)
+  const [courtNameInputs, setCourtNameInputs] = useState<string[]>([])
+
+  useEffect(() => {
+    if (tournament) {
+      const existing = tournament.court_names?.length
+        ? [...tournament.court_names]
+        : store.getCourtNames(id)
+      setCourtNameInputs(existing)
+    }
+  }, [tournament, id])
+
+  function handleSaveCourtNames() {
+    courtNameInputs.forEach((name, idx) => {
+      store.updateCourtName(id, idx, name)
+    })
     setTournament((prev) => {
       if (!prev) return prev
       const names = store.getCourtNames(id)
@@ -411,31 +424,40 @@ export default function TournamentDetail() {
         )
       })}
 
-      {tournament.status !== "upcoming" && (
-        <Card>
-          <CardHeader title="Quadras" />
-          <div className="space-y-3">
-            {store.getCourtNames(id).map((name, idx) => {
-              const cats = tournament.categories || ["4e5"]
-              const courtsPerCat = 2
-              const catIdx = Math.floor(idx / courtsPerCat)
-              const catName = cats[catIdx] || "4e5"
-              return (
-                <div key={idx} className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400 w-20">
-                    {catName === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}
-                  </span>
-                  <Input
-                    defaultValue={name}
-                    onBlur={(e) => handleCourtNameChange(idx, e.target.value)}
-                    className="flex-1"
-                  />
-                </div>
-              )
-            })}
-          </div>
-        </Card>
-      )}
+      <Card>
+        <CardHeader
+          title="Quadras"
+          action={
+            <Button size="sm" variant="secondary" onClick={handleSaveCourtNames}>
+              Salvar
+            </Button>
+          }
+        />
+        <div className="space-y-3">
+          {courtNameInputs.map((name, idx) => {
+            const cats = tournament.categories || ["4e5"]
+            const courtsPerCat = 2
+            const catIdx = Math.floor(idx / courtsPerCat)
+            const catName = cats[catIdx] || "4e5"
+            return (
+              <div key={idx} className="flex items-center gap-3">
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400 w-20">
+                  {catName === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}
+                </span>
+                <Input
+                  value={name}
+                  onChange={(e) => {
+                    const next = [...courtNameInputs]
+                    next[idx] = e.target.value
+                    setCourtNameInputs(next)
+                  }}
+                  className="flex-1"
+                />
+              </div>
+            )
+          })}
+        </div>
+      </Card>
 
       <Modal open={editModal} onClose={() => setEditModal(false)} title="Editar Torneio">
         <div className="space-y-4">
