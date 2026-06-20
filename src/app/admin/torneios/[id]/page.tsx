@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Modal } from "@/components/ui/modal"
 import { Table, Td } from "@/components/ui/table"
-import { GradePreview } from "@/components/ui/grade-preview"
 import * as store from "@/lib/store"
 import { formatDate, getStatusColor, getStatusLabel } from "@/lib/utils"
 import type { Tournament, User } from "@/lib/types"
@@ -416,19 +415,7 @@ export default function TournamentDetail() {
                       </div>
                     </div>
                   )}
-                  {(grpApproved === 8 || grpMatches.length > 0) && (
-                    <div className="px-4 py-3">
-                      <GradePreview
-                        registrations={tournament.status === "upcoming" ? grpRegs.filter(r => r.status === "approved") : undefined}
-                        matches={tournament.status !== "upcoming" ? grpMatches : undefined}
-                        courtNames={store.getCourtNames(id)}
-                        category={cat}
-                        groupName={grp}
-                        categoryLabel={cat === "4e5" ? "Cat. 4e5" : "Cat. 6e7"}
-                        courtOffset={(tournament.categories || ["4e5"]).indexOf(cat) * 2}
-                      />
-                    </div>
-                  )}
+                  
                 </div>
               )
             })}

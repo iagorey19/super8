@@ -6,7 +6,6 @@ import { useEffect, useState, useCallback } from "react"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { GradePreview } from "@/components/ui/grade-preview"
 import * as store from "@/lib/store"
 import { getStatusColor, getStatusLabel, getCategoryLabel } from "@/lib/utils"
 import type { Tournament, RaffleRecord } from "@/lib/types"
@@ -80,46 +79,6 @@ export default function EventoDetalhePage() {
         </p>
       )}
 
-      {raffleRecords.length > 0 && (
-        <Card>
-          <CardHeader title="🎁 Vencedores dos Sorteios" />
-          <div className="space-y-2">
-            {raffleRecords.map((r) => (
-              <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-green-50 border border-green-200">
-                <div>
-                  <p className="font-medium text-gray-900 dark:text-white">{r.winner_name}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{r.brinde_description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {(registrations.some((r) => r.draw_number != null)) && (
-        <div className="space-y-4">
-          {(tournament.categories || ["4e5"]).map((cat) => {
-            const catRegs = registrations.filter((r) => r.category === cat)
-            const groups = [...new Set(catRegs.map((r) => r.group_name || "A"))].sort()
-            return groups.map((grp) => {
-              const grpRegs = catRegs.filter((r) => (r.group_name || "A") === grp && r.status === "approved")
-              if (grpRegs.length < 8) return null
-              return (
-                <GradePreview
-                  key={`${cat}-${grp}`}
-                  registrations={grpRegs}
-                  courtNames={store.getCourtNames(id)}
-                  category={cat}
-                  groupName={grp}
-                  categoryLabel={cat === "4e5" ? "Cat. 4e5" : "Cat. 6e7"}
-                  courtOffset={(tournament.categories || ["4e5"]).indexOf(cat) * 2}
-                />
-              )
-            })
-          })}
-        </div>
-      )}
-
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link href={`/eventos/${id}/jogos`}>
           <Card className="hover:shadow-md transition-shadow cursor-pointer text-center py-8">
@@ -187,6 +146,22 @@ export default function EventoDetalhePage() {
                 </div>
               </div>
             )}
+          </div>
+        </Card>
+      )}
+
+      {raffleRecords.length > 0 && (
+        <Card>
+          <CardHeader title="🎁 Vencedores dos Sorteios" />
+          <div className="space-y-2">
+            {raffleRecords.map((r) => (
+              <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-green-50 border border-green-200">
+                <div>
+                  <p className="font-medium text-gray-900 dark:text-white">{r.winner_name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{r.brinde_description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </Card>
       )}
