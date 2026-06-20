@@ -342,10 +342,17 @@ export default function TournamentDetail() {
                                     </>
                                   )}
                                   {r.status === "approved" && (
-                                    <Button size="sm" variant={r.confirmed ? "ghost" : "secondary"} className={`px-1.5 sm:px-3 text-xs sm:text-sm ${r.confirmed ? "text-green-600 dark:text-green-400" : ""}`} onClick={() => { store.toggleAttendance(tournament.id, r.athlete_id); load() }}>
-                                      {r.confirmed ? "✅" : <span className="sm:hidden">✅</span>}
-                                      <span className="hidden sm:inline">{r.confirmed ? "Check-in ✅" : "Check-in"}</span>
-                                    </Button>
+                                    r.confirmed ? (
+                                      <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm text-red-600 dark:text-red-400" onClick={() => { store.toggleAttendance(tournament.id, r.athlete_id); load() }}>
+                                        <span className="sm:hidden">✕</span>
+                                        <span className="hidden sm:inline">✕ Remover</span>
+                                      </Button>
+                                    ) : (
+                                      <Button size="sm" variant="secondary" className="px-1.5 sm:px-3 text-xs sm:text-sm" onClick={() => { store.toggleAttendance(tournament.id, r.athlete_id); load() }}>
+                                        <span className="sm:hidden">✓</span>
+                                        <span className="hidden sm:inline">✅ Check-in</span>
+                                      </Button>
+                                    )
                                   )}
                                   {tournament.status === "upcoming" && r.status === "approved" && !r.confirmed && (
                                     <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm" onClick={() => { store.createNotification(r.athlete_id, "geral", "Confirme sua presença!", `O torneio ${tournament.title} está chegando! Confirme sua presença no sistema.`); alert(`Lembrete enviado para ${r.name}!`) }}>
