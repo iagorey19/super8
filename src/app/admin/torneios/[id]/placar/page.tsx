@@ -243,14 +243,27 @@ export default function PlacarPage() {
                     <select
                       value={match.court}
                       onChange={(e) => {
-                        updateMatchCourt(match.id, e.target.value)
-                        loadData()
+                        if (window.confirm(`Alterar quadra de "${match.court}" para "${e.target.value}"?`)) {
+                          updateMatchCourt(match.id, e.target.value)
+                          loadData()
+                        }
                       }}
                       className="text-xs font-semibold border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     >
-                      {getCourtNames(id).map((name) => (
-                        <option key={name} value={name}>{name}</option>
-                      ))}
+                      {(tournament?.categories || ["4e5"]).length > 1 ? (
+                        (() => {
+                          const catIdx = (tournament?.categories || ["4e5"]).indexOf(match.category || "4e5")
+                          const allCourts = getCourtNames(id)
+                          const catCourts = allCourts.slice(catIdx * 2, catIdx * 2 + 2)
+                          return catCourts.map((name) => (
+                            <option key={name} value={name}>{name}</option>
+                          ))
+                        })()
+                      ) : (
+                        getCourtNames(id).map((name) => (
+                          <option key={name} value={name}>{name}</option>
+                        ))
+                      )}
                     </select>
                   ) : (
                     <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
