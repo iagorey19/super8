@@ -1785,13 +1785,22 @@ export function recordRaffle(tournamentId: string, description: string, winnerNa
   saveData(data)
 }
 
-export function updateRaffleDescription(recordId: string, description: string) {
+export function updateRaffleRecord(recordId: string, updates: { winner_name?: string; brinde_description?: string }) {
   const data = getData()
   const record = data.raffle_records?.find((r) => r.id === recordId)
   if (record) {
-    record.brinde_description = description
+    if (updates.winner_name !== undefined) record.winner_name = updates.winner_name
+    if (updates.brinde_description !== undefined) record.brinde_description = updates.brinde_description
     saveData(data)
   }
+}
+
+export function removeRaffleRecord(recordId: string) {
+  const data = getData()
+  if (data.raffle_records) {
+    data.raffle_records = data.raffle_records.filter((r) => r.id !== recordId)
+  }
+  saveData(data)
 }
 
 export function resetRaffleRecords(tournamentId: string) {

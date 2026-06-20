@@ -36,6 +36,8 @@ export default function SortearBrindes() {
   const [apoiadores, setApoiadores] = useState<any[]>([])
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null)
+  const [editWinnerName, setEditWinnerName] = useState("")
+  const [editPrizeName, setEditPrizeName] = useState("")
 
   const [manualPrize, setManualPrize] = useState("")
   const [manualWinnerId, setManualWinnerId] = useState("")
@@ -424,10 +426,23 @@ export default function SortearBrindes() {
                       className="text-xs text-amber-600 dark:text-amber-400 hover:underline"
                       onClick={() => {
                         setEditingRecordId(record.id)
+                        setEditWinnerName(record.winner_name)
+                        setEditPrizeName(record.brinde_description)
                         setEditModalOpen(true)
                       }}
                     >
                       Editar
+                    </button>
+                    <button
+                      className="text-xs text-red-600 dark:text-red-400 hover:underline"
+                      onClick={() => {
+                        if (window.confirm(`Remover sorteio de ${record.winner_name}?`)) {
+                          store.removeRaffleRecord(record.id)
+                          setRecords(store.getRaffleRecords(selectedTournamentId))
+                        }
+                      }}
+                    >
+                      Remover
                     </button>
                     <span className="text-xs text-gray-400 dark:text-gray-500">#{idx + 1}</span>
                   </div>
@@ -453,52 +468,38 @@ export default function SortearBrindes() {
       <Modal
         open={editModalOpen}
         onClose={() => setEditModalOpen(false)}
-        title="Trocar Brinde"
+        title="Editar Sorteio"
       >
-        <div className="space-y-3">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Selecione o brinde para substituir:
-          </p>
-          {sorteioBrindes.length === 0 ? (
-            <p className="text-sm text-gray-400 dark:text-gray-500">
-              Nenhum brinde disponível para troca.
-            </p>
-          ) : (
-            sorteioBrindes.map((b) => {
-              const apoiador = apoiadores.find((a: any) =>
-                a.brindes.some((br: any) => br.id === b.id)
-              )
-              return (
-                <button
-                  key={b.id}
-                  className="w-full text-left p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
-                  onClick={() => {
-                    if (editingRecordId) {
-                      store.updateRaffleDescription(editingRecordId, b.description)
-                      setRecords(store.getRaffleRecords(selectedTournamentId))
-                      setEditModalOpen(false)
-                      setEditingRecordId(null)
-                    }
-                  }}
-                >
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {b.description}
-                    {b.quantity > 1 && (
-                      <span className="ml-2 text-xs text-amber-600 dark:text-amber-400 font-semibold">
-                        x{b.quantity}
-                      </span>
-                    )}
-                  </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500">
-                    Doado por: {apoiador?.name || "Desconhecido"}
-                  </p>
-                </button>
-              )
-            })
-          )}
-          <div className="flex justify-end pt-2">
+        <div className="space-y-4">
+          <Input
+            label="Vencedor"
+            value={editWinnerName}
+            onChange={(e) => setEditWinnerName(e.target.value)}
+          />
+          <Input
+            label="Brinde"
+            value={editPrizeName}
+            onChange={(e) => setEditPrizeName(e.target.value)}
+          />
+          <div className="flex justify-end gap-3 pt-2">
             <Button variant="secondary" onClick={() => setEditModalOpen(false)}>
               Cancelar
+            </Button>
+            <Button
+              disabled={!editWinnerName.trim() || !editPrizeName.trim()}
+              onClick={() => {
+                if (editingRecordId) {
+                  store.updateRaffleRecord(editingRecordId, {
+                    winner_name: editWinnerName.trim(),
+                    brinde_description: editPrizeName.trim(),
+                  })
+                  setRecords(store.getRaffleRecords(selectedTournamentId))
+                  setEditModalOpen(false)
+                  setEditingRecordId(null)
+                }
+              }}
+            >
+              Salvar
             </Button>
           </div>
         </div>
