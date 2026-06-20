@@ -59,7 +59,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       {tournament ? (
-        <Card>
+        <Card className="cursor-pointer" onClick={() => router.push(`/admin/torneios/${tournament.id}`)}>
           <CardHeader
             title={tournament.title}
             subtitle={tournament.edition && `Edição ${tournament.edition}`}
@@ -74,7 +74,7 @@ export default function AdminDashboard() {
             )}
           </div>
           {tournament.status === "ongoing" && (
-            <div className="mt-4 flex flex-wrap gap-3">
+            <div className="mt-4 flex flex-wrap gap-3" onClick={(e) => e.stopPropagation()}>
               <Link href={`/admin/torneios/${tournament.id}/placar`}>
                 <Button variant="success">Acessar Placar ao Vivo</Button>
               </Link>

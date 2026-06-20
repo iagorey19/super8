@@ -3,12 +3,13 @@
 export function Card({
   children,
   className = "",
+  ...props
 }: {
   children: React.ReactNode
   className?: string
-}) {
+} & React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 ${className}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 ${className}`} {...props}>
       {children}
     </div>
   )
