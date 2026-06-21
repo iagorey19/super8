@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Modal } from "@/components/ui/modal"
-import { supabase } from "@/lib/supabase"
 import * as store from "@/lib/store"
 import { formatDate } from "@/lib/utils"
 import type { Tournament, Photo } from "@/lib/types"
@@ -58,16 +57,25 @@ export default function AdminFotos() {
     if (!selectedFile) return
     setUploading(true)
     try {
-      const ext = selectedFile.name.split(".").pop()?.toLowerCase() || "jpg"
-      const fileName = `${crypto.randomUUID()}.${ext}`
-      const { error } = await supabase.storage.from("photos").upload(fileName, selectedFile, {
-        contentType: selectedFile.type,
-        upsert: false,
+      // Get signed upload URL from server
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: selectedFile.name, type: selectedFile.type }),
       })
-      if (error) throw error
-      const { data: publicUrl } = supabase.storage.from("photos").getPublicUrl(fileName)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+
+      // Upload directly to Supabase Storage via signed URL
+      const uploadRes = await fetch(data.signedUrl, {
+        method: "PUT",
+        headers: { "Content-Type": selectedFile.type },
+        body: selectedFile,
+      })
+      if (!uploadRes.ok) throw new Error("Falha no upload: " + uploadRes.status)
+
       store.createPhoto(
-        publicUrl.publicUrl,
+        data.publicUrl,
         form.caption.trim() || undefined,
         user!.id,
         form.tournamentId || undefined
