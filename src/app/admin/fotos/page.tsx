@@ -53,6 +53,21 @@ export default function AdminFotos() {
     loadPhotos()
   }, [selectedFilter])
 
+  useEffect(() => {
+    const all = store.getPhotos()
+    let changed = false
+    for (const p of all) {
+      const match = p.url.match(/\/file\/d\/([^/]+)/)
+      if (match) {
+        const fixed = `https://drive.google.com/uc?export=view&id=${match[1]}`
+        store.deletePhoto(p.id)
+        store.createPhoto(fixed, p.caption, p.uploaded_by, p.tournament_id)
+        changed = true
+      }
+    }
+    if (changed) loadPhotos()
+  }, [])
+
   async function handleUploadFile() {
     if (!selectedFile) return
     setUploading(true)
@@ -78,10 +93,16 @@ export default function AdminFotos() {
     }
   }
 
+  function convertDriveLink(url: string): string {
+    const match = url.match(/\/file\/d\/([^/]+)/)
+    if (match) return `https://drive.google.com/uc?export=view&id=${match[1]}`
+    return url
+  }
+
   function handleAddUrl() {
     if (!form.url.trim()) return
     store.createPhoto(
-      form.url.trim(),
+      convertDriveLink(form.url.trim()),
       form.caption.trim() || undefined,
       user!.id,
       form.tournamentId || undefined
@@ -239,10 +260,11 @@ export default function AdminFotos() {
           ) : (
             <Input
               label="URL da Imagem"
-              placeholder="https://exemplo.com/foto.jpg"
+              placeholder="https://drive.google.com/file/d/.../view"
               value={form.url}
               onChange={(e) => setForm({ ...form, url: e.target.value })}
             />
+            <p className="text-xs text-gray-400 dark:text-gray-500">Links do Google Drive são convertidos automaticamente</p>
           )}
 
           <Input
