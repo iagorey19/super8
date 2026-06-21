@@ -72,7 +72,10 @@ export default function AdminFotos() {
         headers: { "Content-Type": selectedFile.type },
         body: selectedFile,
       })
-      if (!uploadRes.ok) throw new Error("Falha no upload: " + uploadRes.status)
+      if (!uploadRes.ok) {
+        const errText = await uploadRes.text().catch(() => "")
+        throw new Error(`Falha no upload (${uploadRes.status}): ${errText}`)
+      }
 
       store.createPhoto(
         data.publicUrl,
