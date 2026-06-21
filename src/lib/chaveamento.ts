@@ -25,9 +25,12 @@ export function generatePairings(
   const matches: Match[] = []
 
   WHIST_SCHEDULE.forEach(({ round, courtA, courtB }) => {
+    const swap = round % 2 === 0
+    const a = swap ? courtB : courtA
+    const b = swap ? courtA : courtB
     ;[
-      { court: 1, t1: courtA.t1, t2: courtA.t2 },
-      { court: 2, t1: courtB.t1, t2: courtB.t2 },
+      { court: 1, t1: a.t1, t2: a.t2 },
+      { court: 2, t1: b.t1, t2: b.t2 },
     ].forEach(({ court, t1, t2 }) => {
       const p1 = athleteIds[t1[0] - 1]
       const p2 = athleteIds[t1[1] - 1]
