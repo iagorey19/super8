@@ -13,7 +13,6 @@ export async function POST(req: Request) {
 
     const svc = getServiceClient()
     const { data, error } = await svc.storage.from("photos").createSignedUploadUrl(fileName, {
-      contentType: type || "image/jpeg",
       upsert: false,
     })
 
