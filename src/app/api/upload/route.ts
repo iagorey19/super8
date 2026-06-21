@@ -31,9 +31,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Falha ao fazer upload" }, { status: 500 })
   }
 }
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-}

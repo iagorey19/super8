@@ -6,7 +6,8 @@ export function formatCurrency(value: number): string {
 }
 
 export function formatDate(dateStr: string): string {
-  return new Date(dateStr + "T12:00:00").toLocaleDateString("pt-BR", {
+  const d = dateStr.includes("T") ? new Date(dateStr) : new Date(dateStr + "T12:00:00")
+  return d.toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "long",
     year: "numeric",
