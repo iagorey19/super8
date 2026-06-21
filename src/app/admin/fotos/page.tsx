@@ -258,13 +258,15 @@ export default function AdminFotos() {
               )}
             </div>
           ) : (
-            <Input
-              label="URL da Imagem"
-              placeholder="https://drive.google.com/file/d/.../view"
-              value={form.url}
-              onChange={(e) => setForm({ ...form, url: e.target.value })}
-            />
-            <p className="text-xs text-gray-400 dark:text-gray-500">Links do Google Drive são convertidos automaticamente</p>
+            <>
+              <Input
+                label="URL da Imagem"
+                placeholder="https://drive.google.com/file/d/.../view"
+                value={form.url}
+                onChange={(e) => setForm({ ...form, url: e.target.value })}
+              />
+              <p className="text-xs text-gray-400 dark:text-gray-500">Links do Google Drive são convertidos automaticamente</p>
+            </>
           )}
 
           <Input
