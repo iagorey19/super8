@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Modal } from "@/components/ui/modal"
+import { supabase } from "@/lib/supabase"
 import * as store from "@/lib/store"
 import { formatDate } from "@/lib/utils"
 import type { Tournament, Photo } from "@/lib/types"
@@ -53,32 +54,20 @@ export default function AdminFotos() {
     loadPhotos()
   }, [selectedFilter])
 
-  useEffect(() => {
-    const all = store.getPhotos()
-    let changed = false
-    for (const p of all) {
-      const match = p.url.match(/\/file\/d\/([^/]+)/)
-      if (match) {
-        const fixed = `https://drive.google.com/uc?export=view&id=${match[1]}`
-        store.deletePhoto(p.id)
-        store.createPhoto(fixed, p.caption, p.uploaded_by, p.tournament_id)
-        changed = true
-      }
-    }
-    if (changed) loadPhotos()
-  }, [])
-
   async function handleUploadFile() {
     if (!selectedFile) return
     setUploading(true)
     try {
-      const body = new FormData()
-      body.append("file", selectedFile)
-      const res = await fetch("/api/upload", { method: "POST", body })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
+      const ext = selectedFile.name.split(".").pop()?.toLowerCase() || "jpg"
+      const fileName = `${crypto.randomUUID()}.${ext}`
+      const { error } = await supabase.storage.from("photos").upload(fileName, selectedFile, {
+        contentType: selectedFile.type,
+        upsert: false,
+      })
+      if (error) throw error
+      const { data: publicUrl } = supabase.storage.from("photos").getPublicUrl(fileName)
       store.createPhoto(
-        data.url,
+        publicUrl.publicUrl,
         form.caption.trim() || undefined,
         user!.id,
         form.tournamentId || undefined
