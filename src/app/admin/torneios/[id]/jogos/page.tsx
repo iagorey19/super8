@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { getTournamentById, getTournamentMatches, getUserName, getCourtNames, updateCourtName } from "@/lib/store"
 import { getStatusColor, getStatusLabel } from "@/lib/utils"
+import { exportTournamentSpreadsheet } from "@/lib/export-spreadsheet"
 import type { Match, Tournament } from "@/lib/types"
 
 export default function JogosPage() {
@@ -100,6 +101,9 @@ export default function JogosPage() {
           </Button>
           <Button size="sm" variant="secondary" onClick={loadData}>
             🔄
+          </Button>
+          <Button size="sm" variant="secondary" onClick={() => exportTournamentSpreadsheet(id)}>
+            📥 Planilha
           </Button>
           <Button size="sm" onClick={() => router.push(`/admin/torneios/${id}/placar`)}>
             Placar
