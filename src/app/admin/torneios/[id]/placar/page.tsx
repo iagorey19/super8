@@ -31,12 +31,13 @@ export default function PlacarPage() {
   const [loading, setLoading] = useState(true)
   const [currentRound, setCurrentRound] = useState(1)
   const initialRoundSet = useRef(false)
-  const [locked, setLocked] = useState(true)
+  const [locked, setLocked] = useState(false)
   const [editingCourts, setEditingCourts] = useState(false)
 
   const loadData = useCallback(() => {
     const t = getTournamentById(id)
     setTournament(t || null)
+    if (t?.status === "completed") setLocked(true)
     const allMatches = getTournamentMatches(id)
     setMatches(allMatches)
 
