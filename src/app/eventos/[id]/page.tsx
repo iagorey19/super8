@@ -382,7 +382,7 @@ export default function EventoDetalhePage() {
               const sorted = [...regs].sort((a: any, b: any) => (a.registration_order || 999) - (b.registration_order || 999))
               return (
                 <div key={key} className="px-4 pb-4">
-                  <h4 className="text-sm font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2 mt-4 first:mt-0">
+                  <h4 className="text-sm font-bold text-gray-600 dark:text-gray-400 tracking-wider mb-2 mt-4 first:mt-0">
                     {getCategoryLabel(cat)} — Grupo {grp}
                   </h4>
                   <div className="space-y-1">
