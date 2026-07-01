@@ -117,7 +117,7 @@ export default function AthleteDashboard() {
           <p className="text-gray-500 dark:text-gray-400 mt-1">Bem-vindo ao THE SUPER 8</p>
         </div>
         <div className="flex gap-2">
-          <Button size="sm" variant="secondary" onClick={loadData}>
+          <Button size="sm" variant="secondary" onClick={() => window.location.reload()}>
             Atualizar
           </Button>
           <Button size="sm" variant="ghost" onClick={() => {

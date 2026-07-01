@@ -160,7 +160,7 @@ export default function EventoDetalhePage() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{tournament.title}</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">{tournament.edition}</p>
           </div>
-          <Button size="sm" variant="secondary" onClick={loadData}>
+          <Button size="sm" variant="secondary" onClick={() => window.location.reload()}>
             Atualizar
           </Button>
         </div>

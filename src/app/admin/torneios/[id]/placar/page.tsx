@@ -173,7 +173,7 @@ export default function PlacarPage() {
           <p className="text-xs text-gray-500 dark:text-gray-400">Placar ao Vivo</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" size="sm" onClick={loadData}>
+          <Button variant="secondary" size="sm" onClick={() => window.location.reload()}>
             Atualizar
           </Button>
           {tournament.status !== "completed" && (

@@ -63,7 +63,7 @@ export default function AthleteMatches() {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Meus Jogos</h1>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="secondary" onClick={refresh}>
+          <Button size="sm" variant="secondary" onClick={() => window.location.reload()}>
             Atualizar
           </Button>
           {isTournamentEnded && (
