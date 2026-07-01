@@ -19,7 +19,6 @@ function sanitizePixString(value: string, maxLen: number): string {
 
 export function generatePixPayload(key: string, amount: number, name: string, city: string): string {
   const safeName = sanitizePixString(name, 25)
-  const safeCity = sanitizePixString(city, 25)
   const safeKey = key.includes("@") || (key.length === 36 && key.includes("-"))
     ? key.trim()
     : key.replace(/\D/g, "")
@@ -36,13 +35,9 @@ export function generatePixPayload(key: string, amount: number, name: string, ci
   const country = "5802BR"
   const nameLen = String(safeName.length).padStart(2, "0")
   const merchantName = `59${nameLen}${safeName}`
-  const cityLen = String(safeCity.length).padStart(2, "0")
-  const merchantCity = `60${cityLen}${safeCity}`
-  const txid = "***"
-  const txidField = `05${String(txid.length).padStart(2, "0")}${txid}`
-  const additional = `62${String(txidField.length).padStart(2, "0")}${txidField}`
+  const merchantCity = "6007Cidade"
   const crc16 = "6304"
-  const partial = `${payloadFormat}${merchantAccount}${merchantCategory}${currency}${amountField}${country}${merchantName}${merchantCity}${additional}${crc16}`
+  const partial = `${payloadFormat}${merchantAccount}${merchantCategory}${currency}${amountField}${country}${merchantName}${merchantCity}${crc16}`
   return partial + crc16ccitt(partial)
 }
 
