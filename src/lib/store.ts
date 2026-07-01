@@ -341,12 +341,12 @@ export async function registerAthleteInTournament(
   return reg
 }
 
-export function openRegistrations(tournamentId: string) {
+export async function openRegistrations(tournamentId: string) {
   const data = getData()
   const tournament = data.tournaments.find((t) => t.id === tournamentId)
   if (!tournament || tournament.status !== "upcoming") return
   tournament.status = "registering"
-  saveData(data)
+  await saveData(data)
 }
 
 export async function updateRegistrationPayment(

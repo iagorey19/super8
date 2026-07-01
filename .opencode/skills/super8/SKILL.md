@@ -46,15 +46,15 @@ Se ultrapassar ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e
 
 ## 2. PROTOCOLO ANTI-BREAKING
 
-### Checklist obrigatório antes de finalizar sessão
+### Checklist obrigatório após cada alteração de código
 - [ ] `npm run build` — ✅ zero erros (mandatório)
-- [ ] `npx tsc --noEmit` — ✅ se disponível
+- [ ] `git push` **logo após build passar** (não esperar fim da sessão)
+- [ ] Se deploy quebrou, corrigir e fazer novo push
 - [ ] Nenhuma chave/secrets hardcodada
 - [ ] Tipos alterados → TODOS consumidores verificados
 - [ ] Store alterada → compatibilidade mantida (params opcionais continuam opcionais)
 - [ ] Seed atualizado se tipos/estrutura mudaram
 - [ ] Status Atual atualizado no AGENTS.md
-- [ ] Deploy realizado (git push) se alteração significativa
 - [ ] Skill atualizada se arquitetura/padrões mudaram
 
 ### Bash e Performance

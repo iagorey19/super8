@@ -25,6 +25,7 @@ export default function AdminTorneios() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState({ title: "", edition: "", date: "", location: "", categories: ["4e5"] as string[], registrationFee: "", maxScore: "" })
   const [saving, setSaving] = useState(false)
+  const [openingRegs, setOpeningRegs] = useState<Set<string>>(new Set())
 
   function load() {
     setTournaments(store.getTournaments())
@@ -147,8 +148,13 @@ export default function AdminTorneios() {
                       Editar
                     </Button>
                     {t.status === "upcoming" && (
-                      <Button size="sm" variant="success" onClick={() => { store.openRegistrations(t.id); load() }}>
-                        Abrir Inscrições
+                      <Button size="sm" variant="success" disabled={openingRegs.has(t.id)} onClick={async () => {
+                        setOpeningRegs((prev) => new Set(prev).add(t.id))
+                        await store.openRegistrations(t.id)
+                        setOpeningRegs((prev) => { const next = new Set(prev); next.delete(t.id); return next })
+                        load()
+                      }}>
+                        {openingRegs.has(t.id) ? "Abrindo..." : "Abrir Inscrições"}
                       </Button>
                     )}
                     {t.status === "registering" && (

@@ -27,7 +27,8 @@ export default function TournamentDetail() {
   const [registrations, setRegistrations] = useState<any[]>([])
   const [matches, setMatches] = useState<any[]>([])
   const [startingCat, setStartingCat] = useState<string | null>(null)
-
+  const [openingRegs, setOpeningRegs] = useState(false)
+ 
   const [editModal, setEditModal] = useState(false)
   const [editForm, setEditForm] = useState({ title: "", edition: "", date: "", location: "", categories: ["4e5"] as string[], registrationFee: "", maxScore: "" })
 
@@ -186,8 +187,13 @@ export default function TournamentDetail() {
             </Badge>
           ))}
           {tournament.status === "upcoming" && (
-            <Button className="w-full sm:w-auto" onClick={() => { store.openRegistrations(tournament.id); load() }}>
-              Abrir Inscrições
+            <Button className="w-full sm:w-auto" disabled={openingRegs} onClick={async () => {
+              setOpeningRegs(true)
+              await store.openRegistrations(tournament.id)
+              setOpeningRegs(false)
+              load()
+            }}>
+              {openingRegs ? "Abrindo..." : "Abrir Inscrições"}
             </Button>
           )}
           {tournament.status === "registering" && (

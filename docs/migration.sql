@@ -43,6 +43,8 @@ CREATE TABLE athlete_registrations (
   draw_number INT,
   category TEXT,
   group_name TEXT DEFAULT 'A',
+  registration_order INT,
+  is_waiting BOOLEAN DEFAULT false,
   confirmed BOOLEAN DEFAULT false,
   confirmed_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()

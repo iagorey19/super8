@@ -190,8 +190,8 @@ export default function EventoDetalhePage() {
                 Taxa de inscrição: {formatCurrency(tournament.registration_fee)}
               </p>
             )}
-            <Button onClick={handleStartRegistration} size="lg" className="bg-amber-600 hover:bg-amber-700 text-white font-bold">
-              Inscrever-se
+            <Button onClick={handleStartRegistration} size="lg" className="bg-amber-600 hover:bg-amber-700 text-white font-bold" disabled={loading}>
+              {loading ? "Entrando..." : "Inscrever-se"}
             </Button>
           </div>
         </Card>
