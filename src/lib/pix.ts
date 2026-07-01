@@ -26,7 +26,6 @@ export function generatePixPayload(key: string, amount: number, name: string, ci
 
   const gui = "br.gov.bcb.pix"
   const payloadFormat = "000201"
-  const pointOfInitiation = "010212"
   const keyLen = String(safeKey.length).padStart(2, "0")
   const merchantAccountLen = String(8 + gui.length + safeKey.length).padStart(2, "0")
   const merchantAccount = `26${merchantAccountLen}0014${gui}01${keyLen}${safeKey}`
@@ -43,7 +42,7 @@ export function generatePixPayload(key: string, amount: number, name: string, ci
   const txidField = `05${String(txid.length).padStart(2, "0")}${txid}`
   const additional = `62${String(txidField.length).padStart(2, "0")}${txidField}`
   const crc16 = "6304"
-  const partial = `${payloadFormat}${pointOfInitiation}${merchantAccount}${merchantCategory}${currency}${amountField}${country}${merchantName}${merchantCity}${additional}${crc16}`
+  const partial = `${payloadFormat}${merchantAccount}${merchantCategory}${currency}${amountField}${country}${merchantName}${merchantCity}${additional}${crc16}`
   return partial + crc16ccitt(partial)
 }
 
