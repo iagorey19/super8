@@ -1440,6 +1440,21 @@ export function markAllNotificationsRead(userId: string) {
   if (changed) saveData(data)
 }
 
+export function deleteNotification(notificationId: string) {
+  const data = getData()
+  const idx = data.notifications.findIndex((n) => n.id === notificationId)
+  if (idx !== -1) {
+    data.notifications.splice(idx, 1)
+    saveData(data)
+  }
+}
+
+export function deleteAllNotifications(userId: string) {
+  const data = getData()
+  data.notifications = data.notifications.filter((n) => n.user_id !== userId)
+  saveData(data)
+}
+
 export function getAthleteMatches(athleteId: string, tournamentId?: string): Match[] {
   const data = getData()
   let matches = data.matches.filter(
