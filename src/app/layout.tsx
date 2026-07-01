@@ -12,6 +12,11 @@ export const metadata: Metadata = {
   title: "THE SUPER 8",
   description: "Aplicativo Oficial Do Evento",
   manifest: "/manifest.json",
+  icons: { apple: "/logo.jpg" },
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
+  },
   openGraph: {
     type: "website",
     locale: "pt_BR",
@@ -41,6 +46,8 @@ export const viewport: Viewport = {
   maximumScale: 1,
   themeColor: "#d97706",
 }
+
+
 
 export default function RootLayout({
   children,
