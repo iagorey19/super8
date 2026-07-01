@@ -20,13 +20,16 @@ function sanitizePixString(value: string, maxLen: number): string {
 export function generatePixPayload(key: string, amount: number, name: string, city: string): string {
   const safeName = sanitizePixString(name, 25)
   const safeCity = sanitizePixString(city, 15)
+  const safeKey = key.includes("@") || (key.length === 36 && key.includes("-"))
+    ? key.trim()
+    : key.replace(/\D/g, "")
 
   const gui = "br.gov.bcb.pix"
   const payloadFormat = "000201"
   const pointOfInitiation = "010212"
-  const keyLen = String(key.length).padStart(2, "0")
-  const merchantAccountLen = String(8 + gui.length + key.length).padStart(2, "0")
-  const merchantAccount = `26${merchantAccountLen}0014${gui}01${keyLen}${key}`
+  const keyLen = String(safeKey.length).padStart(2, "0")
+  const merchantAccountLen = String(8 + gui.length + safeKey.length).padStart(2, "0")
+  const merchantAccount = `26${merchantAccountLen}0014${gui}01${keyLen}${safeKey}`
   const merchantCategory = "52040000"
   const currency = "5303986"
   const amountStr = amount.toFixed(2)
@@ -45,7 +48,7 @@ export function generatePixPayload(key: string, amount: number, name: string, ci
 }
 
 export async function generatePixQR(payload: string): Promise<string> {
-  return QRCode.toDataURL(payload, { width: 300, margin: 2, color: { dark: "#000000", light: "#ffffff" } })
+  return QRCode.toDataURL(payload, { width: 300, margin: 2 })
 }
 
 export function formatCurrency(value: number): string {
