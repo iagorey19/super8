@@ -10,8 +10,8 @@ export function seed(): AppData {
   return {
   seed_version: SEED_VERSION,
   config: {
-    pix_key: "47999104494",
-    pix_name: "Guiomar",
+    pix_key: "47997436809",
+    pix_name: "Guiomar Rey",
     pix_city: "Balneario Camboriu",
     admin_whatsapp: "5547997436809",
   },
