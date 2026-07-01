@@ -42,7 +42,7 @@ export function PublicNavbar() {
   return (
     <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
       <div className="px-4 h-14 flex items-center justify-between">
-        <Link href="/eventos" className="flex items-center gap-2">
+        <Link href={user ? `/${rolePrefix[user.role] || user.role}` : "/eventos"} className="flex items-center gap-2">
           <img src="/logo.jpg" alt="THE SUPER 8" className="h-14 w-auto" />
           <span className="font-bold text-gray-900 dark:text-white block">THE SUPER 8</span>
         </Link>
