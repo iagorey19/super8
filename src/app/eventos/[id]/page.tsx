@@ -262,7 +262,7 @@ export default function EventoDetalhePage() {
 
             <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-inner inline-block">
               {pixQR ? (
-                <img src={pixQR} alt="QR Code PIX" className="w-52 h-52 mx-auto" />
+                <img src={pixQR} alt="QR Code PIX" className="w-64 h-64 mx-auto" />
               ) : (
                 <div className="w-52 h-52 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse mx-auto" />
               )}

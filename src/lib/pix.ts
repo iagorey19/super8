@@ -48,7 +48,7 @@ export function generatePixPayload(key: string, amount: number, name: string, ci
 }
 
 export async function generatePixQR(payload: string): Promise<string> {
-  return QRCode.toDataURL(payload, { width: 300, margin: 2 })
+  return QRCode.toDataURL(payload, { width: 400, margin: 4, errorCorrectionLevel: "H", color: { dark: "#000000", light: "#ffffff" } })
 }
 
 export function formatCurrency(value: number): string {
