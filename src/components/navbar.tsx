@@ -7,6 +7,12 @@ import { getUnreadCount } from "@/lib/store"
 import { useEffect, useState } from "react"
 import { ThemeToggle } from "./theme-toggle"
 
+const rolePrefix: Record<string, string> = {
+  admin: "admin",
+  athlete: "atleta",
+  sponsor: "patrocinador",
+}
+
 const roleLabels: Record<string, string> = {
   admin: "Administrador",
   athlete: "Atleta",
@@ -40,7 +46,7 @@ export function Navbar() {
     <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
       <div className="px-4 h-14 flex items-center justify-between">
         <Link
-          href={user.role === "admin" ? "/admin" : user.role === "athlete" ? "/atleta" : "/patrocinador"}
+          href={`/${rolePrefix[user.role] || user.role}`}
           className="flex items-center gap-2"
         >
           <img src="/logo.jpg" alt="THE SUPER 8" className="h-14 w-auto" />
@@ -50,7 +56,7 @@ export function Navbar() {
         <div className="flex items-center gap-1">
           {unread > 0 && (
             <Link
-              href={`/${user.role}/notificacoes`}
+              href={`/${rolePrefix[user.role] || user.role}/notificacoes`}
               className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

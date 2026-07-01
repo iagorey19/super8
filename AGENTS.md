@@ -38,6 +38,9 @@ Para carregar: `skill({ name: "super8" })`
 Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (arquivo + resumo). Manter só últimas 5. Se conversa ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e reiniciar."
 
 ## Últimas Alterações
+- `public-navbar.tsx`: Agora usa `useAuth()` — mostra nome/avatar/notificações se logado, "Entrar"/"Cadastrar" se não
+- `navbar.tsx`: Corrigido link de notificação de `/athlete/notificacoes` p/ `/atleta/notificacoes` (rolePrefix mapping)
+- `pix.ts`: Corrigido payload PIX — city length dinâmico, Point of Initiation `010211`, +55 prefix, TXID `***`. Payload agora 100% idêntico ao do tools.lucasqc.com
 - `types.ts`, `utils.ts`, `store.ts`, admin/evento pages: Adicionado status "registering" entre "upcoming" e "ongoing" — admin clica "Abrir Inscrições" para liberar inscrições públicas, depois "Iniciar Torneio" para começar
 - `admin/torneios/[id]`: Tabela de inscritos agora mostra posição (#) e badge "Lista de Espera"
 - `eventos/[id]`: Lista pública de inscritos com posições, status e indicador de espera
