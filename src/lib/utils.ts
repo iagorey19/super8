@@ -54,8 +54,8 @@ export function getStatusLabel(status: string): string {
 
 export function getCategoryLabel(cat: string): string {
   const labels: Record<string, string> = {
-    "4e5": "4ª e 5ª Série",
-    "6e7": "6ª e 7ª Série",
+    "4e5": "4ª e 5ª Categoria",
+    "6e7": "6ª e 7ª Categoria",
     premiacao: "Premiação",
     estrutura: "Estrutura",
     marketing: "Marketing",
