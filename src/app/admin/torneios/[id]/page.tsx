@@ -408,25 +408,47 @@ export default function TournamentDetail() {
                                     </>
                                   )}
                                   {r.status === "approved" && (
-                                    r.confirmed ? (
-                                      <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm text-red-600 dark:text-red-400" disabled={actionRegId.has(r.id)} onClick={async () => {
-                                        setActionRegId((prev) => new Set(prev).add(r.id))
-                                        store.toggleAttendance(tournament.id, r.athlete_id)
-                                        setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
-                                        load()
-                                      }}>
-                                        {actionRegId.has(r.id) ? "..." : <><span className="sm:hidden">✕</span><span className="hidden sm:inline">✕ Remover</span></>}
-                                      </Button>
-                                    ) : (
-                                      <Button size="sm" variant="secondary" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={actionRegId.has(r.id)} onClick={async () => {
-                                        setActionRegId((prev) => new Set(prev).add(r.id))
-                                        store.toggleAttendance(tournament.id, r.athlete_id)
-                                        setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
-                                        load()
-                                      }}>
-                                        {actionRegId.has(r.id) ? "..." : <><span className="sm:hidden">✓</span><span className="hidden sm:inline">✅ Check-in</span></>}
-                                      </Button>
-                                    )
+                                    <>
+                                      {r.payment_status === "pending" && tournament.registration_fee && (
+                                        <Button size="sm" variant="success" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={actionRegId.has(r.id)} onClick={async () => {
+                                          setActionRegId((prev) => new Set(prev).add(r.id))
+                                          store.updateRegistrationPayment(r.id, "paid")
+                                          setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
+                                          load()
+                                        }}>
+                                          {actionRegId.has(r.id) ? "..." : <><span className="sm:hidden">💰</span><span className="hidden sm:inline">Pago</span></>}
+                                        </Button>
+                                      )}
+                                      {r.payment_status === "paid" && tournament.registration_fee && (
+                                        <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm text-red-600 dark:text-red-400" disabled={actionRegId.has(r.id)} onClick={async () => {
+                                          setActionRegId((prev) => new Set(prev).add(r.id))
+                                          store.updateRegistrationPayment(r.id, "pending")
+                                          setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
+                                          load()
+                                        }}>
+                                          {actionRegId.has(r.id) ? "..." : <><span className="sm:hidden">↩</span><span className="hidden sm:inline">Estornar</span></>}
+                                        </Button>
+                                      )}
+                                      {r.confirmed ? (
+                                        <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm text-red-600 dark:text-red-400" disabled={actionRegId.has(r.id)} onClick={async () => {
+                                          setActionRegId((prev) => new Set(prev).add(r.id))
+                                          store.toggleAttendance(tournament.id, r.athlete_id)
+                                          setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
+                                          load()
+                                        }}>
+                                          {actionRegId.has(r.id) ? "..." : <><span className="sm:hidden">✕</span><span className="hidden sm:inline">✕ Remover</span></>}
+                                        </Button>
+                                      ) : (
+                                        <Button size="sm" variant="secondary" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={actionRegId.has(r.id)} onClick={async () => {
+                                          setActionRegId((prev) => new Set(prev).add(r.id))
+                                          store.toggleAttendance(tournament.id, r.athlete_id)
+                                          setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
+                                          load()
+                                        }}>
+                                          {actionRegId.has(r.id) ? "..." : <><span className="sm:hidden">✓</span><span className="hidden sm:inline">✅ Check-in</span></>}
+                                        </Button>
+                                      )}
+                                    </>
                                   )}
                                   {tournament.status === "registering" && r.status === "approved" && !r.confirmed && (
                                     <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={actionRegId.has(r.id)} onClick={async () => {

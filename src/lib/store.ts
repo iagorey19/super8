@@ -351,7 +351,7 @@ export async function openRegistrations(tournamentId: string) {
 
 export async function updateRegistrationPayment(
   registrationId: string,
-  paymentStatus: "paid" | "cancelled"
+  paymentStatus: "paid" | "pending" | "cancelled"
 ): Promise<AthleteRegistration | null> {
   const data = getData()
   const reg = data.athlete_registrations.find((r) => r.id === registrationId)

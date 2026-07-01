@@ -119,11 +119,9 @@ export default function EventoDetalhePage() {
     const sess = store.getSession()
     if (!sess || !myReg || sendingPayment) return
     setSendingPayment(true)
-    await store.updateRegistrationPayment(myReg.id, "paid")
-    setMyReg({ ...myReg, payment_status: "paid" })
     const config = store.getConfig()
     const tournamentTitle = tournament?.title || "Torneio"
-    const msg = `Olá! Acabei de pagar a inscrição do ${tournamentTitle}! ✅\n\n👤 ${sess.user.name}\n📧 ${sess.user.email}\n📱 ${sess.user.phone || ""}\n💰 ${formatCurrency(tournament?.registration_fee || 0)}\n📋 ID: ${myReg.id}`
+    const msg = `Olá! Informo que realizei o pagamento da inscrição do ${tournamentTitle}! ✅\n\n👤 ${sess.user.name}\n📧 ${sess.user.email}\n📱 ${sess.user.phone || ""}\n💰 ${formatCurrency(tournament?.registration_fee || 0)}\n📋 ID: ${myReg.id}`
     const link = generateWhatsAppLink(config.admin_whatsapp, msg)
     window.open(link, "_blank", "noopener")
     setStep("done")
