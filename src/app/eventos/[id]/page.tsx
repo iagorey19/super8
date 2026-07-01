@@ -369,28 +369,43 @@ export default function EventoDetalhePage() {
       {registrations.length > 0 && (
         <Card>
           <CardHeader title="🎟️ Inscritos" subtitle={`${registrations.filter((r: any) => !r.is_waiting).length} inscritos · ${registrations.filter((r: any) => r.is_waiting).length} na lista de espera`} />
-          <div className="space-y-1">
-            {[...registrations]
-              .sort((a: any, b: any) => (a.registration_order || 999) - (b.registration_order || 999))
-              .map((r: any) => (
-                <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-gray-400 w-6 text-right">{r.registration_order ?? "-"}</span>
-                    <p className="font-medium text-gray-900 dark:text-white">{r.name}</p>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
-                      {getCategoryLabel(r.category)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {r.is_waiting && <Badge className="bg-amber-100 text-amber-800">Espera</Badge>}
-                    {r.status === "approved" && r.payment_status === "paid" && <Badge className="bg-emerald-100 text-emerald-800">Confirmado</Badge>}
-                    {r.status === "approved" && (!r.payment_status || r.payment_status === "pending") && <Badge className="bg-green-100 text-green-800">Aprovado</Badge>}
-                    {r.status === "pending" && r.payment_status === "paid" && <Badge className="bg-blue-100 text-blue-800">Pago</Badge>}
-                    {r.status === "pending" && (!r.payment_status || r.payment_status === "pending") && <Badge className="bg-gray-100 text-gray-600">Pendente</Badge>}
+          {(() => {
+            const groups = new Map<string, any[]>()
+            for (const r of registrations) {
+              const key = `${r.category}-${r.group_name || "A"}`
+              if (!groups.has(key)) groups.set(key, [])
+              groups.get(key)!.push(r)
+            }
+            const waiting = registrations.filter((r: any) => r.is_waiting)
+            return [...groups.entries()].map(([key, regs]) => {
+              const [cat, grp] = key.split("-")
+              const sorted = [...regs].sort((a: any, b: any) => (a.registration_order || 999) - (b.registration_order || 999))
+              return (
+                <div key={key} className="px-4 pb-4">
+                  <h4 className="text-sm font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2 mt-4 first:mt-0">
+                    {getCategoryLabel(cat)} — Grupo {grp}
+                  </h4>
+                  <div className="space-y-1">
+                    {sorted.map((r: any, idx: number) => (
+                      <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-bold text-gray-400 w-6 text-right">{idx + 1}</span>
+                          <p className="font-medium text-gray-900 dark:text-white">{r.name}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {r.is_waiting && <Badge className="bg-amber-100 text-amber-800">Espera</Badge>}
+                          {r.status === "approved" && r.payment_status === "paid" && <Badge className="bg-emerald-100 text-emerald-800">Confirmado</Badge>}
+                          {r.status === "approved" && (!r.payment_status || r.payment_status === "pending") && <Badge className="bg-green-100 text-green-800">Aprovado</Badge>}
+                          {r.status === "pending" && r.payment_status === "paid" && <Badge className="bg-blue-100 text-blue-800">Pago</Badge>}
+                          {r.status === "pending" && (!r.payment_status || r.payment_status === "pending") && <Badge className="bg-gray-100 text-gray-600">Pendente</Badge>}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-          </div>
+              )
+            })
+          })()}
         </Card>
       )}
 
