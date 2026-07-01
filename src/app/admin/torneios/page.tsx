@@ -26,6 +26,8 @@ export default function AdminTorneios() {
   const [form, setForm] = useState({ title: "", edition: "", date: "", location: "", categories: ["4e5"] as string[], registrationFee: "", maxScore: "" })
   const [saving, setSaving] = useState(false)
   const [openingRegs, setOpeningRegs] = useState<Set<string>>(new Set())
+  const [starting, setStarting] = useState<Set<string>>(new Set())
+  const [deleting, setDeleting] = useState<Set<string>>(new Set())
 
   function load() {
     setTournaments(store.getTournaments())
@@ -64,7 +66,8 @@ export default function AdminTorneios() {
     load()
   }
 
-  function handleStart(id: string) {
+  async function handleStart(id: string) {
+    if (starting.has(id)) return
     const t = store.getTournamentById(id)
     if (!t) return
     const cats = t.categories || ["4e5"]
@@ -77,6 +80,7 @@ export default function AdminTorneios() {
       alert(`É necessário 8 atletas aprovados por categoria:\n${missing.join("\n")}`)
       return
     }
+    setStarting((prev) => new Set(prev).add(id))
     for (const cat of cats) {
       try {
         store.startTournament(id, cat)
@@ -84,6 +88,7 @@ export default function AdminTorneios() {
         alert(`Erro ao iniciar ${cat}: ${e.message}`)
       }
     }
+    setStarting((prev) => { const next = new Set(prev); next.delete(id); return next })
     load()
   }
 
@@ -158,21 +163,24 @@ export default function AdminTorneios() {
                       </Button>
                     )}
                     {t.status === "registering" && (
-                      <Button size="sm" variant="success" onClick={() => handleStart(t.id)}>
-                        Iniciar
+                      <Button size="sm" variant="success" disabled={starting.has(t.id)} onClick={() => handleStart(t.id)}>
+                        {starting.has(t.id) ? "Iniciando..." : "Iniciar"}
                       </Button>
                     )}
                     <Button
                       size="sm"
                       variant="danger"
-                      onClick={() => {
+                      disabled={deleting.has(t.id)}
+                      onClick={async () => {
                         if (window.confirm(`Excluir "${t.title}" e todos os dados relacionados?`)) {
+                          setDeleting((prev) => new Set(prev).add(t.id))
                           store.deleteTournament(t.id)
+                          setDeleting((prev) => { const next = new Set(prev); next.delete(t.id); return next })
                           load()
                         }
                       }}
                     >
-                      Excluir
+                      {deleting.has(t.id) ? "Excluindo..." : "Excluir"}
                     </Button>
                   </div>
                 </Td>

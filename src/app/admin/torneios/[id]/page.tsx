@@ -37,6 +37,12 @@ export default function TournamentDetail() {
   const [registerCategory, setRegisterCategory] = useState("")
   const [registerGroup, setRegisterGroup] = useState("A")
   const [saving, setSaving] = useState(false)
+  const [actionRegId, setActionRegId] = useState<Set<string>>(new Set())
+  const [resetting, setResetting] = useState(false)
+  const [recalculating, setRecalculating] = useState(false)
+  const [savingCourts, setSavingCourts] = useState(false)
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [allAthletes, setAllAthletes] = useState<any[]>([])
   useEffect(() => {
     try { setAllAthletes(store.getAthletes().filter((a) => !registrations.some((r) => r.athlete_id === a.id))) } catch { setAllAthletes([]) }
@@ -62,7 +68,8 @@ export default function TournamentDetail() {
     }
   }, [tournament, id])
 
-  function handleSaveCourtNames() {
+  async function handleSaveCourtNames() {
+    setSavingCourts(true)
     courtNameInputs.forEach((name, idx) => {
       store.updateCourtName(id, idx, name)
     })
@@ -71,6 +78,7 @@ export default function TournamentDetail() {
       const names = store.getCourtNames(id)
       return { ...prev, court_names: [...names] }
     })
+    setSavingCourts(false)
   }
 
   useEffect(() => {
@@ -142,14 +150,17 @@ export default function TournamentDetail() {
                 <Button
                   size="sm"
                   variant="danger"
-                  onClick={() => {
+                  disabled={deleting}
+                  onClick={async () => {
                     if (window.confirm(`Excluir "${tournament.title}" e todos os dados relacionados?`)) {
+                      setDeleting(true)
                       store.deleteTournament(tournament.id)
+                      setDeleting(false)
                       router.push("/admin/torneios")
                     }
                   }}
                 >
-                  Excluir
+                  {deleting ? "Excluindo..." : "Excluir"}
                 </Button>
               )}
               <Button
@@ -203,24 +214,28 @@ export default function TournamentDetail() {
           )}
           {tournament.status !== "upcoming" && tournament.status !== "registering" && (
             <>
-              <Button variant="danger" size="sm" onClick={() => {
+              <Button variant="danger" size="sm" disabled={resetting} onClick={async () => {
                 const typed = window.prompt(`Digite "RESETAR" para confirmar:\n\nIsso vai apagar todas as partidas, resultados e números sorteados, e voltar o torneio para "upcoming".`)
                 if (typed === "RESETAR") {
+                  setResetting(true)
                   store.resetTournament(id)
+                  setResetting(false)
                   load()
                 }
               }}>
-                Resetar Torneio
+                {resetting ? "Resetando..." : "Resetar Torneio"}
               </Button>
               {tournament.status !== "completed" && (
-                <Button variant="secondary" size="sm" onClick={() => {
+                <Button variant="secondary" size="sm" disabled={recalculating} onClick={async () => {
                   if (window.confirm("Recalcular resultados deste torneio com o novo critério de desempate?")) {
+                    setRecalculating(true)
                     store.recalculateTournamentResults(id)
+                    setRecalculating(false)
                     alert("Resultados recalculados!")
                     load()
                   }
                 }}>
-                  Recalcular Resultados
+                  {recalculating ? "Recalculando..." : "Recalcular Resultados"}
                 </Button>
               )}
             </>
@@ -374,32 +389,53 @@ export default function TournamentDetail() {
                                 <div className="flex gap-1">
                                   {r.status === "pending" && (
                                     <>
-                                      <Button size="sm" variant="success" className="px-1.5 sm:px-3 text-xs sm:text-sm" onClick={() => { store.approveAthlete(r.id); load() }}>
-                                        <span className="sm:hidden">✓</span>
-                                        <span className="hidden sm:inline">Aprovar</span>
+                                      <Button size="sm" variant="success" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={actionRegId.has(r.id)} onClick={async () => {
+                                        setActionRegId((prev) => new Set(prev).add(r.id))
+                                        store.approveAthlete(r.id)
+                                        setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
+                                        load()
+                                      }}>
+                                        {actionRegId.has(r.id) ? "..." : <><span className="sm:hidden">✓</span><span className="hidden sm:inline">Aprovar</span></>}
                                       </Button>
-                                      <Button size="sm" variant="secondary" className="px-1.5 sm:px-3 text-xs sm:text-sm" onClick={() => { store.rejectAthlete(r.id); load() }}>
-                                        <span className="sm:hidden">✗</span>
-                                        <span className="hidden sm:inline">Rejeitar</span>
+                                      <Button size="sm" variant="secondary" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={actionRegId.has(r.id)} onClick={async () => {
+                                        setActionRegId((prev) => new Set(prev).add(r.id))
+                                        store.rejectAthlete(r.id)
+                                        setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
+                                        load()
+                                      }}>
+                                        {actionRegId.has(r.id) ? "..." : <><span className="sm:hidden">✗</span><span className="hidden sm:inline">Rejeitar</span></>}
                                       </Button>
                                     </>
                                   )}
                                   {r.status === "approved" && (
                                     r.confirmed ? (
-                                      <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm text-red-600 dark:text-red-400" onClick={() => { store.toggleAttendance(tournament.id, r.athlete_id); load() }}>
-                                        <span className="sm:hidden">✕</span>
-                                        <span className="hidden sm:inline">✕ Remover</span>
+                                      <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm text-red-600 dark:text-red-400" disabled={actionRegId.has(r.id)} onClick={async () => {
+                                        setActionRegId((prev) => new Set(prev).add(r.id))
+                                        store.toggleAttendance(tournament.id, r.athlete_id)
+                                        setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
+                                        load()
+                                      }}>
+                                        {actionRegId.has(r.id) ? "..." : <><span className="sm:hidden">✕</span><span className="hidden sm:inline">✕ Remover</span></>}
                                       </Button>
                                     ) : (
-                                      <Button size="sm" variant="secondary" className="px-1.5 sm:px-3 text-xs sm:text-sm" onClick={() => { store.toggleAttendance(tournament.id, r.athlete_id); load() }}>
-                                        <span className="sm:hidden">✓</span>
-                                        <span className="hidden sm:inline">✅ Check-in</span>
+                                      <Button size="sm" variant="secondary" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={actionRegId.has(r.id)} onClick={async () => {
+                                        setActionRegId((prev) => new Set(prev).add(r.id))
+                                        store.toggleAttendance(tournament.id, r.athlete_id)
+                                        setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
+                                        load()
+                                      }}>
+                                        {actionRegId.has(r.id) ? "..." : <><span className="sm:hidden">✓</span><span className="hidden sm:inline">✅ Check-in</span></>}
                                       </Button>
                                     )
                                   )}
                                   {tournament.status === "registering" && r.status === "approved" && !r.confirmed && (
-                                    <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm" onClick={() => { store.createNotification(r.athlete_id, "geral", "Confirme sua presença!", `O torneio ${tournament.title} está chegando! Confirme sua presença no sistema.`); alert(`Lembrete enviado para ${r.name}!`) }}>
-                                      Lembrar
+                                    <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={actionRegId.has(r.id)} onClick={async () => {
+                                      setActionRegId((prev) => new Set(prev).add(r.id))
+                                      store.createNotification(r.athlete_id, "geral", "Confirme sua presença!", `O torneio ${tournament.title} está chegando! Confirme sua presença no sistema.`)
+                                      setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
+                                      alert(`Lembrete enviado para ${r.name}!`)
+                                    }}>
+                                      {actionRegId.has(r.id) ? "..." : "Lembrar"}
                                     </Button>
                                   )}
                                   {(tournament.status === "upcoming" || tournament.status === "registering") && (
@@ -447,8 +483,8 @@ export default function TournamentDetail() {
         <CardHeader
           title="Quadras"
           action={
-            <Button size="sm" variant="secondary" onClick={handleSaveCourtNames}>
-              Salvar
+            <Button size="sm" variant="secondary" disabled={savingCourts} onClick={handleSaveCourtNames}>
+              {savingCourts ? "Salvando..." : "Salvar"}
             </Button>
           }
         />
@@ -545,7 +581,8 @@ export default function TournamentDetail() {
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="secondary" onClick={() => setEditModal(false)}>Cancelar</Button>
             <Button
-              onClick={() => {
+              onClick={async () => {
+                setSavingEdit(true)
                 store.updateTournament(tournament.id, {
                   title: editForm.title,
                   edition: editForm.edition,
@@ -555,12 +592,13 @@ export default function TournamentDetail() {
                   registration_fee: editForm.registrationFee ? Number(editForm.registrationFee) : undefined,
                   max_score: editForm.maxScore ? Number(editForm.maxScore) : undefined,
                 })
+                setSavingEdit(false)
                 setEditModal(false)
                 load()
               }}
-              disabled={!editForm.title || !editForm.edition || !editForm.date || editForm.categories.length === 0}
+              disabled={savingEdit || !editForm.title || !editForm.edition || !editForm.date || editForm.categories.length === 0}
             >
-              Salvar
+              {savingEdit ? "Salvando..." : "Salvar"}
             </Button>
           </div>
         </div>

@@ -27,6 +27,8 @@ export default function AthleteDashboard() {
   const [raffleRecords, setRaffleRecords] = useState<RaffleRecord[]>([])
   const [apoiadores, setApoiadores] = useState<any[]>([])
   const [sponsors, setSponsors] = useState<any[]>([])
+  const [confirmingPresence, setConfirmingPresence] = useState(false)
+  const [savingProfile, setSavingProfile] = useState(false)
 
   const loadData = useCallback(async () => {
     if (!user) return
@@ -69,33 +71,34 @@ export default function AthleteDashboard() {
 
   if (!user) return null
 
-  function handleSaveProfile() {
-    if (profileForm.name && profileForm.email && user) {
-      if (profileForm.password && profileForm.password !== profileForm.confirmPassword) {
-        setToast({ type: "error", message: "Senhas não conferem" })
-        setTimeout(() => setToast(null), 3000)
-        return
-      }
-      store.updateAthlete(user.id, {
-        name: profileForm.name,
-        email: profileForm.email,
-        phone: profileForm.phone,
-        ...(profileForm.password ? { password: profileForm.password } : {}),
-      })
-      const session = store.getSession()
-      if (session) {
-        try {
-          sessionStorage.setItem("super8-session", JSON.stringify({
-            user: { ...session.user, name: profileForm.name, email: profileForm.email, phone: profileForm.phone },
-          }))
-        } catch {
-          // storage unavailable
-        }
-      }
-      setProfileModal(false)
-      setToast({ type: "success", message: "Perfil atualizado!" })
+  async function handleSaveProfile() {
+    if (!profileForm.name || !profileForm.email || !user || savingProfile) return
+    if (profileForm.password && profileForm.password !== profileForm.confirmPassword) {
+      setToast({ type: "error", message: "Senhas não conferem" })
       setTimeout(() => setToast(null), 3000)
+      return
     }
+    setSavingProfile(true)
+    store.updateAthlete(user.id, {
+      name: profileForm.name,
+      email: profileForm.email,
+      phone: profileForm.phone,
+      ...(profileForm.password ? { password: profileForm.password } : {}),
+    })
+    const session = store.getSession()
+    if (session) {
+      try {
+        sessionStorage.setItem("super8-session", JSON.stringify({
+          user: { ...session.user, name: profileForm.name, email: profileForm.email, phone: profileForm.phone },
+        }))
+      } catch {
+        // storage unavailable
+      }
+    }
+    setProfileModal(false)
+    setToast({ type: "success", message: "Perfil atualizado!" })
+    setTimeout(() => setToast(null), 3000)
+    setSavingProfile(false)
   }
 
   return (
@@ -172,13 +175,16 @@ export default function AthleteDashboard() {
                     <Button
                       size="sm"
                       variant="primary"
-                      onClick={() => {
+                      disabled={confirmingPresence}
+                      onClick={async () => {
+                        setConfirmingPresence(true)
                         store.toggleAttendance(tournament.id, user.id)
                         const reg = store.getAthleteRegistration(tournament.id, user.id)
                         setRegistration(reg)
+                        setConfirmingPresence(false)
                       }}
                     >
-                      ✅ Confirmar Presença
+                      {confirmingPresence ? "Confirmando..." : "✅ Confirmar Presença"}
                     </Button>
                   )}
                 </div>
@@ -418,8 +424,8 @@ export default function AthleteDashboard() {
             <Button variant="secondary" className="flex-1" onClick={() => setProfileModal(false)}>
               Cancelar
             </Button>
-            <Button className="flex-1" disabled={!profileForm.name || !profileForm.email} onClick={handleSaveProfile}>
-              Salvar
+            <Button className="flex-1" disabled={savingProfile || !profileForm.name || !profileForm.email} onClick={handleSaveProfile}>
+              {savingProfile ? "Salvando..." : "Salvar"}
             </Button>
           </div>
         </div>

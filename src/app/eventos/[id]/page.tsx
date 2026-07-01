@@ -28,6 +28,7 @@ export default function EventoDetalhePage() {
   const [pixQR, setPixQR] = useState("")
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [sendingPayment, setSendingPayment] = useState(false)
 
   const loadData = useCallback(async () => {
     try { await store.refreshFromServer() } catch {}
@@ -115,7 +116,8 @@ export default function EventoDetalhePage() {
 
   async function handleAlreadyPaid() {
     const sess = store.getSession()
-    if (!sess || !myReg) return
+    if (!sess || !myReg || sendingPayment) return
+    setSendingPayment(true)
     await store.updateRegistrationPayment(myReg.id, "paid")
     setMyReg({ ...myReg, payment_status: "paid" })
     const config = store.getConfig()
@@ -124,6 +126,7 @@ export default function EventoDetalhePage() {
     const link = generateWhatsAppLink(config.admin_whatsapp, msg)
     window.open(link, "_blank", "noopener")
     setStep("done")
+    setSendingPayment(false)
   }
 
   function handleCopyPixManual() {
@@ -218,8 +221,8 @@ export default function EventoDetalhePage() {
               </p>
             )}
             {tournament?.registration_fee && myReg.payment_status !== "paid" && (
-              <Button onClick={handleStartRegistration} className="bg-green-600 hover:bg-green-700 text-white font-bold">
-                Pagar com PIX
+              <Button onClick={handleStartRegistration} disabled={loading} className="bg-green-600 hover:bg-green-700 text-white font-bold">
+                {loading ? "Preparando..." : "Pagar com PIX"}
               </Button>
             )}
           </div>
@@ -284,8 +287,8 @@ export default function EventoDetalhePage() {
             )}
 
             <div className="pt-4 space-y-3">
-              <Button onClick={handleAlreadyPaid} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base py-4">
-                ✅ Já paguei
+              <Button onClick={handleAlreadyPaid} disabled={sendingPayment} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base py-4">
+                {sendingPayment ? "Enviando..." : "✅ Já paguei"}
               </Button>
               <p className="text-xs text-gray-400">
                 Após pagar, clique em "Já paguei" para nos avisar via WhatsApp.
