@@ -97,8 +97,9 @@ export default function EventoDetalhePage() {
   async function generatePixForRegistration(reg: AthleteRegistration, athleteName: string) {
     const config = store.getConfig()
     if (!config.pix_key || !tournament?.registration_fee) return
-    const payload = generatePixPayload(config.pix_key, tournament.registration_fee, config.pix_name, config.pix_city)
+    const payload = generatePixPayload( config.pix_key, tournament.registration_fee, config.pix_name || "Pagamento", config.pix_city || "Cidade")
     setPixPayload(payload)
+    console.log("[PIX] payload:", payload)
     const qr = await generatePixQR(payload)
     setPixQR(qr)
     setStep("pix")
