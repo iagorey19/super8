@@ -24,7 +24,7 @@ CREATE TABLE tournaments (
   edition TEXT NOT NULL,
   date TEXT NOT NULL,
   location TEXT,
-  status TEXT NOT NULL CHECK (status IN ('upcoming', 'ongoing', 'completed')),
+  status TEXT NOT NULL CHECK (status IN ('upcoming', 'registering', 'ongoing', 'completed')),
   categories JSONB NOT NULL DEFAULT '[]',
   registration_fee REAL,
   max_score INT DEFAULT 5,

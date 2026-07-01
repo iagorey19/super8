@@ -21,6 +21,8 @@ export interface AthleteRegistration {
   athlete_id: string
   status: AthleteStatus
   payment_status?: PaymentStatus
+  registration_order?: number
+  is_waiting?: boolean
   draw_number?: number
   category?: string
   group_name?: string
@@ -36,7 +38,7 @@ export interface AppConfig {
   admin_whatsapp: string
 }
 
-export type TournamentStatus = "upcoming" | "ongoing" | "completed"
+export type TournamentStatus = "upcoming" | "registering" | "ongoing" | "completed"
 
 export interface Tournament {
   id: string

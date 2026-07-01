@@ -179,7 +179,7 @@ export default function EventoDetalhePage() {
         </p>
       )}
 
-      {tournament.status === "upcoming" && step === "idle" && !myReg && (
+      {tournament.status === "registering" && step === "idle" && !myReg && (
         <Card className="border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20">
           <div className="p-6 text-center space-y-4">
             <p className="text-lg font-bold text-amber-800 dark:text-amber-200">
@@ -207,6 +207,16 @@ export default function EventoDetalhePage() {
                 ? "Pré-inscrição realizada! Clique abaixo para gerar o PIX."
                 : "Inscrição realizada! Aguardando aprovação do organizador."}
             </p>
+            {myReg.is_waiting && (
+              <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+                ⏳ Você está na lista de espera (posição {myReg.registration_order})
+              </p>
+            )}
+            {!myReg.is_waiting && myReg.registration_order && (
+              <p className="text-sm text-blue-600 dark:text-blue-400">
+                Sua posição: {myReg.registration_order}º
+              </p>
+            )}
             {tournament?.registration_fee && myReg.payment_status !== "paid" && (
               <Button onClick={handleStartRegistration} className="bg-green-600 hover:bg-green-700 text-white font-bold">
                 Pagar com PIX
@@ -216,7 +226,7 @@ export default function EventoDetalhePage() {
         </Card>
       )}
 
-      {tournament.status === "upcoming" && step === "category" && tournament.categories.length > 1 && (
+      {tournament.status === "registering" && step === "category" && tournament.categories.length > 1 && (
         <Card>
           <CardHeader title="Selecione a categoria" />
           <div className="p-4 grid grid-cols-2 gap-3">
@@ -344,16 +354,25 @@ export default function EventoDetalhePage() {
         </Link>
       </div>
 
-      {tournament.registration_fee && registrations.filter((r: any) => r.status === "approved" && r.payment_status === "paid").length > 0 && (
+      {registrations.length > 0 && (
         <Card>
-          <CardHeader title="🎟️ Inscritos" />
-          <div className="space-y-2">
-            {registrations
-              .filter((r: any) => r.status === "approved" && r.payment_status === "paid")
+          <CardHeader title="🎟️ Inscritos" subtitle={`${registrations.filter((r: any) => !r.is_waiting).length} confirmados · ${registrations.filter((r: any) => r.is_waiting).length} na lista de espera`} />
+          <div className="space-y-1">
+            {[...registrations]
+              .sort((a: any, b: any) => (a.registration_order || 999) - (b.registration_order || 999))
               .map((r: any) => (
                 <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                  <p className="font-medium text-gray-900 dark:text-white">{r.name}</p>
-                  <Badge className="bg-emerald-100 text-emerald-800">Pago</Badge>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-gray-400 w-6 text-right">{r.registration_order ?? "-"}</span>
+                    <p className="font-medium text-gray-900 dark:text-white">{r.name}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {r.is_waiting && <Badge className="bg-amber-100 text-amber-800">Espera</Badge>}
+                    {r.status === "approved" && r.payment_status === "paid" && <Badge className="bg-emerald-100 text-emerald-800">Confirmado</Badge>}
+                    {r.status === "approved" && !r.payment_status && <Badge className="bg-green-100 text-green-800">Aprovado</Badge>}
+                    {r.status === "pending" && r.payment_status === "paid" && <Badge className="bg-blue-100 text-blue-800">Pago</Badge>}
+                    {r.status === "pending" && !r.payment_status && <Badge className="bg-gray-100 text-gray-600">Pendente</Badge>}
+                  </div>
                 </div>
               ))}
           </div>

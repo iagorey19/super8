@@ -227,6 +227,26 @@ Navegador (store.ts)
 ### Moeda
 - `Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })`
 
+### Mobile Responsiveness
+- **TODAS as páginas** devem ser responsivas — usar `flex-wrap`, `grid-cols-1 sm:grid-cols-*`, `hidden sm:block`
+- Botões de ação principais (Inscrever-se, Abrir Inscrições, Iniciar Torneio) devem ser **visíveis sem scroll** no mobile
+- Telas de admin: botões de ação devem quebrar linha (`flex-wrap`) e ter `w-full sm:w-auto` no mobile
+- Tabelas: usar `overflow-x-auto` + `min-w-[650px]` para scroll horizontal
+- Modais: centralizados com `max-w-lg mx-auto` e padding adequado
+- NUNCA usar `overflow-hidden` que esconda conteúdo em viewports pequenas
+
+### Torneio — Ciclo de Vida
+| Status | Descrição | Ação Admin | Ação Atleta |
+|--------|-----------|------------|-------------|
+| `upcoming` | Agendado, inscrições fechadas | "Abrir Inscrições" → muda para `registering` | Vê "Inscrições em breve" |
+| `registering` | Inscrições abertas | "Iniciar Torneio" → muda para `ongoing`; pode inscrever manualmente, aprovar/rejeitar | "Inscrever-se" → PIX → aguarda aprovação |
+| `ongoing` | Torneio em andamento | Gerenciar partidas, placar ao vivo | Ver jogos, ranking |
+| `completed` | Torneio encerrado | Resultados finais, ranking | Histórico, estatísticas |
+
+- Admin deve clicar "Abrir Inscrições" no **detalhe do torneio** ou na **lista de torneios**
+- Inscrição pública fica disponível em `/eventos/[id]` apenas quando status = `registering`
+- Admin pode inscrever manualmente durante `upcoming` e `registering`
+
 ### Fotos (Upload)
 - Upload direto via **signed URL** (browser → Supabase Storage, sem passar pelo Vercel)
 - `/api/upload` gera signed URL com service role

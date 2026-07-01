@@ -141,11 +141,21 @@ export default function AthleteDashboard() {
               </Badge>
             )}
           </div>
-          {registration && (
+          {registration ? (
             <div className="mt-4">
               {registration.status === "pending" && (
                 <div className="p-3 rounded-lg bg-yellow-50 border border-yellow-200">
                   <p className="text-sm text-yellow-800 font-medium">⏳ Aguardando aprovação</p>
+                  {registration.is_waiting && (
+                    <p className="text-xs text-amber-600 mt-1">
+                      Você está na lista de espera (posição {registration.registration_order})
+                    </p>
+                  )}
+                  {!registration.is_waiting && registration.registration_order && (
+                    <p className="text-xs text-yellow-600 mt-1">
+                      Sua posição: {registration.registration_order}º
+                    </p>
+                  )}
                   <p className="text-xs text-yellow-600 mt-1">
                     Sua inscrição neste torneio está pendente.
                   </p>
@@ -158,7 +168,7 @@ export default function AthleteDashboard() {
                     <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200">
                       <p className="text-sm text-blue-700 font-medium">✅ Presença confirmada</p>
                     </div>
-                  ) : tournament?.status === "upcoming" && (
+                  ) : (tournament?.status === "upcoming" || tournament?.status === "registering") && (
                     <Button
                       size="sm"
                       variant="primary"
@@ -179,12 +189,89 @@ export default function AthleteDashboard() {
                 </div>
               )}
             </div>
+          ) : tournament?.status === "registering" ? (
+            <div className="mt-4 p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 text-center space-y-3">
+              <p className="text-lg font-bold text-amber-800 dark:text-amber-200">
+                Inscrições abertas! 🎾
+              </p>
+              {tournament.registration_fee && (
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  Taxa: R$ {tournament.registration_fee.toFixed(2)}
+                </p>
+              )}
+              <Link href={`/eventos/${tournament.id}`}>
+                <Button className="bg-amber-600 hover:bg-amber-700 text-white font-bold">
+                  Inscrever-se
+                </Button>
+              </Link>
+            </div>
+          ) : tournament?.status === "upcoming" && (
+            <div className="mt-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 text-center">
+              <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+                Inscrições em breve
+              </p>
+            </div>
           )}
         </Card>
       ) : (
-        <Card>
-          <p className="text-gray-500 dark:text-gray-400 text-center py-4">Nenhum torneio disponível no momento.</p>
-        </Card>
+        <div className="space-y-4">
+          {(() => {
+            const all = store.getTournaments()
+            const registering = all.filter((t: any) => t.status === "registering")
+            const upcoming = all.filter((t: any) => t.status === "upcoming")
+            if (registering.length > 0) return registering.map((t: any) => (
+              <Card key={t.id}>
+                <CardHeader title={t.title} subtitle={t.edition} />
+                <div className="flex flex-wrap items-center gap-3">
+                  <Badge className={getStatusColor(t.status)}>
+                    {getStatusLabel(t.status)}
+                  </Badge>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">{formatDate(t.date)}</span>
+                </div>
+                <div className="mt-4 p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 text-center space-y-3">
+                  <p className="text-lg font-bold text-amber-800 dark:text-amber-200">
+                    Inscrições abertas! 🎾
+                  </p>
+                  {t.registration_fee && (
+                    <p className="text-sm text-amber-700 dark:text-amber-300">
+                      Taxa: R$ {t.registration_fee.toFixed(2)}
+                    </p>
+                  )}
+                  <Link href={`/eventos/${t.id}`}>
+                    <Button className="bg-amber-600 hover:bg-amber-700 text-white font-bold">
+                      Inscrever-se
+                    </Button>
+                  </Link>
+                </div>
+              </Card>
+            ))
+            if (upcoming.length > 0) return (
+              <div className="space-y-4">
+                {upcoming.map((t: any) => (
+                  <Card key={t.id}>
+                    <CardHeader title={t.title} subtitle={t.edition} />
+                    <div className="flex flex-wrap items-center gap-3">
+                      <Badge className={getStatusColor(t.status)}>
+                        {getStatusLabel(t.status)}
+                      </Badge>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">{formatDate(t.date)}</span>
+                    </div>
+                    <div className="mt-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 text-center">
+                      <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+                        Inscrições em breve
+                      </p>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )
+            return (
+              <Card>
+                <p className="text-gray-500 dark:text-gray-400 text-center py-4">Nenhum torneio disponível no momento.</p>
+              </Card>
+            )
+          })()}
+        </div>
       )}
 
       {registration?.status !== "pending" && (

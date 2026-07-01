@@ -186,11 +186,16 @@ export default function TournamentDetail() {
             </Badge>
           ))}
           {tournament.status === "upcoming" && (
-            <Button onClick={handleStartAll} disabled={startingCat === "all"}>
+            <Button className="w-full sm:w-auto" onClick={() => { store.openRegistrations(tournament.id); load() }}>
+              Abrir Inscrições
+            </Button>
+          )}
+          {tournament.status === "registering" && (
+            <Button className="w-full sm:w-auto" onClick={handleStartAll} disabled={startingCat === "all"}>
               {startingCat === "all" ? "Iniciando..." : "Iniciar Torneio"}
             </Button>
           )}
-          {tournament.status !== "upcoming" && (
+          {tournament.status !== "upcoming" && tournament.status !== "registering" && (
             <>
               <Button variant="danger" size="sm" onClick={() => {
                 const typed = window.prompt(`Digite "RESETAR" para confirmar:\n\nIsso vai apagar todas as partidas, resultados e números sorteados, e voltar o torneio para "upcoming".`)
@@ -269,7 +274,7 @@ export default function TournamentDetail() {
               title={cat === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}
               subtitle={`${catRegs.length} inscritos`}
               action={
-                tournament.status === "upcoming" && (
+                (tournament.status === "upcoming" || tournament.status === "registering") && (
                   <Button
                     size="sm"
                     variant="secondary"
@@ -296,7 +301,7 @@ export default function TournamentDetail() {
                   <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-800/50">
                     <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Grupo {grp}</span>
                     <div className="flex items-center gap-3">
-                      {tournament.status === "upcoming" && (
+                      {tournament.status === "registering" && (
                         <>
                           <span className="text-sm text-gray-500 dark:text-gray-400">{grpApproved}/8</span>
                           {grpApproved === 8 && (
@@ -327,7 +332,7 @@ export default function TournamentDetail() {
                       <table className="w-full min-w-[650px] text-sm">
                         <thead>
                           <tr className="border-b border-gray-200 dark:border-gray-700">
-                            {["Nome", "Status", "Check-in", "Nº Sorteio", "Ações"].map((h) => (
+                            {["#", "Nome", "Status", "Check-in", "Nº Sorteio", "Ações"].map((h) => (
                               <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{h}</th>
                             ))}
                           </tr>
@@ -335,7 +340,13 @@ export default function TournamentDetail() {
                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                           {grpRegs.map((r) => (
                             <tr key={r.id}>
-                              <td className="px-4 py-3 text-gray-700 dark:text-gray-300 font-medium">{r.name}</td>
+                              <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-center text-xs">
+                                {r.registration_order ?? "-"}
+                              </td>
+                              <td className="px-4 py-3 text-gray-700 dark:text-gray-300 font-medium">
+                                {r.name}
+                                {r.is_waiting && <Badge className="ml-2 bg-amber-100 text-amber-800">Lista de Espera</Badge>}
+                              </td>
                               <td className="px-4 py-3">
                                 <Badge className={getStatusColor(r.status)}>
                                   {getStatusLabel(r.status)}
@@ -380,12 +391,12 @@ export default function TournamentDetail() {
                                       </Button>
                                     )
                                   )}
-                                  {tournament.status === "upcoming" && r.status === "approved" && !r.confirmed && (
+                                  {tournament.status === "registering" && r.status === "approved" && !r.confirmed && (
                                     <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm" onClick={() => { store.createNotification(r.athlete_id, "geral", "Confirme sua presença!", `O torneio ${tournament.title} está chegando! Confirme sua presença no sistema.`); alert(`Lembrete enviado para ${r.name}!`) }}>
                                       Lembrar
                                     </Button>
                                   )}
-                                  {tournament.status === "upcoming" && (
+                                  {(tournament.status === "upcoming" || tournament.status === "registering") && (
                                     <Button size="sm" variant="danger" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={saving} onClick={async () => {
                                       if (!window.confirm(`Remover ${r.name} do torneio?`)) return
                                       setSaving(true)

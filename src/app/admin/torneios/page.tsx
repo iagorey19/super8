@@ -131,7 +131,7 @@ export default function AdminTorneios() {
                   </Badge>
                 </Td>
                 <Td>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Link href={`/admin/torneios/${t.id}`}>
                       <Button size="sm" variant="ghost">Ver</Button>
                     </Link>
@@ -147,6 +147,11 @@ export default function AdminTorneios() {
                       Editar
                     </Button>
                     {t.status === "upcoming" && (
+                      <Button size="sm" variant="success" onClick={() => { store.openRegistrations(t.id); load() }}>
+                        Abrir Inscrições
+                      </Button>
+                    )}
+                    {t.status === "registering" && (
                       <Button size="sm" variant="success" onClick={() => handleStart(t.id)}>
                         Iniciar
                       </Button>

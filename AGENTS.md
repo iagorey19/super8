@@ -38,15 +38,19 @@ Para carregar: `skill({ name: "super8" })`
 Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (arquivo + resumo). Manter só últimas 5. Se conversa ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e reiniciar."
 
 ## Últimas Alterações
-- `AGENTS.md`: Simplificado — contexto movido para skill `.opencode/skills/super8/SKILL.md`
-- `.opencode/skills/super8/SKILL.md`: Criada skill principal com stack, regras de negócio, padrões de código, anti-breaking, arquitetura, operação
+- `types.ts`, `utils.ts`, `store.ts`, admin/evento pages: Adicionado status "registering" entre "upcoming" e "ongoing" — admin clica "Abrir Inscrições" para liberar inscrições públicas, depois "Iniciar Torneio" para começar
+- `admin/torneios/[id]`: Tabela de inscritos agora mostra posição (#) e badge "Lista de Espera"
+- `eventos/[id]`: Lista pública de inscritos com posições, status e indicador de espera
+- `atleta/page.tsx`: Exibe "Inscrever-se" quando torneio em "registering" e atleta não inscrito; mostra lista de torneios com inscrições abertas quando não há torneio atual
+- `store.ts::getCurrentTournament`: Prioriza "registering" entre "ongoing" e "upcoming"
+- `types.ts`: `AthleteRegistration` com `registration_order` e `is_waiting`
 
 ## Próximos Passos
-1. **Regra de desempate do ranking anual** — definir critério final
-2. **`scripts/update-passwords.ts`** — revisar senhas no Supabase
-3. **Migrar autenticação para Supabase Auth** (magic link, OAuth) — opcional
-4. **Adicionar RLS policies** nas tabelas do Supabase
-5. **Domínio personalizado** (TheSuper8.com.br) — comprar no registro.br, configurar no Vercel
+1. **Deploy** — `git push` no master para sincronizar mudanças no Vercel
+2. **Aprovar/Rejeitar da lista de espera** — admin poder mover atleta da espera para vaga quando alguém desiste
+3. **Notificações no app do atleta** — exibir notificações de inscrição/pagamento no frontend do atleta
+4. **Regra de desempate do ranking anual** — definir critério final
+5. **`scripts/update-passwords.ts`** — revisar senhas no Supabase
 
 ---
 _Atualizado em: 01/07/2026. Skill principal em `.opencode/skills/super8/SKILL.md`_
