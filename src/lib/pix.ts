@@ -19,7 +19,7 @@ function sanitizePixString(value: string, maxLen: number): string {
 
 export function generatePixPayload(key: string, amount: number, name: string, city: string): string {
   const safeName = sanitizePixString(name, 25)
-  const safeCity = sanitizePixString(city, 15)
+  const safeCity = sanitizePixString(city, 25)
   const safeKey = key.includes("@") || (key.length === 36 && key.includes("-"))
     ? key.trim()
     : key.replace(/\D/g, "")
