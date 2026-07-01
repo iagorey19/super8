@@ -377,6 +377,9 @@ export default function EventoDetalhePage() {
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-bold text-gray-400 w-6 text-right">{r.registration_order ?? "-"}</span>
                     <p className="font-medium text-gray-900 dark:text-white">{r.name}</p>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
+                      {getCategoryLabel(r.category)}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     {r.is_waiting && <Badge className="bg-amber-100 text-amber-800">Espera</Badge>}
