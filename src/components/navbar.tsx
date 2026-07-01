@@ -54,6 +54,12 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-1">
+          <Link
+            href="/eventos"
+            className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+          >
+            Eventos
+          </Link>
           {unread > 0 && (
             <Link
               href={`/${rolePrefix[user.role] || user.role}/notificacoes`}

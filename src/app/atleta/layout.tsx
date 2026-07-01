@@ -7,11 +7,11 @@ import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 
 const bottomLinks = [
+  { href: "/eventos", label: "Eventos", icon: "🏟️" },
   { href: "/atleta/jogos", label: "Jogos", icon: "🎾" },
   { href: "/atleta/ranking", label: "Ranking", icon: "🏆" },
   { href: "/atleta/fotos", label: "Fotos", icon: "📸" },
   { href: "/atleta/estatisticas", label: "Estatísticas", icon: "📊" },
-  { href: "/atleta/historico", label: "Histórico", icon: "📋" },
 ]
 
 export default function AthleteLayout({
