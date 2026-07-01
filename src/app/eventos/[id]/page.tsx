@@ -194,6 +194,11 @@ export default function EventoDetalhePage() {
                 Taxa de inscrição: {formatCurrency(tournament.registration_fee)}
               </p>
             )}
+            {tournament.registration_fee && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 rounded-lg px-3 py-2">
+                ⚠️ A inscrição só será confirmada após o pagamento e aprovação do organizador.
+              </p>
+            )}
             <Button onClick={handleStartRegistration} size="lg" className="bg-amber-600 hover:bg-amber-700 text-white font-bold" disabled={loading}>
               {loading ? "Entrando..." : "Inscrever-se"}
             </Button>
@@ -222,9 +227,14 @@ export default function EventoDetalhePage() {
               </p>
             )}
             {tournament?.registration_fee && myReg.payment_status !== "paid" && (
-              <Button onClick={handleStartRegistration} disabled={loading} className="bg-green-600 hover:bg-green-700 text-white font-bold">
-                {loading ? "Preparando..." : "Pagar com PIX"}
-              </Button>
+              <>
+                <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 rounded-lg px-3 py-2">
+                  ⚠️ Após o pagamento, clique em "Já paguei" para avisar o organizador. A inscrição será confirmada após aprovação.
+                </p>
+                <Button onClick={handleStartRegistration} disabled={loading} className="bg-green-600 hover:bg-green-700 text-white font-bold">
+                  {loading ? "Preparando..." : "Pagar com PIX"}
+                </Button>
+              </>
             )}
           </div>
         </Card>
@@ -360,7 +370,7 @@ export default function EventoDetalhePage() {
 
       {registrations.length > 0 && (
         <Card>
-          <CardHeader title="🎟️ Inscritos" subtitle={`${registrations.filter((r: any) => !r.is_waiting).length} confirmados · ${registrations.filter((r: any) => r.is_waiting).length} na lista de espera`} />
+          <CardHeader title="🎟️ Inscritos" subtitle={`${registrations.filter((r: any) => !r.is_waiting).length} inscritos · ${registrations.filter((r: any) => r.is_waiting).length} na lista de espera`} />
           <div className="space-y-1">
             {[...registrations]
               .sort((a: any, b: any) => (a.registration_order || 999) - (b.registration_order || 999))
@@ -373,9 +383,9 @@ export default function EventoDetalhePage() {
                   <div className="flex items-center gap-2">
                     {r.is_waiting && <Badge className="bg-amber-100 text-amber-800">Espera</Badge>}
                     {r.status === "approved" && r.payment_status === "paid" && <Badge className="bg-emerald-100 text-emerald-800">Confirmado</Badge>}
-                    {r.status === "approved" && !r.payment_status && <Badge className="bg-green-100 text-green-800">Aprovado</Badge>}
+                    {r.status === "approved" && (!r.payment_status || r.payment_status === "pending") && <Badge className="bg-green-100 text-green-800">Aprovado</Badge>}
                     {r.status === "pending" && r.payment_status === "paid" && <Badge className="bg-blue-100 text-blue-800">Pago</Badge>}
-                    {r.status === "pending" && !r.payment_status && <Badge className="bg-gray-100 text-gray-600">Pendente</Badge>}
+                    {r.status === "pending" && (!r.payment_status || r.payment_status === "pending") && <Badge className="bg-gray-100 text-gray-600">Pendente</Badge>}
                   </div>
                 </div>
               ))}
