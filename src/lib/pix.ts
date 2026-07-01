@@ -11,7 +11,16 @@ function crc16ccitt(data: string): string {
   return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, "0")
 }
 
+function sanitizePixString(value: string, maxLen: number): string {
+  const normalized = value.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+  const ascii = normalized.replace(/[^ -~]/g, "").trim()
+  return ascii.slice(0, maxLen)
+}
+
 export function generatePixPayload(key: string, amount: number, name: string, city: string): string {
+  const safeName = sanitizePixString(name, 25)
+  const safeCity = sanitizePixString(city, 15)
+
   const gui = "br.gov.bcb.pix"
   const payloadFormat = "000201"
   const pointOfInitiation = "010212"
@@ -23,10 +32,10 @@ export function generatePixPayload(key: string, amount: number, name: string, ci
   const amountStr = amount.toFixed(2)
   const amountField = `54${String(amountStr.length).padStart(2, "0")}${amountStr}`
   const country = "5802BR"
-  const nameLen = String(name.length).padStart(2, "0")
-  const merchantName = `59${nameLen}${name}`
-  const cityLen = String(city.length).padStart(2, "0")
-  const merchantCity = `60${cityLen}${city}`
+  const nameLen = String(safeName.length).padStart(2, "0")
+  const merchantName = `59${nameLen}${safeName}`
+  const cityLen = String(safeCity.length).padStart(2, "0")
+  const merchantCity = `60${cityLen}${safeCity}`
   const txid = "***"
   const txidField = `05${String(txid.length).padStart(2, "0")}${txid}`
   const additional = `62${String(txidField.length).padStart(2, "0")}${txidField}`
