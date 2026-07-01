@@ -17,14 +17,20 @@ function sanitizePixString(value: string, maxLen: number): string {
   return ascii.slice(0, maxLen)
 }
 
+function formatPixKey(key: string): string {
+  if (key.includes("@") || (key.length === 36 && key.includes("-"))) return key.trim()
+  const digits = key.replace(/\D/g, "")
+  return digits.length >= 10 ? `+55${digits}` : digits
+}
+
 export function generatePixPayload(key: string, amount: number, name: string, city: string): string {
   const safeName = sanitizePixString(name, 25)
-  const safeKey = key.includes("@") || (key.length === 36 && key.includes("-"))
-    ? key.trim()
-    : key.replace(/\D/g, "")
+  const safeKey = formatPixKey(key)
+  const safeCity = sanitizePixString(city, 15)
 
   const gui = "br.gov.bcb.pix"
   const payloadFormat = "000201"
+  const pointInit = "010211"
   const keyLen = String(safeKey.length).padStart(2, "0")
   const merchantAccountLen = String(8 + gui.length + safeKey.length).padStart(2, "0")
   const merchantAccount = `26${merchantAccountLen}0014${gui}01${keyLen}${safeKey}`
@@ -35,9 +41,11 @@ export function generatePixPayload(key: string, amount: number, name: string, ci
   const country = "5802BR"
   const nameLen = String(safeName.length).padStart(2, "0")
   const merchantName = `59${nameLen}${safeName}`
-  const merchantCity = "6007Cidade"
+  const cityLen = String(safeCity.length).padStart(2, "0")
+  const merchantCity = `60${cityLen}${safeCity}`
+  const txid = "62070503***"
   const crc16 = "6304"
-  const partial = `${payloadFormat}${merchantAccount}${merchantCategory}${currency}${amountField}${country}${merchantName}${merchantCity}${crc16}`
+  const partial = `${payloadFormat}${pointInit}${merchantAccount}${merchantCategory}${currency}${amountField}${country}${merchantName}${merchantCity}${txid}${crc16}`
   return partial + crc16ccitt(partial)
 }
 
