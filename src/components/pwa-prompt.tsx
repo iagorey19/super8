@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
 
 function isIOS(): boolean {
   if (typeof window === "undefined") return false
@@ -10,17 +11,19 @@ function isIOS(): boolean {
 
 function isStandalone(): boolean {
   if (typeof window === "undefined") return false
-  return window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone === true
+  const nav = window.navigator as any
+  return window.matchMedia("(display-mode: standalone)").matches || nav.standalone === true
 }
 
 export function PWAPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [show, setShow] = useState(false)
-  const [dismissed, setDismissed] = useState(false)
+  const pathname = usePathname()
   const ios = isIOS()
+  const standalone = isStandalone()
 
   useEffect(() => {
-    if (isStandalone() || dismissed) return
+    if (standalone) return
 
     if (ios) {
       const timer = setTimeout(() => setShow(true), 3000)
@@ -34,7 +37,7 @@ export function PWAPrompt() {
     }
     window.addEventListener("beforeinstallprompt", handler)
     return () => window.removeEventListener("beforeinstallprompt", handler)
-  }, [ios, dismissed])
+  }, [pathname, standalone, ios])
 
   function handleInstall() {
     if (!deferredPrompt) return
@@ -47,10 +50,9 @@ export function PWAPrompt() {
 
   function handleDismiss() {
     setShow(false)
-    setDismissed(true)
   }
 
-  if (!show) return null
+  if (!show || standalone) return null
 
   if (ios) {
     return (
