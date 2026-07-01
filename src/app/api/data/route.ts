@@ -16,6 +16,8 @@ async function queryAll<T>(table: string): Promise<T[]> {
 }
 
 async function getFullData(): Promise<AppData> {
+  const svc = getServiceClient()
+  const { data: configRow } = await svc.from("config").select("*").eq("id", "global").single()
   const [
     users, tournaments, athlete_registrations, pairings, matches,
     tournament_results, annual_rankings, sponsorships, expenses,
@@ -41,6 +43,9 @@ async function getFullData(): Promise<AppData> {
 
   return {
     seed_version: 1,
+    config: configRow
+      ? { pix_key: configRow.pix_key, pix_name: configRow.pix_name, pix_city: configRow.pix_city, admin_whatsapp: configRow.admin_whatsapp }
+      : { pix_key: "", pix_name: "", pix_city: "", admin_whatsapp: "" },
     users,
     tournaments,
     athlete_registrations,
@@ -120,6 +125,9 @@ async function syncToSupabase(data: AppData): Promise<string[]> {
     { table: "raffle_records", records: data.raffle_records },
     { table: "notes", records: data.notes },
   ]
+
+  const { error: configErr } = await svc.from("config").upsert({ id: "global", ...data.config }, { onConflict: "id" })
+  if (configErr) errors.push(`config upsert: ${configErr.message}`)
 
   for (const { table, records } of upsertOrder) {
     if (records.length > 0) {

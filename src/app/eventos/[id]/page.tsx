@@ -1,6 +1,6 @@
 "use client"
 
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { useEffect, useState, useCallback } from "react"
 import { Card, CardHeader } from "@/components/ui/card"
@@ -8,16 +8,26 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import * as store from "@/lib/store"
 import { getStatusColor, getStatusLabel, getCategoryLabel } from "@/lib/utils"
-import type { Tournament, RaffleRecord } from "@/lib/types"
+import { generatePixPayload, generatePixQR, formatCurrency, generateWhatsAppLink } from "@/lib/pix"
+import type { Tournament, RaffleRecord, AthleteRegistration } from "@/lib/types"
 
 export default function EventoDetalhePage() {
   const params = useParams()
+  const router = useRouter()
   const id = params.id as string
   const [tournament, setTournament] = useState<Tournament | null>(null)
   const [raffleRecords, setRaffleRecords] = useState<RaffleRecord[]>([])
   const [registrations, setRegistrations] = useState<any[]>([])
   const [sponsors, setSponsors] = useState<any[]>([])
   const [apoiadores, setApoiadores] = useState<any[]>([])
+  const [session, setSession] = useState<{ user: any } | null>(null)
+  const [myReg, setMyReg] = useState<AthleteRegistration | null>(null)
+  const [step, setStep] = useState<"idle" | "category" | "pix" | "done">("idle")
+  const [selectedCategory, setSelectedCategory] = useState("")
+  const [pixPayload, setPixPayload] = useState("")
+  const [pixQR, setPixQR] = useState("")
+  const [copied, setCopied] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const loadData = useCallback(async () => {
     try { await store.refreshFromServer() } catch {}
@@ -29,6 +39,11 @@ export default function EventoDetalhePage() {
       setSponsors(store.getSponsorships(id))
       setApoiadores(store.getApoiadores(id))
     }
+    const sess = store.getSession()
+    setSession(sess)
+    if (sess?.user && sess.user.role === "athlete") {
+      setMyReg(store.getAthleteRegistration(id, sess.user.id) ?? null)
+    }
   }, [id])
 
   useEffect(() => {
@@ -36,6 +51,91 @@ export default function EventoDetalhePage() {
     const interval = setInterval(loadData, 5000)
     return () => clearInterval(interval)
   }, [loadData])
+
+  async function handleStartRegistration() {
+    const sess = store.getSession()
+    if (!sess || sess.user.role !== "athlete") {
+      router.push(`/auth/login?redirect=/eventos/${id}`)
+      return
+    }
+    const existing = store.getAthleteRegistration(id, sess.user.id) ?? null
+    if (existing) {
+      setMyReg(existing)
+      if (existing.payment_status === "pending" && tournament?.registration_fee) {
+        await generatePixForRegistration(existing, sess.user.name)
+        setStep("pix")
+      }
+      return
+    }
+    if (tournament && tournament.categories.length > 1) {
+      setStep("category")
+    } else {
+      setSelectedCategory(tournament?.categories[0] || "4e5")
+      await doRegister(tournament?.categories[0] || "4e5", sess.user.id, sess.user.name)
+    }
+  }
+
+  async function handleCategorySelect(cat: string) {
+    const sess = store.getSession()
+    if (!sess) return
+    setSelectedCategory(cat)
+    await doRegister(cat, sess.user.id, sess.user.name)
+  }
+
+  async function doRegister(cat: string, athleteId: string, athleteName: string) {
+    setLoading(true)
+    const reg = await store.registerAthleteInTournament(id, athleteId, cat)
+    setLoading(false)
+    if (!reg) return
+    setMyReg(reg)
+    if (tournament?.registration_fee) {
+      await generatePixForRegistration(reg, athleteName)
+    }
+  }
+
+  async function generatePixForRegistration(reg: AthleteRegistration, athleteName: string) {
+    const config = store.getConfig()
+    if (!config.pix_key || !tournament?.registration_fee) return
+    const payload = generatePixPayload(config.pix_key, tournament.registration_fee, config.pix_name, config.pix_city)
+    setPixPayload(payload)
+    const qr = await generatePixQR(payload)
+    setPixQR(qr)
+    setStep("pix")
+  }
+
+  async function handleCopyPix() {
+    try {
+      await navigator.clipboard.writeText(pixPayload)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 3000)
+    } catch {
+      alert("Copie manualmente o código PIX abaixo.")
+    }
+  }
+
+  async function handleAlreadyPaid() {
+    const sess = store.getSession()
+    if (!sess || !myReg) return
+    await store.updateRegistrationPayment(myReg.id, "paid")
+    setMyReg({ ...myReg, payment_status: "paid" })
+    const config = store.getConfig()
+    const tournamentTitle = tournament?.title || "Torneio"
+    const msg = `Olá! Acabei de pagar a inscrição do ${tournamentTitle}! ✅\n\n👤 ${sess.user.name}\n📧 ${sess.user.email}\n📱 ${sess.user.phone || ""}\n💰 ${formatCurrency(tournament?.registration_fee || 0)}\n📋 ID: ${myReg.id}`
+    const link = generateWhatsAppLink(config.admin_whatsapp, msg)
+    window.open(link, "_blank", "noopener")
+    setStep("done")
+  }
+
+  function handleCopyPixManual() {
+    const el = document.createElement("textarea")
+    el.value = pixPayload
+    document.body.appendChild(el)
+    el.select()
+    document.execCommand("copy")
+    document.body.removeChild(el)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 3000)
+  }
 
   if (!tournament) {
     return (
@@ -79,6 +179,147 @@ export default function EventoDetalhePage() {
         </p>
       )}
 
+      {tournament.status === "upcoming" && step === "idle" && !myReg && (
+        <Card className="border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20">
+          <div className="p-6 text-center space-y-4">
+            <p className="text-lg font-bold text-amber-800 dark:text-amber-200">
+              Quer jogar? 🎾
+            </p>
+            {tournament.registration_fee && (
+              <p className="text-sm text-amber-700 dark:text-amber-300">
+                Taxa de inscrição: {formatCurrency(tournament.registration_fee)}
+              </p>
+            )}
+            <Button onClick={handleStartRegistration} size="lg" className="bg-amber-600 hover:bg-amber-700 text-white font-bold">
+              Inscrever-se
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {myReg && myReg.status === "pending" && step === "idle" && (
+        <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
+          <div className="p-6 text-center space-y-3">
+            <p className="text-base font-bold text-blue-800 dark:text-blue-200">
+              {myReg.payment_status === "paid"
+                ? "Inscrição confirmada! Aguardando aprovação do organizador."
+                : tournament?.registration_fee
+                ? "Pré-inscrição realizada! Clique abaixo para gerar o PIX."
+                : "Inscrição realizada! Aguardando aprovação do organizador."}
+            </p>
+            {tournament?.registration_fee && myReg.payment_status !== "paid" && (
+              <Button onClick={handleStartRegistration} className="bg-green-600 hover:bg-green-700 text-white font-bold">
+                Pagar com PIX
+              </Button>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {tournament.status === "upcoming" && step === "category" && tournament.categories.length > 1 && (
+        <Card>
+          <CardHeader title="Selecione a categoria" />
+          <div className="p-4 grid grid-cols-2 gap-3">
+            {tournament.categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => handleCategorySelect(cat)}
+                disabled={loading}
+                className="p-6 rounded-xl bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/30 dark:to-yellow-900/30 border-2 border-amber-300 dark:border-amber-700 hover:shadow-md transition-all font-bold text-lg text-amber-800 dark:text-amber-200 disabled:opacity-50"
+              >
+                {getCategoryLabel(cat)}
+              </button>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {step === "pix" && pixPayload && (
+        <Card className="border-green-200 dark:border-green-800">
+          <div className="p-6 text-center space-y-4">
+            <p className="text-lg font-black text-gray-900 dark:text-white">
+              Pagamento via PIX
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Escaneie o QR Code ou copie o código
+            </p>
+            <p className="text-2xl font-black text-amber-600">
+              {formatCurrency(tournament?.registration_fee || 0)}
+            </p>
+
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-inner inline-block">
+              {pixQR ? (
+                <img src={pixQR} alt="QR Code PIX" className="w-52 h-52 mx-auto" />
+              ) : (
+                <div className="w-52 h-52 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse mx-auto" />
+              )}
+            </div>
+
+            {copied ? (
+              <p className="text-sm text-emerald-600 font-bold">Código copiado! Cole no seu banco para pagar.</p>
+            ) : pixPayload.length > 100 ? (
+              <div className="space-y-2">
+                <Button onClick={handleCopyPix} className="w-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 font-bold">
+                  📋 Copiar código PIX
+                </Button>
+                <button
+                  onClick={handleCopyPixManual}
+                  className="text-xs text-gray-400 hover:text-gray-600 underline"
+                >
+                  Copiar manualmente
+                </button>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 break-all">{pixPayload}</p>
+            )}
+
+            <div className="pt-4 space-y-3">
+              <Button onClick={handleAlreadyPaid} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base py-4">
+                ✅ Já paguei
+              </Button>
+              <p className="text-xs text-gray-400">
+                Após pagar, clique em "Já paguei" para nos avisar via WhatsApp.
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {step === "done" && (
+        <Card className="border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20">
+          <div className="p-6 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-800 flex items-center justify-center mx-auto">
+              <svg className="w-8 h-8 text-emerald-600 dark:text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="text-lg font-black text-gray-900 dark:text-white">
+              Pagamento informado com sucesso!
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Seu pagamento será confirmado pelo organizador.
+              Acompanhe o status pelo WhatsApp.
+            </p>
+            {(() => {
+              const config = store.getConfig()
+              const sess = store.getSession()
+              const msg = `Olá! Informei o pagamento da inscrição do ${tournament?.title || "Torneio"}.\n\n👤 ${sess?.user?.name || ""}\n📋 ID da inscrição: ${myReg?.id || ""}`
+              const link = generateWhatsAppLink(config.admin_whatsapp, msg)
+              return (
+                <a
+                  href={link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700 transition-all shadow-lg"
+                >
+                  💬 Falar no WhatsApp
+                </a>
+              )
+            })()}
+          </div>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link href={`/eventos/${id}/jogos`}>
           <Card className="hover:shadow-md transition-shadow cursor-pointer text-center py-8">
@@ -102,6 +343,22 @@ export default function EventoDetalhePage() {
           </Card>
         </Link>
       </div>
+
+      {tournament.registration_fee && registrations.filter((r: any) => r.status === "approved" && r.payment_status === "paid").length > 0 && (
+        <Card>
+          <CardHeader title="🎟️ Inscritos" />
+          <div className="space-y-2">
+            {registrations
+              .filter((r: any) => r.status === "approved" && r.payment_status === "paid")
+              .map((r: any) => (
+                <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                  <p className="font-medium text-gray-900 dark:text-white">{r.name}</p>
+                  <Badge className="bg-emerald-100 text-emerald-800">Pago</Badge>
+                </div>
+              ))}
+          </div>
+        </Card>
+      )}
 
       {(sponsors.length > 0 || apoiadores.length > 0) && (
         <Card>

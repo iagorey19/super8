@@ -4,11 +4,17 @@ const T1 = "torneio-001"
 const T2 = "torneio-002"
 const T3 = "torneio-003"
 
-const SEED_VERSION = 7
+const SEED_VERSION = 8
 
 export function seed(): AppData {
   return {
   seed_version: SEED_VERSION,
+  config: {
+    pix_key: "47999104494",
+    pix_name: "Guiomar",
+    pix_city: "Balneario Camboriu",
+    admin_whatsapp: "5547997436809",
+  },
   users: [
     { id: "admin-001", email: "admin@super8.com", password: "admin123", name: "Administrador", role: "admin", phone: "(11) 99999-9999", created_at: "2026-01-01T00:00:00.000Z" },
 

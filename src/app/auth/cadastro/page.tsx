@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
@@ -17,6 +17,8 @@ export default function CadastroPage() {
   const [success, setSuccess] = useState(false)
   const { register } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get("redirect")
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -55,7 +57,7 @@ export default function CadastroPage() {
             Seu cadastro foi enviado para aprovação do administrador. Você receberá um email quando for aprovado.
           </p>
           <Link
-            href="/auth/login"
+            href={redirect ? `/auth/login?redirect=${encodeURIComponent(redirect)}` : "/auth/login"}
             className="block w-full py-3 px-6 bg-amber-600 text-white rounded-xl font-medium hover:bg-amber-700 transition-all"
           >
             Ir para o Login
@@ -129,7 +131,7 @@ export default function CadastroPage() {
 
         <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
           Já tem conta?{" "}
-          <Link href="/auth/login" className="text-amber-600 dark:text-amber-400 font-medium hover:text-amber-700">
+          <Link href={redirect ? `/auth/login?redirect=${encodeURIComponent(redirect)}` : "/auth/login"} className="text-amber-600 dark:text-amber-400 font-medium hover:text-amber-700">
             Fazer login
           </Link>
         </p>

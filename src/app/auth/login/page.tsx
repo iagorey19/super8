@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
@@ -15,6 +15,8 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false)
   const { login } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get("redirect")
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -28,12 +30,16 @@ export default function LoginPage() {
     setSubmitting(true)
     const loggedUser = login(email, password)
     if (loggedUser) {
-      const routes: Record<string, string> = {
-        admin: "/admin",
-        athlete: "/atleta",
-        sponsor: "/patrocinador",
+      if (redirect) {
+        router.push(redirect)
+      } else {
+        const routes: Record<string, string> = {
+          admin: "/admin",
+          athlete: "/atleta",
+          sponsor: "/patrocinador",
+        }
+        router.push(routes[loggedUser.role] || "/")
       }
-      router.push(routes[loggedUser.role] || "/")
     } else {
       setError("Email ou senha inválidos")
       setSubmitting(false)
@@ -93,7 +99,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
           Não tem conta?{" "}
-          <Link href="/auth/cadastro" className="text-amber-600 font-medium hover:text-amber-700">
+          <Link href={redirect ? `/auth/cadastro?redirect=${encodeURIComponent(redirect)}` : "/auth/cadastro"} className="text-amber-600 font-medium hover:text-amber-700">
             Cadastre-se como atleta
           </Link>
         </p>

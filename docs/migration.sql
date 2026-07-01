@@ -39,6 +39,7 @@ CREATE TABLE athlete_registrations (
   tournament_id TEXT NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
   athlete_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  payment_status TEXT CHECK (payment_status IN ('pending', 'paid', 'cancelled')),
   draw_number INT,
   category TEXT,
   group_name TEXT DEFAULT 'A',
@@ -202,6 +203,19 @@ CREATE TABLE notes (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Config (PIX, WhatsApp)
+CREATE TABLE config (
+  id TEXT PRIMARY KEY,
+  pix_key TEXT NOT NULL DEFAULT '',
+  pix_name TEXT NOT NULL DEFAULT '',
+  pix_city TEXT NOT NULL DEFAULT '',
+  admin_whatsapp TEXT NOT NULL DEFAULT ''
+);
+
+INSERT INTO config (id, pix_key, pix_name, pix_city, admin_whatsapp)
+VALUES ('global', '47999104494', 'Guiomar', 'Balneario Camboriu', '5547997436809')
+ON CONFLICT (id) DO NOTHING;
 
 -- Indexes for performance
 CREATE INDEX idx_tournaments_status ON tournaments(status);

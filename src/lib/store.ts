@@ -41,6 +41,16 @@ async function saveData(data: AppData) {
   await db.persist()
 }
 
+export function getConfig() {
+  return getData().config
+}
+
+export async function updateConfig(config: Partial<AppData["config"]>) {
+  const data = getData()
+  Object.assign(data.config, config)
+  await saveData(data)
+}
+
 export function getSession(): { user: User } | null {
   if (typeof window === "undefined") return null
   try {
@@ -294,11 +304,24 @@ export async function registerAthleteInTournament(
     tournament_id: tournamentId,
     athlete_id: athleteId,
     status: "pending",
+    payment_status: tournament.registration_fee ? "pending" : undefined,
     category: cat,
     group_name: groupName || "A",
     created_at: new Date().toISOString(),
   }
   data.athlete_registrations.push(reg)
+  await saveData(data)
+  return reg
+}
+
+export async function updateRegistrationPayment(
+  registrationId: string,
+  paymentStatus: "paid" | "cancelled"
+): Promise<AthleteRegistration | null> {
+  const data = getData()
+  const reg = data.athlete_registrations.find((r) => r.id === registrationId)
+  if (!reg) return null
+  reg.payment_status = paymentStatus
   await saveData(data)
   return reg
 }

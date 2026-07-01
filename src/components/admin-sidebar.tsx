@@ -17,6 +17,7 @@ const links = [
   { href: "/admin/fotos", label: "Fotos", icon: "📸" },
   { href: "/admin/notificacoes", label: "Notificações", icon: "🔔" },
   { href: "/admin/usuarios", label: "Usuários", icon: "🔐" },
+  { href: "/admin/config", label: "Configurações", icon: "⚙️" },
 ]
 
 export function AdminSidebar() {

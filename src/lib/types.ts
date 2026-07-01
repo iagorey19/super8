@@ -13,18 +13,27 @@ export interface User {
 }
 
 export type AthleteStatus = "pending" | "approved" | "rejected"
+export type PaymentStatus = "pending" | "paid" | "cancelled"
 
 export interface AthleteRegistration {
   id: string
   tournament_id: string
   athlete_id: string
   status: AthleteStatus
+  payment_status?: PaymentStatus
   draw_number?: number
   category?: string
   group_name?: string
   confirmed?: boolean
   confirmed_at?: string
   created_at: string
+}
+
+export interface AppConfig {
+  pix_key: string
+  pix_name: string
+  pix_city: string
+  admin_whatsapp: string
 }
 
 export type TournamentStatus = "upcoming" | "ongoing" | "completed"
@@ -199,6 +208,7 @@ export interface Note {
 
 export interface AppData {
   seed_version: number
+  config: AppConfig
   users: User[]
   tournaments: Tournament[]
   athlete_registrations: AthleteRegistration[]
