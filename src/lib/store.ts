@@ -215,7 +215,7 @@ export function resetTournament(tournamentId: string) {
   saveData(data)
 }
 
-export function updateAthlete(athleteId: string, updates: { name?: string; email?: string; phone?: string; password?: string }) {
+export async function updateAthlete(athleteId: string, updates: { name?: string; email?: string; phone?: string; password?: string }) {
   const data = getData()
   const user = data.users.find((u) => u.id === athleteId && u.role === "athlete")
   if (user) {
@@ -223,7 +223,7 @@ export function updateAthlete(athleteId: string, updates: { name?: string; email
     if (updates.email !== undefined) user.email = updates.email
     if (updates.phone !== undefined) user.phone = updates.phone || undefined
     if (updates.password !== undefined) user.password = updates.password
-    saveData(data)
+    await saveData(data)
   }
 }
 
@@ -1054,14 +1054,14 @@ export function getAllUsers(): User[] {
   return data.users
 }
 
-export function createUser(
+export async function createUser(
   name: string,
   email: string,
   password: string,
   role: "admin" | "athlete" | "sponsor",
   phone?: string,
   url?: string
-): User | null {
+): Promise<User | null> {
   const data = getData()
   if (data.users.some((u) => u.email === email)) return null
   const user: User = {
@@ -1075,11 +1075,11 @@ export function createUser(
     created_at: new Date().toISOString(),
   }
   data.users.push(user)
-  saveData(data)
+  await saveData(data)
   return user
 }
 
-export function updateUser(id: string, updates: { name?: string; email?: string; password?: string; phone?: string; url?: string }) {
+export async function updateUser(id: string, updates: { name?: string; email?: string; password?: string; phone?: string; url?: string }) {
   const data = getData()
   const user = data.users.find((u) => u.id === id)
   if (!user) return
@@ -1088,7 +1088,7 @@ export function updateUser(id: string, updates: { name?: string; email?: string;
   if (updates.password !== undefined) user.password = updates.password
   if (updates.phone !== undefined) user.phone = updates.phone || undefined
   if (updates.url !== undefined) user.url = updates.url || undefined
-  saveData(data)
+  await saveData(data)
 }
 
 export function deleteUser(id: string) {

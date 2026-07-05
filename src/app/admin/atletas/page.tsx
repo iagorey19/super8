@@ -256,9 +256,9 @@ export default function AthletesPage() {
             <Button
               className="flex-1"
               disabled={!editForm.name || !editForm.email}
-              onClick={() => {
+              onClick={async () => {
                 if (editingAthlete) {
-                  updateAthlete(editingAthlete.id, editForm)
+                  await updateAthlete(editingAthlete.id, editForm)
                   setEditModalOpen(false)
                   loadData()
                   showToast("success", "Atleta atualizado!")

@@ -46,12 +46,12 @@ export default function UsuariosPage() {
     setTimeout(() => setToast(null), 3000)
   }
 
-  function handleCreate() {
+  async function handleCreate() {
     if (!newForm.name || !newForm.email || !newForm.password) {
       showToast("error", "Preencha nome, email e senha")
       return
     }
-    const result = createUser(newForm.name, newForm.email, newForm.password, newForm.role as User["role"], newForm.phone)
+    const result = await createUser(newForm.name, newForm.email, newForm.password, newForm.role as User["role"], newForm.phone)
     if (!result) {
       showToast("error", "Email já cadastrado")
       return
@@ -62,9 +62,9 @@ export default function UsuariosPage() {
     loadData()
   }
 
-  function handleEdit() {
+  async function handleEdit() {
     if (!editingUser || !editForm.name || !editForm.email) return
-    updateUser(editingUser.id, {
+    await updateUser(editingUser.id, {
       name: editForm.name,
       email: editForm.email,
       password: editForm.password || undefined,

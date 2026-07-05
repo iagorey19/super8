@@ -79,7 +79,7 @@ export default function AthleteDashboard() {
       return
     }
     setSavingProfile(true)
-    store.updateAthlete(user.id, {
+    await store.updateAthlete(user.id, {
       name: profileForm.name,
       email: profileForm.email,
       phone: profileForm.phone,
