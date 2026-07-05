@@ -117,12 +117,21 @@ export async function registerAthlete(
   data.users.push(newUser)
   try {
     await saveData(data)
+    syncAuthUser(email, password)
     return newUser
   } catch (e) {
     data.users.pop()
     console.error("registerAthlete: persist failed", e)
     return null
   }
+}
+
+function syncAuthUser(email: string, password: string) {
+  fetch("/api/auth/admin-register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  }).catch((e) => console.warn("syncAuthUser: failed", e))
 }
 
 export async function approveAthlete(registrationId: string) {
