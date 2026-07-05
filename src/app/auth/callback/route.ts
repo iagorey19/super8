@@ -1,0 +1,65 @@
+import { NextResponse } from "next/server"
+import { createClient } from "@/utils/supabase/server"
+import { getServiceClient } from "@/lib/supabase"
+import crypto from "crypto"
+import bcrypt from "bcryptjs"
+
+const TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000
+
+function signToken(payload: string): string {
+  const secret = process.env.AUTH_TOKEN_SECRET || "super8-fallback-secret-do-not-use-in-prod"
+  return crypto.createHmac("sha256", secret).update(payload).digest("base64url")
+}
+
+export async function GET(request: Request) {
+  const { searchParams, origin } = new URL(request.url)
+  const code = searchParams.get("code")
+  const next = searchParams.get("next") ?? "/"
+
+  if (!code) {
+    return NextResponse.redirect(`${origin}/auth/login?error=missing_code`)
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase.auth.exchangeCodeForSession(code)
+  if (error) {
+    console.error("Callback code exchange error:", error)
+    return NextResponse.redirect(`${origin}/auth/login?error=auth_failed`)
+  }
+
+  const { data: { user: authUser } } = await supabase.auth.getUser()
+  if (!authUser?.email) {
+    return NextResponse.redirect(`${origin}/auth/login?error=no_email`)
+  }
+
+  const svc = getServiceClient()
+  const { data: existing } = await svc.from("users").select("*").eq("email", authUser.email)
+
+  let appUser = existing?.[0]
+  if (!appUser) {
+    const newUser = {
+      id: authUser.id,
+      email: authUser.email,
+      name: authUser.user_metadata?.full_name || authUser.email.split("@")[0],
+      role: "athlete",
+      phone: authUser.phone || null,
+      avatar: authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || null,
+      created_at: new Date().toISOString(),
+    }
+    const { error: insertError } = await svc.from("users").insert(newUser)
+    if (insertError) {
+      console.error("Callback user insert error:", insertError)
+      return NextResponse.redirect(`${origin}/auth/login?error=create_user_failed`)
+    }
+    appUser = newUser
+  }
+
+  const exp = Date.now() + TOKEN_EXPIRY_MS
+  const payload = JSON.stringify({ userId: appUser.id, email: appUser.email, exp })
+  const token = Buffer.from(payload).toString("base64url") + "." + signToken(payload)
+
+  const redirectUrl = new URL(`${origin}/auth/handler`)
+  redirectUrl.searchParams.set("auth_token", token)
+  redirectUrl.searchParams.set("next", next)
+  return NextResponse.redirect(redirectUrl.toString())
+}
