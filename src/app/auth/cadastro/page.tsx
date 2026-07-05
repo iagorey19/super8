@@ -7,6 +7,8 @@ import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 export default function CadastroPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -15,17 +17,23 @@ export default function CadastroPage() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const { register } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get("redirect")
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError("")
 
     if (!name || !email || !password) {
       setError("Preencha todos os campos obrigatórios")
+      return
+    }
+
+    if (!EMAIL_REGEX.test(email)) {
+      setError("Email inválido")
       return
     }
 
@@ -39,8 +47,19 @@ export default function CadastroPage() {
       return
     }
 
-    register(name, email, password, phone || undefined)
-    setSuccess(true)
+    setSubmitting(true)
+    try {
+      const result = await register(name, email, password, phone || undefined)
+      if (result) {
+        setSuccess(true)
+      } else {
+        setError("Este email já está cadastrado. Faça login.")
+      }
+    } catch {
+      setError("Erro ao cadastrar. Verifique sua conexão e tente novamente.")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   if (success) {
@@ -54,7 +73,7 @@ export default function CadastroPage() {
           </div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">Cadastro realizado!</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Seu cadastro foi enviado para aprovação do administrador. Você receberá um email quando for aprovado.
+            Seu cadastro foi criado com sucesso! Agora faça login para acessar o sistema.
           </p>
           <Link
             href={redirect ? `/auth/login?redirect=${encodeURIComponent(redirect)}` : "/auth/login"}
@@ -124,8 +143,8 @@ export default function CadastroPage() {
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
 
-          <Button type="submit" className="w-full">
-            Cadastrar
+          <Button type="submit" className="w-full" disabled={submitting}>
+            {submitting ? "Cadastrando..." : "Cadastrar"}
           </Button>
         </form>
 

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Modal } from "@/components/ui/modal"
 import { Table, Td } from "@/components/ui/table"
+import { useToast } from "@/components/ui/toast"
 import * as store from "@/lib/store"
 import { formatDate, getStatusColor, getStatusLabel } from "@/lib/utils"
 import type { Tournament, User } from "@/lib/types"
@@ -38,6 +39,8 @@ export default function TournamentDetail() {
   const [registerGroup, setRegisterGroup] = useState("A")
   const [saving, setSaving] = useState(false)
   const [actionRegId, setActionRegId] = useState<Set<string>>(new Set())
+  const [successRegId, setSuccessRegId] = useState<Set<string>>(new Set())
+  const { toast } = useToast()
   const [resetting, setResetting] = useState(false)
   const [recalculating, setRecalculating] = useState(false)
   const [savingCourts, setSavingCourts] = useState(false)
@@ -47,6 +50,13 @@ export default function TournamentDetail() {
   useEffect(() => {
     try { setAllAthletes(store.getAthletes().filter((a) => !registrations.some((r) => r.athlete_id === a.id))) } catch { setAllAthletes([]) }
   }, [registrations])
+
+  function flashSuccess(regId: string) {
+    setSuccessRegId((prev) => new Set(prev).add(regId))
+    setTimeout(() => {
+      setSuccessRegId((prev) => { const next = new Set(prev); next.delete(regId); return next })
+    }, 1500)
+  }
 
   function load() {
     const t = store.getTournamentById(id)
@@ -390,20 +400,26 @@ export default function TournamentDetail() {
                                   {r.status === "pending" && (
                                     <>
                                       <Button size="sm" variant="success" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={actionRegId.has(r.id)} onClick={async () => {
+                                        if (actionRegId.has(r.id)) return
                                         setActionRegId((prev) => new Set(prev).add(r.id))
                                         store.approveAthlete(r.id)
+                                        flashSuccess(r.id)
+                                        toast("Atleta aprovado!")
                                         setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
                                         load()
                                       }}>
-                                        {actionRegId.has(r.id) ? "..." : <><span className="sm:hidden">✓</span><span className="hidden sm:inline">Aprovar</span></>}
+                                        {actionRegId.has(r.id) ? "..." : successRegId.has(r.id) ? "✓" : <><span className="sm:hidden">✓</span><span className="hidden sm:inline">Aprovar</span></>}
                                       </Button>
                                       <Button size="sm" variant="secondary" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={actionRegId.has(r.id)} onClick={async () => {
+                                        if (actionRegId.has(r.id)) return
                                         setActionRegId((prev) => new Set(prev).add(r.id))
                                         store.rejectAthlete(r.id)
+                                        flashSuccess(r.id)
+                                        toast("Atleta rejeitado!")
                                         setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
                                         load()
                                       }}>
-                                        {actionRegId.has(r.id) ? "..." : <><span className="sm:hidden">✗</span><span className="hidden sm:inline">Rejeitar</span></>}
+                                        {actionRegId.has(r.id) ? "..." : successRegId.has(r.id) ? "✓" : <><span className="sm:hidden">✗</span><span className="hidden sm:inline">Rejeitar</span></>}
                                       </Button>
                                     </>
                                   )}
@@ -411,51 +427,64 @@ export default function TournamentDetail() {
                                     <>
                                       {r.payment_status === "pending" && tournament.registration_fee && (
                                         <Button size="sm" variant="success" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={actionRegId.has(r.id)} onClick={async () => {
+                                          if (actionRegId.has(r.id)) return
                                           setActionRegId((prev) => new Set(prev).add(r.id))
                                           store.updateRegistrationPayment(r.id, "paid")
+                                          flashSuccess(r.id)
+                                          toast("Pagamento confirmado!")
                                           setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
                                           load()
                                         }}>
-                                          {actionRegId.has(r.id) ? "..." : <><span className="sm:hidden">💰</span><span className="hidden sm:inline">Pago</span></>}
+                                          {actionRegId.has(r.id) ? "..." : successRegId.has(r.id) ? "✓" : <><span className="sm:hidden">💰</span><span className="hidden sm:inline">Pago</span></>}
                                         </Button>
                                       )}
                                       {r.payment_status === "paid" && tournament.registration_fee && (
                                         <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm text-red-600 dark:text-red-400" disabled={actionRegId.has(r.id)} onClick={async () => {
+                                          if (actionRegId.has(r.id)) return
                                           setActionRegId((prev) => new Set(prev).add(r.id))
                                           store.updateRegistrationPayment(r.id, "pending")
+                                          flashSuccess(r.id)
+                                          toast("Pagamento estornado!")
                                           setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
                                           load()
                                         }}>
-                                          {actionRegId.has(r.id) ? "..." : <><span className="sm:hidden">↩</span><span className="hidden sm:inline">Estornar</span></>}
+                                          {actionRegId.has(r.id) ? "..." : successRegId.has(r.id) ? "✓" : <><span className="sm:hidden">↩</span><span className="hidden sm:inline">Estornar</span></>}
                                         </Button>
                                       )}
                                       {r.confirmed ? (
                                         <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm text-red-600 dark:text-red-400" disabled={actionRegId.has(r.id)} onClick={async () => {
+                                          if (actionRegId.has(r.id)) return
                                           setActionRegId((prev) => new Set(prev).add(r.id))
                                           store.toggleAttendance(tournament.id, r.athlete_id)
+                                          flashSuccess(r.id)
+                                          toast("Check-in removido!")
                                           setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
                                           load()
                                         }}>
-                                          {actionRegId.has(r.id) ? "..." : <><span className="sm:hidden">✕</span><span className="hidden sm:inline">✕ Remover</span></>}
+                                          {actionRegId.has(r.id) ? "..." : successRegId.has(r.id) ? "✓" : <><span className="sm:hidden">✕</span><span className="hidden sm:inline">✕ Remover</span></>}
                                         </Button>
                                       ) : (
                                         <Button size="sm" variant="secondary" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={actionRegId.has(r.id)} onClick={async () => {
+                                          if (actionRegId.has(r.id)) return
                                           setActionRegId((prev) => new Set(prev).add(r.id))
                                           store.toggleAttendance(tournament.id, r.athlete_id)
+                                          flashSuccess(r.id)
+                                          toast("Check-in confirmado!")
                                           setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
                                           load()
                                         }}>
-                                          {actionRegId.has(r.id) ? "..." : <><span className="sm:hidden">✓</span><span className="hidden sm:inline">✅ Check-in</span></>}
+                                          {actionRegId.has(r.id) ? "..." : successRegId.has(r.id) ? "✓" : <><span className="sm:hidden">✓</span><span className="hidden sm:inline">✅ Check-in</span></>}
                                         </Button>
                                       )}
                                     </>
                                   )}
                                   {tournament.status === "registering" && r.status === "approved" && !r.confirmed && (
                                     <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={actionRegId.has(r.id)} onClick={async () => {
+                                      if (actionRegId.has(r.id)) return
                                       setActionRegId((prev) => new Set(prev).add(r.id))
                                       store.createNotification(r.athlete_id, "geral", "Confirme sua presença!", `O torneio ${tournament.title} está chegando! Confirme sua presença no sistema.`)
                                       setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
-                                      alert(`Lembrete enviado para ${r.name}!`)
+                                      toast(`Lembrete enviado para ${r.name}!`)
                                     }}>
                                       {actionRegId.has(r.id) ? "..." : "Lembrar"}
                                     </Button>

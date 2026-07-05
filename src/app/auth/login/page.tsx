@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useToast } from "@/components/ui/toast"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -14,6 +15,7 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const { login } = useAuth()
+  const { toast } = useToast()
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get("redirect")
@@ -30,6 +32,7 @@ export default function LoginPage() {
     setSubmitting(true)
     const loggedUser = login(email, password)
     if (loggedUser) {
+      toast("Login realizado!")
       if (redirect) {
         router.push(redirect)
       } else {

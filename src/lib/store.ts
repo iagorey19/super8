@@ -84,12 +84,12 @@ export function logout() {
   }
 }
 
-export function registerAthlete(
+export async function registerAthlete(
   name: string,
   email: string,
   password: string,
   phone?: string
-): User | null {
+): Promise<User | null> {
   const data = getData()
   if (data.users.some((u) => u.email === email)) return null
   const newUser: User = {
@@ -102,8 +102,14 @@ export function registerAthlete(
     created_at: new Date().toISOString(),
   }
   data.users.push(newUser)
-  saveData(data)
-  return newUser
+  try {
+    await saveData(data)
+    return newUser
+  } catch (e) {
+    data.users.pop()
+    console.error("registerAthlete: persist failed", e)
+    return null
+  }
 }
 
 export async function approveAthlete(registrationId: string) {

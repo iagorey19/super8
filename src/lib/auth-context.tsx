@@ -10,7 +10,7 @@ interface AuthContextType {
   loading: boolean
   login: (email: string, password: string) => User | null
   logout: () => void
-  register: (name: string, email: string, password: string, phone?: string) => User | null
+  register: (name: string, email: string, password: string, phone?: string) => Promise<User | null>
 }
 
 const AuthContext = createContext<AuthContextType>(null!)
@@ -45,8 +45,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router])
 
   const register = useCallback(
-    (name: string, email: string, password: string, phone?: string) => {
-      const newUser = store.registerAthlete(name, email, password, phone)
+    async (name: string, email: string, password: string, phone?: string) => {
+      const newUser = await store.registerAthlete(name, email, password, phone)
       return newUser
     },
     []

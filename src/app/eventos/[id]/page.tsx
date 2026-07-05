@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback } from "react"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { useToast } from "@/components/ui/toast"
 import * as store from "@/lib/store"
 import { getStatusColor, getStatusLabel, getCategoryLabel } from "@/lib/utils"
 import { generatePixPayload, generatePixQR, formatCurrency, generateWhatsAppLink } from "@/lib/pix"
@@ -29,6 +30,7 @@ export default function EventoDetalhePage() {
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(false)
   const [sendingPayment, setSendingPayment] = useState(false)
+  const { toast } = useToast()
 
   const loadData = useCallback(async () => {
     try { await store.refreshFromServer() } catch {}
@@ -87,8 +89,12 @@ export default function EventoDetalhePage() {
     setLoading(true)
     const reg = await store.registerAthleteInTournament(id, athleteId, cat)
     setLoading(false)
-    if (!reg) return
+    if (!reg) {
+      toast("Erro ao inscrever. Tente novamente.", "error")
+      return
+    }
     setMyReg(reg)
+    toast("Inscrição realizada!")
     if (tournament?.registration_fee) {
       await generatePixForRegistration(reg, athleteName)
     }
@@ -126,6 +132,7 @@ export default function EventoDetalhePage() {
     window.open(link, "_blank", "noopener")
     setStep("done")
     setSendingPayment(false)
+    toast("Pagamento informado ao organizador!")
   }
 
   function handleCopyPixManual() {
