@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/select"
 import { Table, Td } from "@/components/ui/table"
 import * as store from "@/lib/store"
 import { formatCurrency, formatDate, getStatusColor, getStatusLabel } from "@/lib/utils"
+import { sanitizeUrl } from "@/lib/validate-url"
 import type { Tournament, Photo, TournamentResult, Match, Apoiador, Brinde, RaffleRecord } from "@/lib/types"
 
 export default function SponsorResults() {
@@ -117,7 +118,7 @@ export default function SponsorResults() {
                 {photos.map((photo) => (
                   <div key={photo.id} className="rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
                     <img
-                      src={photo.url}
+                      src={sanitizeUrl(photo.url, "/placeholder.jpg")}
                       alt={photo.caption || "Foto do torneio"}
                       className="w-full h-32 object-cover"
                     />

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServiceClient } from "@/lib/supabase"
 import { seed } from "@/lib/seed"
 import { isRateLimited } from "@/lib/rate-limit"
+import { getAuthSecret } from "@/lib/auth-secret"
 import type { AppData, User, Tournament, AthleteRegistration, Pairing, Match, TournamentResult, AnnualRanking, Sponsorship, Expense, Revenue, Photo, Notification, Apoiador, Brinde, RaffleRecord, Note } from "@/lib/types"
 import crypto from "crypto"
 import bcrypt from "bcryptjs"
@@ -17,7 +18,7 @@ function validateToken(token: string): { userId: string } | null {
   try {
     const [payloadB64, signatureB64] = token.split(".")
     if (!payloadB64 || !signatureB64) return null
-    const secret = process.env.AUTH_TOKEN_SECRET || "super8-fallback-secret-do-not-use-in-prod"
+    const secret = getAuthSecret()
     const expectedSig = crypto.createHmac("sha256", secret).update(payloadB64).digest("base64url")
     if (signatureB64 !== expectedSig) return null
     const payload = JSON.parse(Buffer.from(payloadB64, "base64url").toString())

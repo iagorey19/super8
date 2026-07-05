@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/toast"
 import { createClient } from "@/utils/supabase/client"
+import { isSafeRedirect } from "@/lib/validate-url"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -36,7 +37,7 @@ export default function LoginPage() {
     const loggedUser = await login(email, password)
     if (loggedUser) {
       toast("Login realizado!")
-      if (redirect) {
+      if (redirect && isSafeRedirect(redirect)) {
         router.push(redirect)
       } else {
         const routes: Record<string, string> = {
@@ -170,7 +171,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
           Não tem conta?{" "}
-          <Link href={redirect ? `/auth/cadastro?redirect=${encodeURIComponent(redirect)}` : "/auth/cadastro"} className="text-amber-600 font-medium hover:text-amber-700">
+          <Link href={redirect && isSafeRedirect(redirect) ? `/auth/cadastro?redirect=${encodeURIComponent(redirect)}` : "/auth/cadastro"} className="text-amber-600 font-medium hover:text-amber-700">
             Cadastre-se como atleta
           </Link>
         </p>

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { getServiceClient } from "@/lib/supabase"
+import { isRateLimited } from "@/lib/rate-limit"
 
 const ALLOWED_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "mp4"])
 const MAX_FILE_SIZE = 10 * 1024 * 1024
@@ -22,6 +23,11 @@ async function validateSession(req: Request): Promise<boolean> {
 
 export async function POST(req: Request) {
   try {
+    const ip = req.headers.get("x-forwarded-for") || "unknown"
+    if (isRateLimited(ip, 30, 60_000)) {
+      return NextResponse.json({ error: "Muitas requisições. Tente novamente mais tarde." }, { status: 429 })
+    }
+
     if (!await validateSession(req)) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }

@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { isSafeRedirect } from "@/lib/validate-url"
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -76,7 +77,7 @@ export default function CadastroPage() {
             Seu cadastro foi criado com sucesso! Agora faça login para acessar o sistema.
           </p>
           <Link
-            href={redirect ? `/auth/login?redirect=${encodeURIComponent(redirect)}` : "/auth/login"}
+            href={redirect && isSafeRedirect(redirect) ? `/auth/login?redirect=${encodeURIComponent(redirect)}` : "/auth/login"}
             className="block w-full py-3 px-6 bg-amber-600 text-white rounded-xl font-medium hover:bg-amber-700 transition-all"
           >
             Ir para o Login
@@ -150,7 +151,7 @@ export default function CadastroPage() {
 
         <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
           Já tem conta?{" "}
-          <Link href={redirect ? `/auth/login?redirect=${encodeURIComponent(redirect)}` : "/auth/login"} className="text-amber-600 dark:text-amber-400 font-medium hover:text-amber-700">
+           <Link href={redirect && isSafeRedirect(redirect) ? `/auth/login?redirect=${encodeURIComponent(redirect)}` : "/auth/login"} className="text-amber-600 dark:text-amber-400 font-medium hover:text-amber-700">
             Fazer login
           </Link>
         </p>

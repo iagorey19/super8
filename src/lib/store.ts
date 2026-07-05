@@ -231,7 +231,10 @@ export async function updateAthlete(athleteId: string, updates: { name?: string;
     if (updates.name !== undefined) user.name = updates.name
     if (updates.email !== undefined) user.email = updates.email
     if (updates.phone !== undefined) user.phone = updates.phone || undefined
-    if (updates.password !== undefined) user.password = updates.password
+    if (updates.password !== undefined) {
+      user.password = updates.password
+      syncAuthUser(user.email, updates.password)
+    }
     await saveData(data)
   }
 }
@@ -1094,7 +1097,10 @@ export async function updateUser(id: string, updates: { name?: string; email?: s
   if (!user) return
   if (updates.name !== undefined) user.name = updates.name
   if (updates.email !== undefined) user.email = updates.email
-  if (updates.password !== undefined) user.password = updates.password
+  if (updates.password !== undefined) {
+    user.password = updates.password
+    syncAuthUser(user.email, updates.password)
+  }
   if (updates.phone !== undefined) user.phone = updates.phone || undefined
   if (updates.url !== undefined) user.url = updates.url || undefined
   await saveData(data)
@@ -1179,6 +1185,7 @@ export function createSponsor(
   }
   data.users.push(sponsor)
   saveData(data)
+  syncAuthUser(email, password)
   return sponsor
 }
 

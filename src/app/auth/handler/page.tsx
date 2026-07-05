@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { isSafeRedirect } from "@/lib/validate-url"
 
 export default function AuthHandlerPage() {
   const router = useRouter()
@@ -23,7 +24,8 @@ export default function AuthHandlerPage() {
           user: { id: payload.userId, email: payload.email },
         }))
         sessionStorage.setItem("super8-auth-token", data.token)
-        window.location.href = next
+        const safeNext = isSafeRedirect(next) ? next : "/"
+        window.location.href = safeNext
       })
       .catch(() => {
         router.replace("/auth/login?error=invalid_token")

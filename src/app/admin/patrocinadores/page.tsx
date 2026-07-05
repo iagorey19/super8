@@ -15,6 +15,7 @@ import {
   addBrinde, removeBrinde, updateBrinde, getRegisteredAthletes,
 } from "@/lib/store"
 import { formatCurrency, getTierLabel } from "@/lib/utils"
+import { sanitizeUrl } from "@/lib/validate-url"
 import type { User, SponsorTier } from "@/lib/types"
 
 const tierOptions = [
@@ -212,7 +213,7 @@ function PatrocinadoresTab() {
                   <Td>{s.phone || "-"}</Td>
                   <Td>
                     {s.url ? (
-                      <a href={s.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 border border-amber-200 rounded-lg px-3 py-1.5 transition-colors">
+                      <a href={sanitizeUrl(s.url, "#")} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 border border-amber-200 rounded-lg px-3 py-1.5 transition-colors">
                         🔗 Acesse o site
                       </a>
                     ) : "-"}

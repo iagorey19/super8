@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/select"
 import { Modal } from "@/components/ui/modal"
 import * as store from "@/lib/store"
 import { formatDate } from "@/lib/utils"
+import { sanitizeUrl } from "@/lib/validate-url"
 import type { Tournament, Photo } from "@/lib/types"
 
 export default function AdminFotos() {
@@ -96,7 +97,7 @@ export default function AdminFotos() {
   function convertDriveLink(url: string): string {
     const match = url.match(/\/file\/d\/([^/]+)/)
     if (match) return `https://drive.google.com/uc?export=view&id=${match[1]}`
-    return url
+    return sanitizeUrl(url, "#")
   }
 
   function handleAddUrl() {
@@ -180,7 +181,7 @@ export default function AdminFotos() {
                 </div>
               ) : (
                 <img
-                  src={photo.url}
+                  src={sanitizeUrl(photo.url, "/placeholder.jpg")}
                   alt={photo.caption || "Foto"}
                   className="aspect-[4/3] w-full object-cover group-hover:scale-105 transition-transform duration-300"
                   onError={() => handleImageError(photo.id)}

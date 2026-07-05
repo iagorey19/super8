@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/utils/supabase/server"
 import { getServiceClient } from "@/lib/supabase"
+import { getAuthSecret } from "@/lib/auth-secret"
 import crypto from "crypto"
-import bcrypt from "bcryptjs"
 
 const TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000
 
 function signToken(payload: string): string {
-  const secret = process.env.AUTH_TOKEN_SECRET || "super8-fallback-secret-do-not-use-in-prod"
+  const secret = getAuthSecret()
   return crypto.createHmac("sha256", secret).update(payload).digest("base64url")
 }
 

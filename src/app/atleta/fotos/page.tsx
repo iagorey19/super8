@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import * as store from "@/lib/store"
+import { sanitizeUrl } from "@/lib/validate-url"
 import type { Photo } from "@/lib/types"
 
 export default function AthleteFotos() {
@@ -52,13 +53,13 @@ export default function AthleteFotos() {
           {photos.map((photo) => (
             <a
               key={photo.id}
-              href={photo.url}
+              href={sanitizeUrl(photo.url, "#")}
               target="_blank"
               rel="noopener noreferrer"
               className="block aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 group"
             >
               <img
-                src={photo.url}
+                src={sanitizeUrl(photo.url, "/placeholder.jpg")}
                 alt={photo.caption || "Foto"}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
