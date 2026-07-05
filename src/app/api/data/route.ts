@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServiceClient } from "@/lib/supabase"
 import { seed } from "@/lib/seed"
+import { isRateLimited } from "@/lib/rate-limit"
 import type { AppData, User, Tournament, AthleteRegistration, Pairing, Match, TournamentResult, AnnualRanking, Sponsorship, Expense, Revenue, Photo, Notification, Apoiador, Brinde, RaffleRecord, Note } from "@/lib/types"
 import crypto from "crypto"
 import bcrypt from "bcryptjs"
@@ -11,21 +12,6 @@ const DB_TABLES = [
   "athlete_registrations", "sponsorships", "expenses", "revenues",
   "photos", "notifications", "notes", "tournaments", "users",
 ] as const
-
-const RATE_LIMIT_WINDOW = 60_000
-const RATE_LIMIT_MAX = 30
-const requestLog = new Map<string, { count: number; resetAt: number }>()
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now()
-  const entry = requestLog.get(ip)
-  if (!entry || now > entry.resetAt) {
-    requestLog.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW })
-    return false
-  }
-  entry.count++
-  return entry.count > RATE_LIMIT_MAX
-}
 
 function validateToken(token: string): { userId: string } | null {
   try {
@@ -123,19 +109,18 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const ip = req.headers.get("x-forwarded-for") || "unknown"
-    if (isRateLimited(ip)) {
+    if (isRateLimited(ip, 30)) {
       return NextResponse.json({ error: "Muitas requisições. Tente novamente mais tarde." }, { status: 429 })
     }
 
     const auth = req.headers.get("authorization")
+    let authUser: { userId: string } | null = null
     if (auth?.startsWith("Bearer ")) {
       const token = auth.slice(7)
-      const session = validateToken(token)
-      if (!session) {
-        console.warn("[SECURITY] POST /api/data token inválido ou expirado — permitido por compatibilidade. Admin deve refazer login.")
-      }
-    } else {
-      console.warn("[SECURITY] POST /api/data sem token de autenticação — permitido por compatibilidade")
+      authUser = validateToken(token)
+    }
+    if (!authUser) {
+      return NextResponse.json({ error: "auth_required", message: "Token de autenticação necessário. Faça login novamente." }, { status: 401 })
     }
 
     const data: AppData = await req.json()

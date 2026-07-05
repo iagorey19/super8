@@ -59,7 +59,14 @@ export async function GET(request: Request) {
   const token = Buffer.from(payload).toString("base64url") + "." + signToken(payload)
 
   const redirectUrl = new URL(`${origin}/auth/handler`)
-  redirectUrl.searchParams.set("auth_token", token)
   redirectUrl.searchParams.set("next", next)
-  return NextResponse.redirect(redirectUrl.toString())
+  const response = NextResponse.redirect(redirectUrl.toString())
+  response.cookies.set("super8-auth-token", token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    maxAge: 300,
+    path: "/",
+  })
+  return response
 }

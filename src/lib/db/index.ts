@@ -58,6 +58,13 @@ export async function persist(): Promise<void> {
     body: JSON.stringify(_data),
   })
   if (!res.ok) {
+    if (res.status === 401) {
+      console.warn("Sessão expirada — alterações não salvas no servidor. Faça login novamente.")
+      if (typeof window !== "undefined") {
+        alert("Sessão expirada. Faça login novamente para salvar as alterações.")
+      }
+      return
+    }
     const body = await res.text()
     throw new Error(`Persist HTTP ${res.status}: ${body}`)
   }

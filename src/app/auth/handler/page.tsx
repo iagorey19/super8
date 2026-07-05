@@ -8,25 +8,26 @@ export default function AuthHandlerPage() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    const token = searchParams.get("auth_token")
     const next = searchParams.get("next") || "/"
 
-    if (token) {
-      try {
-        const payloadB64 = token.split(".")[0]
+    fetch("/api/auth/token")
+      .then((res) => {
+        if (!res.ok) throw new Error("no_token")
+        return res.json()
+      })
+      .then((data) => {
+        const payloadB64 = data.token.split(".")[0]
         const payload = JSON.parse(atob(payloadB64))
         sessionStorage.setItem("super8-session", JSON.stringify({
-          token,
+          token: data.token,
           user: { id: payload.userId, email: payload.email },
         }))
-        sessionStorage.setItem("super8-auth-token", token)
-      } catch {
+        sessionStorage.setItem("super8-auth-token", data.token)
+        window.location.href = next
+      })
+      .catch(() => {
         router.replace("/auth/login?error=invalid_token")
-        return
-      }
-    }
-
-    window.location.href = next
+      })
   }, [router, searchParams])
 
   return (
