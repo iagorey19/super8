@@ -1,11 +1,11 @@
 ---
 name: super8
-description: Use for all work on THE SUPER 8 project. Covers Next.js 16 + Supabase stack, Whist tournament logic, scoring, categories, custom auth, data flow, deploy, and coding conventions. Trigger on any file in super8/ or when user mentions SUPER 8, super8, torneio, padel, Whist, americano.
+description: Use for all work on THE SUPER 8 project. Covers Next.js 16 + Supabase stack, Whist tournament logic, scoring, categories, custom auth with bcrypt + Google OAuth, data flow, deploy, and coding conventions. Trigger on any file in super8/ or when user mentions SUPER 8, super8, torneio, padel, Whist, americano.
 ---
 
 # SKILL — THE SUPER 8
 
-> Gerenciador de torneios de padel (Whist/Americano). Next.js 16 + Supabase + Tailwind CSS v4.
+> Gerenciador de torneios de padel feminino (Whist/Americano). Next.js 16 + Supabase (PostgreSQL) + Tailwind CSS v4. Deploy Vercel.
 
 ---
 
@@ -36,7 +36,7 @@ description: Use for all work on THE SUPER 8 project. Covers Next.js 16 + Supaba
 ### Comandos Rápidos
 | Comando | Ação |
 |---------|------|
-| `/salvar` | Atualiza Status Atual no AGENTS.md e avisa que pode reiniciar conversa |
+| `/salvar` | Atualiza Últimas Alterações no AGENTS.md e avisa que pode reiniciar conversa |
 | `/status` | Resumo do estado atual do projeto |
 
 ### Conversa Longa
@@ -54,7 +54,7 @@ Se ultrapassar ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e
 - [ ] Tipos alterados → TODOS consumidores verificados
 - [ ] Store alterada → compatibilidade mantida (params opcionais continuam opcionais)
 - [ ] Seed atualizado se tipos/estrutura mudaram
-- [ ] Status Atual atualizado no AGENTS.md
+- [ ] Últimas Alterações atualizado no AGENTS.md
 - [ ] Skill atualizada se arquitetura/padrões mudaram
 
 ### Bash e Performance
@@ -69,7 +69,6 @@ Se ultrapassar ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e
 ### Limpeza de Processos Node
 Para matar processos `node.exe` órfãos (quando o sistema fica lento):
 ```powershell
-# Mata todos node.exe exceto o terminal atual
 Get-Process node | Where-Object { $_.Id -ne $PID } | Stop-Process -Force
 ```
 
@@ -92,14 +91,18 @@ Get-Process node | Where-Object { $_.Id -ne $PID } | Stop-Process -Force
 | Camada | Tecnologia |
 |--------|-----------|
 | Framework | **Next.js 16** (App Router, `"use client"`) |
-| Estilo | **Tailwind CSS v4** (paleta OKLCH) |
+| Estilo | **Tailwind CSS v4** |
 | Linguagem | **TypeScript** |
 | Banco | **Supabase PostgreSQL** (16 tabelas, TEXT PRIMARY KEY) |
 | API | `/api/data` (GET = fetch+seed, POST = persist via service_role) |
 | Estado | Store centralizada (`src/lib/store.ts`) |
-| Auth | Custom (`sessionStorage` + tabela `users`) |
+| Auth | Custom bcrypt + HMAC token + Google OAuth + Password Reset via Supabase Auth |
+| Sessão | `sessionStorage` (chave `super8-session`: `{ user, token }`) |
+| Rate Limit | In-memory (5/min login, 30/min data, 10/min register, 30/min upload) |
 | Deploy | **Vercel** (git push no master → auto-deploy) |
 | Lint | ESLint v9 + `eslint-config-next` |
+| Validação | Zod schema no POST /api/data |
+| Security Headers | X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy |
 
 ---
 
@@ -128,9 +131,9 @@ Get-Process node | Where-Object { $_.Id -ne $PID } | Stop-Process -Force
 ### Perfis
 | Perfil | Acesso |
 |--------|--------|
-| **Admin** | CRUD completo, aprovar/rejeitar, placar ao vivo, sorteios, financeiro, ranking anual |
-| **Atleta** | Ver jogos/ranking, histórico, auto-cadastro, fotos |
-| **Patrocinador** | Ver investimento, resultados, fotos, agradecimentos |
+| **Admin** | CRUD completo, aprovar/rejeitar, placar ao vivo, sorteios, financeiro, ranking anual, gerenciar usuários |
+| **Atleta** | Ver jogos/ranking, histórico, auto-cadastro com PIX, editar perfil, fotos |
+| **Patrocinador** | Ver investimento, resultados, fotos, agradecimentos, editar perfil |
 | **Apoiador** | Contribui com brindes. Sem login — cadastrado pelo admin |
 
 ---
@@ -146,8 +149,18 @@ super8/
 │   │   ├── atleta/       # Athlete pages
 │   │   ├── patrocinador/ # Sponsor pages
 │   │   ├── eventos/      # Public events (sem login)
-│   │   ├── auth/         # Login/cadastro
-│   │   └── api/          # API routes (/api/data, /api/upload)
+│   │   ├── auth/         # Login, cadastro, callback OAuth, reset senha
+│   │   │   ├── login/
+│   │   │   ├── cadastro/
+│   │   │   ├── callback/     # Google OAuth callback
+│   │   │   ├── handler/      # Pós-OAuth (lê cookie, salva sessionStorage)
+│   │   │   ├── forgot-password/
+│   │   │   └── reset-password/
+│   │   └── api/          # API routes
+│   │       ├── auth/     # session, token, admin-register
+│   │       ├── data/     # GET (read), POST (persist)
+│   │       ├── upload/   # Signed URL generation
+│   │       └── logs/     # Error logging
 │   ├── components/
 │   │   └── ui/           # Atomic UI components
 │   ├── lib/
@@ -156,16 +169,23 @@ super8/
 │   │   ├── supabase.ts   # Supabase client (anon + service_role)
 │   │   ├── db/index.ts   # DB adapter (init, getData, setData, persist)
 │   │   ├── seed.ts       # Seed data (auto-run quando DB vazio)
-│   │   └── utils.ts      # Utility functions
+│   │   ├── utils.ts      # Utility functions
+│   │   ├── auth-secret.ts    # getAuthSecret() with fallback warning
+│   │   ├── rate-limit.ts     # isRateLimited() in-memory
+│   │   ├── validate-url.ts   # isSafeRedirect(), sanitizeUrl()
+│   │   └── validation.ts     # Zod schemas for AppData
 │   └── contexts/         # React contexts
-├── docs/                 # Documentation
-└── supabase/             # Supabase CLI temp
+├── docs/
+│   ├── CHANGELOG.md
+│   └── migration.sql
+├── scripts/              # One-time migration scripts
+└── .opencode/skills/super8/  # Esta skill
 ```
 
 ### Data Flow
 ```
 Navegador (store.ts)
-  → fetch /api/data (GET/POST)
+  → fetch /api/data (GET/POST) com session token (se existir)
     → API Route serverless function
       → @supabase/supabase-js (service_role key)
         → PostgreSQL (Supabase)
@@ -174,20 +194,31 @@ Navegador (store.ts)
 ### Componentes-chave
 | Arquivo | Função |
 |---------|--------|
-| `src/lib/db/index.ts` | `init()`, `getData()`, `setData()`, `persist()` |
-| `src/app/api/data/route.ts` | GET = fetch+seed, POST = persist |
+| `src/lib/db/index.ts` | `init()`, `getData()`, `setData()`, `persist()` com token |
+| `src/app/api/data/route.ts` | GET = fetch+seed+role filter, POST = persist+Zod |
 | `src/lib/supabase.ts` | Cliente anon (browser) + service_role (server) |
 | `src/lib/store.ts` | Store centralizada (toda lógica de negócio) |
 | `src/lib/seed.ts` | Seed data (auto-run quando DB vazio) |
+| `src/lib/validation.ts` | Zod schema validation for POST /api/data |
+| `src/lib/rate-limit.ts` | `isRateLimited()` in-memory por IP |
+| `src/lib/auth-secret.ts` | `getAuthSecret()` com fallback warning |
+| `src/lib/validate-url.ts` | `isSafeRedirect()`, `sanitizeUrl()` |
 | `src/components/data-loader.tsx` | Inicializa dados no mount |
 | `src/lib/chaveamento.ts` | Geração de pairings por rodada |
 | `src/lib/export-spreadsheet.ts` | Export .xlsx (SheetJS) |
+| `src/utils/supabase/client.ts` | Supabase browser client (SSR) |
+| `src/utils/supabase/server.ts` | Supabase server client (SSR) |
 
 ### Auth
-- **Custom auth** (não Supabase Auth)
-- Sessão em `sessionStorage` (chave: `super8-session`)
-- Senhas armazenadas em texto puro (mantido do legado)
-- Tabela `users` no Supabase com perfis: `admin`, `atleta`, `patrocinador`, `apoiador`
+- **Login**: bcrypt.compare() em `public.users`, gera HMAC-SHA256 token com `AUTH_TOKEN_SECRET`
+- **Token**: `payloadB64.signatureB64`, expira em 24h. Armazenado em `sessionStorage` (`super8-session`)
+- **Google OAuth**: `/auth/callback` → troca código → cria/busca user em `public.users` → cookie httpOnly → handler lê → sessionStorage
+- **Password Reset**: `/auth/forgot-password` (Supabase Auth email) → `/auth/reset-password` (OTP + update `public.users`)
+- **Rate Limiting**: Login (5/min), POST data (30/min), admin-register (10/min), upload (30/min)
+- **XSS**: URLs sanitizadas com `sanitizeUrl()` em inputs de patrocinadores e fotos
+- **Open Redirect**: Parâmetros `next`/`redirect` validados com `isSafeRedirect()`
+- **Senhas**: bcrypt hash (10 rounds) em `public.users`. Nunca retornadas pelo GET.
+- **Role filter**: GET /api/data oculta email/phone/avatar de outros usuários se role não-admin
 
 ### Persistência
 - `upsert` com `onConflict: "id"` (cria ou atualiza)
@@ -246,6 +277,10 @@ Navegador (store.ts)
 - Admin deve clicar "Abrir Inscrições" no **detalhe do torneio** ou na **lista de torneios**
 - Inscrição pública fica disponível em `/eventos/[id]` apenas quando status = `registering`
 - Admin pode inscrever manualmente durante `upcoming` e `registering`
+- **Capacidade**: 8 vagas por categoria. `registration_order` = posição na fila. `is_waiting = true` se >8.
+- **Disponibilidade**: `getCategoryAvailability()` retorna `{ category, max: 8, registered, waiting, available }`
+- **Admin lote**: `registerMultipleAthletes()` agora atribui fila, espera, payment_status e notificações
+- **Auto-inscrição**: se todas categorias lotadas, exibe "Inscrições encerradas"
 
 ### Fotos (Upload)
 - Upload direto via **signed URL** (browser → Supabase Storage, sem passar pelo Vercel)
@@ -320,7 +355,7 @@ Usar **sempre que relevante**, sem perguntar:
 
 ---
 
-## 10. MANUTENÇÃO DA SKILL
+## 11. MANUTENÇÃO DA SKILL
 
 - **Local**: `.opencode/skills/super8/SKILL.md`
 - **Sempre que** alterar algo significativo no projeto (arquitetura, stack, regras de negócio), atualize esta skill

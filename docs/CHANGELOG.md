@@ -4,6 +4,38 @@ _Histórico completo de alterações. Consulte AGENTS.md para as últimas 5._
 
 ---
 
+## 05/07/2026 — Disponibilidade de Vagas, Fila para Admin, Zod Validation, Segregação por Role
+
+- `src/lib/store.ts`: `registerMultipleAthletes()` agora atribui `registration_order`, `is_waiting`, `payment_status` e envia notificações — igual ao fluxo de auto-inscrição
+- `src/lib/store.ts`: Nova função `getCategoryAvailability(tournamentId)` — retorna `{ category, max, registered, waiting, available }` por categoria
+- `src/app/admin/torneios/[id]/page.tsx`: Modal de registro exibe grid com status das vagas (verde/âmbar/vermelho) e select de categoria mostra contagem; categorias lotadas marcadas como "Lotada"
+- `src/app/eventos/[id]/page.tsx`: Antes de inscrever mostra disponibilidade por categoria; seleção de categoria exibe vagas restantes; se todas lotadas, botão some e mostra "Inscrições encerradas"
+- `src/lib/validation.ts`: Schema Zod para `AppData` — valida estrutura do payload em `POST /api/data` retorna 400 com detalhes se inválido
+- `src/app/api/data/route.ts`: `GET` agora lê Authorization header; se token válido e role não-admin, oculta email/phone/avatar de outros usuários
+- `src/lib/db/index.ts`: `reloadFromServer()` envia token de sessão quando disponível
+- Todos os guias e skills atualizados para refletir as últimas alterações
+
+## 01/07/2026 — Google OAuth, Password Reset, Segurança, Rate Limiting
+
+- `src/app/auth/callback/route.ts`: Endpoint OAuth Google — troca código por token, cria usuário em `public.users`, gera HMAC token e redireciona com cookie httpOnly
+- `src/app/auth/handler/page.tsx`: Lê cookie via `GET /api/auth/token`, armazena em `sessionStorage`, valida `next` param (open redirect fix)
+- `src/app/auth/login/page.tsx`: Botão "Entrar com Google" + validação de redirect contra open redirect
+- `src/app/auth/cadastro/page.tsx`: Validação de redirect contra open redirect
+- `src/app/auth/forgot-password/page.tsx`: Formulário de email que chama `supabase.auth.resetPasswordForEmail()`
+- `src/app/auth/reset-password/page.tsx`: Verifica OTP e atualiza senha tanto no Auth quanto em `public.users`
+- `src/lib/validate-url.ts`: `isSafeRedirect()` e `sanitizeUrl()` — prevenção de open redirect e XSS em URLs
+- `src/lib/auth-secret.ts`: `getAuthSecret()` — lê `AUTH_TOKEN_SECRET` do env, loga warning se não configurada
+- `src/lib/rate-limit.ts`: `isRateLimited()` — rate limiting in-memory compartilhado entre endpoints
+- `src/app/api/auth/session/route.ts`: Rate limit 5/min, usa `getAuthSecret()` para assinar token
+- `src/app/api/data/route.ts`: Rate limit 30/min no POST; auth obrigatório (401 se token inválido)
+- `src/app/api/auth/admin-register/route.ts`: Rate limit 10/min; sincroniza senha com Supabase Auth
+- `src/app/api/upload/route.ts`: Rate limit 30/min
+- `next.config.ts`: Security headers adicionados (`X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`, `Referrer-Policy`)
+- `src/lib/store.ts`: `syncAuthUser()` chamado em `updateAthlete`, `updateUser`, `createSponsor` — sincroniza senha com Supabase Auth (fire-and-forget)
+- `src/app/admin/patrocinadores/page.tsx`, `src/app/admin/fotos/page.tsx`, `src/app/atleta/fotos/page.tsx`, `src/app/patrocinador/resultados/page.tsx`: URLs sanitizadas com `sanitizeUrl()` contra XSS
+- `scripts/sync-auth-users.ts`: Script de migração (já executado, 51 usuários criados no Auth)
+- `AGENTS.md`, `docs/CHANGELOG.md`, `SETUP.md`, `.project-rules.md`: Atualizados
+
 ## 15/06/2026 — max_score, Check-in, Revenue Cleanup, Guias Atualizados
 
 - `src/lib/types.ts` + `docs/migration.sql`: Adicionado `max_score?: number` ao Tournament (default 5)
