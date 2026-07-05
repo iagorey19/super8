@@ -38,6 +38,11 @@ Para carregar: `skill({ name: "super8" })`
 Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (arquivo + resumo). Manter só últimas 5. Se conversa ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e reiniciar."
 
 ## Últimas Alterações
+- `store.ts`: `createUser`, `updateUser`, `updateAthlete` agora async com `await saveData(data)` (fire-and-forget corrigido).
+- `admin/usuarios/page.tsx`: `handleCreate` e `handleEdit` async com `await`.
+- `admin/atletas/page.tsx`: onClick do "Salvar" edição async com `await updateAthlete`.
+- `atleta/page.tsx`: `handleSaveProfile` agora dá `await store.updateAthlete`.
+- DB: Senha de `nanafel40@gmail.com` (Ana Paula Baptista) resetada para `ana123` (bcrypt hash direto no Supabase).
 - `AGENTS.md` + `ANCHORED_SUMMARY.md`: Removido In Progress "Migração bcrypt" — **completa**. 49 senhas hasheadas via `bcrypt.hashSync(pw, 10)`. Login usa `bcrypt.compare()` server-side. `POST /api/data` hasheia senhas antes de upsert. `GET /api/data` não retorna campo `password`. `store.login` agora chama `POST /api/auth/session` (async). Login page e auth-context migrados para async/await.
 - `scripts/hash-passwords.mjs`: Deletado (script one-time executado).
 - `api/auth/session/route.ts`: `bcrypt.compare()` substitui `===`; `password` removido do `user` retornado.

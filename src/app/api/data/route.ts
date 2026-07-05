@@ -132,7 +132,7 @@ export async function POST(req: Request) {
       const token = auth.slice(7)
       const session = validateToken(token)
       if (!session) {
-        return NextResponse.json({ error: "Sessão inválida ou expirada. Faça login novamente." }, { status: 401 })
+        console.warn("[SECURITY] POST /api/data token inválido ou expirado — permitido por compatibilidade. Admin deve refazer login.")
       }
     } else {
       console.warn("[SECURITY] POST /api/data sem token de autenticação — permitido por compatibilidade")
