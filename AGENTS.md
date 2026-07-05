@@ -38,22 +38,19 @@ Para carregar: `skill({ name: "super8" })`
 Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (arquivo + resumo). Manter só últimas 5. Se conversa ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e reiniciar."
 
 ## Últimas Alterações
-- `public-navbar.tsx`: Agora usa `useAuth()` — mostra nome/avatar/notificações se logado, "Entrar"/"Cadastrar" se não
-- `navbar.tsx`: Corrigido link de notificação de `/athlete/notificacoes` p/ `/atleta/notificacoes` (rolePrefix mapping)
-- `pix.ts`: Corrigido payload PIX — city length dinâmico, Point of Initiation `010211`, +55 prefix, TXID `***`. Payload agora 100% idêntico ao do tools.lucasqc.com
-- `types.ts`, `utils.ts`, `store.ts`, admin/evento pages: Adicionado status "registering" entre "upcoming" e "ongoing" — admin clica "Abrir Inscrições" para liberar inscrições públicas, depois "Iniciar Torneio" para começar
-- `admin/torneios/[id]`: Tabela de inscritos agora mostra posição (#) e badge "Lista de Espera"
-- `eventos/[id]`: Lista pública de inscritos com posições, status e indicador de espera
-- `atleta/page.tsx`: Exibe "Inscrever-se" quando torneio em "registering" e atleta não inscrito; mostra lista de torneios com inscrições abertas quando não há torneio atual
-- `store.ts::getCurrentTournament`: Prioriza "registering" entre "ongoing" e "upcoming"
-- `types.ts`: `AthleteRegistration` com `registration_order` e `is_waiting`
+- `AGENTS.md` + `ANCHORED_SUMMARY.md`: Removido In Progress "Migração bcrypt" — **completa**. 49 senhas hasheadas via `bcrypt.hashSync(pw, 10)`. Login usa `bcrypt.compare()` server-side. `POST /api/data` hasheia senhas antes de upsert. `GET /api/data` não retorna campo `password`. `store.login` agora chama `POST /api/auth/session` (async). Login page e auth-context migrados para async/await.
+- `scripts/hash-passwords.mjs`: Deletado (script one-time executado).
+- `api/auth/session/route.ts`: `bcrypt.compare()` substitui `===`; `password` removido do `user` retornado.
+- `api/data/route.ts`: `import bcrypt` + `syncToSupabase` hasheia password de users individualmente; `GET` mapeia `password` para fora dos users retornados.
+- `store.ts`: `login()` agora async, chama POST /api/auth/session. `fetchAuthToken` removido (dead code).
+- `auth-context.tsx`: `login()` retorna `Promise<User | null>`.
+- `auth/login/page.tsx`: `handleSubmit` async, `await login(email, password)`.
 
 ## Próximos Passos
 1. **Deploy** — `git push` no master para sincronizar mudanças no Vercel
 2. **Aprovar/Rejeitar da lista de espera** — admin poder mover atleta da espera para vaga quando alguém desiste
 3. **Notificações no app do atleta** — exibir notificações de inscrição/pagamento no frontend do atleta
 4. **Regra de desempate do ranking anual** — definir critério final
-5. **`scripts/update-passwords.ts`** — revisar senhas no Supabase
 
 ---
 _Atualizado em: 01/07/2026. Skill principal em `.opencode/skills/super8/SKILL.md`_

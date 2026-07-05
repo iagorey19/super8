@@ -3,6 +3,7 @@ import { getServiceClient } from "@/lib/supabase"
 import { seed } from "@/lib/seed"
 import type { AppData, User, Tournament, AthleteRegistration, Pairing, Match, TournamentResult, AnnualRanking, Sponsorship, Expense, Revenue, Photo, Notification, Apoiador, Brinde, RaffleRecord, Note } from "@/lib/types"
 import crypto from "crypto"
+import bcrypt from "bcryptjs"
 
 const DB_TABLES = [
   "raffle_records", "brindes", "apoiadores",
@@ -103,6 +104,7 @@ export async function GET() {
     if (count === 0) {
       const data = seed()
       await syncToSupabase(data)
+      data.users = data.users.map(({ password, ...rest }) => rest as User)
       return NextResponse.json(data)
     }
     if (error) {
@@ -110,6 +112,7 @@ export async function GET() {
       return NextResponse.json({ error: "Database query failed" }, { status: 500 })
     }
     const data = await getFullData()
+    data.users = data.users.map(({ password, ...rest }) => rest as User)
     return NextResponse.json(data)
   } catch (e) {
     console.error("GET /api/data error:", e)
@@ -178,10 +181,19 @@ async function syncToSupabase(data: AppData): Promise<string[]> {
 
   for (const { table, records } of upsertOrder) {
     if (records.length > 0) {
-      const { error } = await svc.from(table).upsert(records as any, { onConflict: "id", ignoreDuplicates: false })
-      if (error) {
-        errors.push(`${table} upsert: ${error.message}`)
-        continue
+      if (table === "users") {
+        for (const user of records as User[]) {
+          const { password, ...rest } = user
+          const upsertData = password ? { ...rest, password: bcrypt.hashSync(password, 10) } : rest
+          const { error } = await svc.from(table).upsert(upsertData as any, { onConflict: "id", ignoreDuplicates: false })
+          if (error) errors.push(`${table} upsert: ${error.message}`)
+        }
+      } else {
+        const { error } = await svc.from(table).upsert(records as any, { onConflict: "id", ignoreDuplicates: false })
+        if (error) {
+          errors.push(`${table} upsert: ${error.message}`)
+          continue
+        }
       }
     }
     const currentIds = new Set(records.map((r: any) => r.id))

@@ -8,7 +8,7 @@ import * as store from "./store"
 interface AuthContextType {
   user: User | null
   loading: boolean
-  login: (email: string, password: string) => User | null
+  login: (email: string, password: string) => Promise<User | null>
   logout: () => void
   register: (name: string, email: string, password: string, phone?: string) => Promise<User | null>
 }
@@ -27,8 +27,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const login = useCallback(
-    (email: string, password: string) => {
-      const u = store.login(email, password)
+    async (email: string, password: string) => {
+      const u = await store.login(email, password)
       if (u) {
         setUser(u)
         return u

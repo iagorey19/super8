@@ -20,7 +20,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
   const redirect = searchParams.get("redirect")
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError("")
 
@@ -30,7 +30,7 @@ export default function LoginPage() {
     }
 
     setSubmitting(true)
-    const loggedUser = login(email, password)
+    const loggedUser = await login(email, password)
     if (loggedUser) {
       toast("Login realizado!")
       if (redirect) {

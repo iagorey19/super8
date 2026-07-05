@@ -74,7 +74,8 @@ function saveSession(session: Session) {
   }
 }
 
-async function fetchAuthToken(email: string, password: string): Promise<string | null> {
+export async function login(email: string, password: string): Promise<User | null> {
+  if (!email || !password) return null
   try {
     const res = await fetch("/api/auth/session", {
       method: "POST",
@@ -83,24 +84,11 @@ async function fetchAuthToken(email: string, password: string): Promise<string |
     })
     if (!res.ok) return null
     const data = await res.json()
-    return data.token || null
+    saveSession({ user: data.user, token: data.token })
+    return data.user
   } catch {
     return null
   }
-}
-
-export function login(email: string, password: string): User | null {
-  if (!email || !password) return null
-  const data = getData()
-  const user = data.users.find((u) => u.email === email && u.password === password)
-  if (user) {
-    saveSession({ user })
-    fetchAuthToken(email, password).then((token) => {
-      if (token) saveSession({ user, token })
-    })
-    return user
-  }
-  return null
 }
 
 export function logout() {
