@@ -47,6 +47,7 @@ export default function TournamentDetail() {
   const [savingEdit, setSavingEdit] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [allAthletes, setAllAthletes] = useState<any[]>([])
+  const availability = tournament ? store.getCategoryAvailability(tournament.id) : []
   useEffect(() => {
     try { setAllAthletes(store.getAthletes().filter((a) => !registrations.some((r) => r.athlete_id === a.id))) } catch { setAllAthletes([]) }
   }, [registrations])
@@ -661,16 +662,35 @@ export default function TournamentDetail() {
         title="Registrar Atletas no Torneio"
       >
         <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {availability.map((a) => (
+              <div key={a.category} className={`text-xs rounded-lg px-3 py-2 text-center font-medium ${
+                a.available === 0
+                  ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                  : a.available <= 3
+                  ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
+                  : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+              }`}>
+                {a.category === "4e5" ? "4e5" : "6e7"}: {a.registered}/{a.max} vagas
+                {a.waiting > 0 && ` · ${a.waiting} espera`}
+                {a.available === 0 && " · Lotada"}
+              </div>
+            ))}
+          </div>
           <div className="flex gap-3">
             {(tournament.categories.length > 1) && (
               <div className="flex-1">
                 <Select
                   label="Categoria"
                   options={[
-                    ...tournament.categories.map((cat) => ({
-                      value: cat,
-                      label: cat === "4e5" ? "Categoria 4e5" : "Categoria 6e7",
-                    })),
+                    ...tournament.categories.map((cat) => {
+                      const a = availability.find((av) => av.category === cat)
+                      const suffix = a?.available === 0 ? " (Lotada)" : a ? ` (${a.registered}/8)` : ""
+                      return {
+                        value: cat,
+                        label: cat === "4e5" ? `Categoria 4e5${suffix}` : `Categoria 6e7${suffix}`,
+                      }
+                    }),
                   ]}
                   value={registerCategory}
                   onChange={(e) => setRegisterCategory(e.target.value)}

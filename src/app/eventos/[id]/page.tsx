@@ -194,6 +194,22 @@ export default function EventoDetalhePage() {
             <p className="text-lg font-bold text-amber-800 dark:text-amber-200">
               Quer jogar? 🎾
             </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {store.getCategoryAvailability(id).map((a) => (
+                <div key={a.category} className={`text-xs rounded-lg px-3 py-2 text-center font-medium ${
+                  a.available === 0
+                    ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                    : a.available <= 3
+                    ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
+                    : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                }`}>
+                  {a.category === "4e5" ? "4e5" : "6e7"}: {a.registered}/{a.max} vagas
+                  {a.waiting > 0 && ` · ${a.waiting} espera`}
+                  {a.available === 0 && " · Lotada"}
+                  {a.available > 0 && ` · ${a.available} vaga${a.available > 1 ? "s" : ""} restante${a.available > 1 ? "s" : ""}`}
+                </div>
+              ))}
+            </div>
             {tournament.registration_fee && (
               <p className="text-sm text-amber-700 dark:text-amber-300">
                 Taxa de inscrição: {formatCurrency(tournament.registration_fee)}
@@ -204,9 +220,15 @@ export default function EventoDetalhePage() {
                 ⚠️ A inscrição só será confirmada após o pagamento e aprovação do organizador.
               </p>
             )}
-            <Button onClick={handleStartRegistration} size="lg" className="bg-amber-600 hover:bg-amber-700 text-white font-bold" disabled={loading}>
-              {loading ? "Entrando..." : "Inscrever-se"}
-            </Button>
+            {store.getCategoryAvailability(id).every((a) => a.available === 0) ? (
+              <p className="text-sm font-bold text-red-600 dark:text-red-400">
+                Inscrições encerradas — todas as categorias estão lotadas.
+              </p>
+            ) : (
+              <Button onClick={handleStartRegistration} size="lg" className="bg-amber-600 hover:bg-amber-700 text-white font-bold" disabled={loading}>
+                {loading ? "Entrando..." : "Inscrever-se"}
+              </Button>
+            )}
           </div>
         </Card>
       )}
@@ -249,16 +271,30 @@ export default function EventoDetalhePage() {
         <Card>
           <CardHeader title="Selecione a categoria" />
           <div className="p-4 grid grid-cols-2 gap-3">
-            {tournament.categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => handleCategorySelect(cat)}
-                disabled={loading}
-                className="p-6 rounded-xl bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/30 dark:to-yellow-900/30 border-2 border-amber-300 dark:border-amber-700 hover:shadow-md transition-all font-bold text-lg text-amber-800 dark:text-amber-200 disabled:opacity-50"
-              >
-                {getCategoryLabel(cat)}
-              </button>
-            ))}
+            {tournament.categories.map((cat) => {
+              const a = store.getCategoryAvailability(id).find((av) => av.category === cat)
+              const full = a?.available === 0
+              return (
+                <button
+                  key={cat}
+                  onClick={() => handleCategorySelect(cat)}
+                  disabled={loading}
+                  className={`p-6 rounded-xl border-2 hover:shadow-md transition-all font-bold text-lg disabled:opacity-50 ${
+                    full
+                      ? "bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700 text-red-600 dark:text-red-300"
+                      : "bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/30 dark:to-yellow-900/30 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200"
+                  }`}
+                >
+                  <div>{getCategoryLabel(cat)}</div>
+                  <div className="text-xs mt-1 font-normal">
+                    {full
+                      ? "Lotada"
+                      : `${a?.available || 0} vaga${(a?.available || 0) > 1 ? "s" : ""} restante${(a?.available || 0) > 1 ? "s" : ""}`
+                    }
+                  </div>
+                </button>
+              )
+            })}
           </div>
         </Card>
       )}
