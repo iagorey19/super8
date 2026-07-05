@@ -184,9 +184,14 @@ async function syncToSupabase(data: AppData): Promise<string[]> {
       if (table === "users") {
         for (const user of records as User[]) {
           const { password, ...rest } = user
-          const upsertData = password ? { ...rest, password: bcrypt.hashSync(password, 10) } : rest
-          const { error } = await svc.from(table).upsert(upsertData as any, { onConflict: "id", ignoreDuplicates: false })
-          if (error) errors.push(`${table} upsert: ${error.message}`)
+          if (password) {
+            const upsertData = { ...rest, password: bcrypt.hashSync(password, 10) }
+            const { error } = await svc.from(table).upsert(upsertData as any, { onConflict: "id", ignoreDuplicates: false })
+            if (error) errors.push(`${table} upsert: ${error.message}`)
+          } else {
+            const { error } = await svc.from(table).update(rest as any).eq("id", user.id)
+            if (error) errors.push(`${table} update: ${error.message}`)
+          }
         }
       } else {
         const { error } = await svc.from(table).upsert(records as any, { onConflict: "id", ignoreDuplicates: false })
