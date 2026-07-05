@@ -25,7 +25,10 @@ export async function init(): Promise<void> {
 
 export async function reloadFromServer(): Promise<void> {
   try {
-    const res = await fetch("/api/data")
+    const headers: Record<string, string> = {}
+    const token = getSessionToken()
+    if (token) headers["Authorization"] = `Bearer ${token}`
+    const res = await fetch("/api/data", { headers })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     _data = await res.json()
     _ready = true

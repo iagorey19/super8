@@ -3,6 +3,7 @@ import { getServiceClient } from "@/lib/supabase"
 import { seed } from "@/lib/seed"
 import { isRateLimited } from "@/lib/rate-limit"
 import { getAuthSecret } from "@/lib/auth-secret"
+import { appDataSchema } from "@/lib/validation"
 import type { AppData, User, Tournament, AthleteRegistration, Pairing, Match, TournamentResult, AnnualRanking, Sponsorship, Expense, Revenue, Photo, Notification, Apoiador, Brinde, RaffleRecord, Note } from "@/lib/types"
 import crypto from "crypto"
 import bcrypt from "bcryptjs"
@@ -84,7 +85,7 @@ async function getFullData(): Promise<AppData> {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const svc = getServiceClient()
     const { count, error } = await svc.from("users").select("*", { count: "exact", head: true })
@@ -100,6 +101,26 @@ export async function GET() {
     }
     const data = await getFullData()
     data.users = data.users.map(({ password, ...rest }) => rest as User)
+
+    const auth = req.headers.get("authorization")
+    if (auth?.startsWith("Bearer ")) {
+      const token = auth.slice(7)
+      const authUser = validateToken(token)
+      if (authUser) {
+        const currentUser = data.users.find((u) => u.id === authUser.userId)
+        if (currentUser && currentUser.role !== "admin") {
+          data.users = data.users.map((u) => {
+            if (u.id === currentUser.id) return u
+            const sanitized: Record<string, unknown> = { ...u }
+            sanitized.phone = undefined
+            sanitized.email = "oculto@super8.app"
+            sanitized.avatar = undefined
+            return sanitized as unknown as User
+          })
+        }
+      }
+    }
+
     return NextResponse.json(data)
   } catch (e) {
     console.error("GET /api/data error:", e)
@@ -124,10 +145,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "auth_required", message: "Token de autenticação necessário. Faça login novamente." }, { status: 401 })
     }
 
-    const data: AppData = await req.json()
-    if (!data.seed_version) {
-      return NextResponse.json({ error: "Invalid data structure" }, { status: 400 })
+    const raw = await req.json()
+    const parsed = appDataSchema.safeParse(raw)
+    if (!parsed.success) {
+      console.warn("POST /api/data validation error:", parsed.error.flatten())
+      return NextResponse.json({
+        error: "Dados inválidos",
+        details: parsed.error.flatten().fieldErrors,
+      }, { status: 400 })
     }
+    const data = parsed.data as unknown as AppData
     const errors = await syncToSupabase(data)
     if (errors.length > 0) {
       return NextResponse.json({ ok: false, errors }, { status: 500 })
