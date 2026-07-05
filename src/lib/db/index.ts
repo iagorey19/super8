@@ -35,11 +35,26 @@ export async function reloadFromServer(): Promise<void> {
   }
 }
 
+function getSessionToken(): string | undefined {
+  if (typeof window === "undefined") return undefined
+  try {
+    const stored = sessionStorage.getItem("super8-session")
+    if (!stored) return undefined
+    const parsed = JSON.parse(stored)
+    return parsed.token
+  } catch {
+    return undefined
+  }
+}
+
 export async function persist(): Promise<void> {
   if (!_data) return
+  const headers: Record<string, string> = { "Content-Type": "application/json" }
+  const token = getSessionToken()
+  if (token) headers["Authorization"] = `Bearer ${token}`
   const res = await fetch("/api/data", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(_data),
   })
   if (!res.ok) {

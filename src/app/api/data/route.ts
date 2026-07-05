@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServiceClient } from "@/lib/supabase"
 import { seed } from "@/lib/seed"
 import type { AppData, User, Tournament, AthleteRegistration, Pairing, Match, TournamentResult, AnnualRanking, Sponsorship, Expense, Revenue, Photo, Notification, Apoiador, Brinde, RaffleRecord, Note } from "@/lib/types"
+import crypto from "crypto"
 
 const DB_TABLES = [
   "raffle_records", "brindes", "apoiadores",
@@ -9,6 +10,36 @@ const DB_TABLES = [
   "athlete_registrations", "sponsorships", "expenses", "revenues",
   "photos", "notifications", "notes", "tournaments", "users",
 ] as const
+
+const RATE_LIMIT_WINDOW = 60_000
+const RATE_LIMIT_MAX = 30
+const requestLog = new Map<string, { count: number; resetAt: number }>()
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now()
+  const entry = requestLog.get(ip)
+  if (!entry || now > entry.resetAt) {
+    requestLog.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW })
+    return false
+  }
+  entry.count++
+  return entry.count > RATE_LIMIT_MAX
+}
+
+function validateToken(token: string): { userId: string } | null {
+  try {
+    const [payloadB64, signatureB64] = token.split(".")
+    if (!payloadB64 || !signatureB64) return null
+    const secret = process.env.AUTH_TOKEN_SECRET || "super8-fallback-secret-do-not-use-in-prod"
+    const expectedSig = crypto.createHmac("sha256", secret).update(payloadB64).digest("base64url")
+    if (signatureB64 !== expectedSig) return null
+    const payload = JSON.parse(Buffer.from(payloadB64, "base64url").toString())
+    if (payload.exp && payload.exp < Date.now()) return null
+    return { userId: payload.userId }
+  } catch {
+    return null
+  }
+}
 
 async function queryAll<T>(table: string): Promise<T[]> {
   const { data } = await getServiceClient().from(table).select("*")
@@ -88,6 +119,22 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const ip = req.headers.get("x-forwarded-for") || "unknown"
+    if (isRateLimited(ip)) {
+      return NextResponse.json({ error: "Muitas requisições. Tente novamente mais tarde." }, { status: 429 })
+    }
+
+    const auth = req.headers.get("authorization")
+    if (auth?.startsWith("Bearer ")) {
+      const token = auth.slice(7)
+      const session = validateToken(token)
+      if (!session) {
+        return NextResponse.json({ error: "Sessão inválida ou expirada. Faça login novamente." }, { status: 401 })
+      }
+    } else {
+      console.warn("[SECURITY] POST /api/data sem token de autenticação — permitido por compatibilidade")
+    }
+
     const data: AppData = await req.json()
     if (!data.seed_version) {
       return NextResponse.json({ error: "Invalid data structure" }, { status: 400 })

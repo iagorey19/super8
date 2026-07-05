@@ -51,14 +51,40 @@ export async function updateConfig(config: Partial<AppData["config"]>) {
   await saveData(data)
 }
 
-export function getSession(): { user: User } | null {
+type Session = { user: User; token?: string }
+
+export function getSession(): Session | null {
   if (typeof window === "undefined") return null
   try {
     const stored = sessionStorage.getItem("super8-session")
     if (!stored) return null
-    return JSON.parse(stored)
+    const parsed: Session = JSON.parse(stored)
+    return parsed.user ? parsed : null
   } catch {
     sessionStorage.removeItem("super8-session")
+    return null
+  }
+}
+
+function saveSession(session: Session) {
+  try {
+    sessionStorage.setItem("super8-session", JSON.stringify(session))
+  } catch {
+    // storage full or unavailable — session won't persist across reloads
+  }
+}
+
+async function fetchAuthToken(email: string, password: string): Promise<string | null> {
+  try {
+    const res = await fetch("/api/auth/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    return data.token || null
+  } catch {
     return null
   }
 }
@@ -68,11 +94,10 @@ export function login(email: string, password: string): User | null {
   const data = getData()
   const user = data.users.find((u) => u.email === email && u.password === password)
   if (user) {
-    try {
-      sessionStorage.setItem("super8-session", JSON.stringify({ user }))
-    } catch {
-      // storage full or unavailable — session won't persist across reloads
-    }
+    saveSession({ user })
+    fetchAuthToken(email, password).then((token) => {
+      if (token) saveSession({ user, token })
+    })
     return user
   }
   return null
