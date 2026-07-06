@@ -438,10 +438,10 @@ export default function EventoDetalhePage() {
                         </div>
                         <div className="flex items-center gap-2">
                           {r.is_waiting && <Badge className="bg-amber-100 text-amber-800">Espera</Badge>}
-                          {r.status === "approved" && r.payment_status === "paid" && <Badge className="bg-emerald-100 text-emerald-800">Confirmado</Badge>}
-                          {r.status === "approved" && (!r.payment_status || r.payment_status === "pending") && <Badge className="bg-green-100 text-green-800">Aprovado</Badge>}
-                          {r.status === "pending" && r.payment_status === "paid" && <Badge className="bg-blue-100 text-blue-800">Pago</Badge>}
-                          {r.status === "pending" && (!r.payment_status || r.payment_status === "pending") && <Badge className="bg-gray-100 text-gray-600">Pendente</Badge>}
+                          {r.status === "approved" && r.payment_status === "paid" && <Badge className="bg-emerald-100 text-emerald-800">Pago</Badge>}
+                          {r.status === "approved" && (!r.payment_status || r.payment_status === "pending") && <Badge className="bg-green-100 text-green-800">Confirmado</Badge>}
+                          {r.status === "pending" && <Badge className="bg-gray-100 text-gray-600">Pendente</Badge>}
+                          {r.status === "rejected" && <Badge className="bg-red-100 text-red-800">Recusado</Badge>}
                         </div>
                       </div>
                     ))}

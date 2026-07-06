@@ -437,6 +437,24 @@ export async function updateRegistrationPayment(
   const reg = data.athlete_registrations.find((r) => r.id === registrationId)
   if (!reg) return null
   reg.payment_status = paymentStatus
+  if (paymentStatus === "paid") {
+    reg.status = "approved"
+    const tournament = data.tournaments.find((t) => t.id === reg.tournament_id)
+    if (tournament?.registration_fee && !data.revenues.some((rv) => rv.tournament_id === reg.tournament_id && rv.description?.includes(reg.athlete_id))) {
+      const athlete = data.users.find((u) => u.id === reg.athlete_id)
+      const revenue: Revenue = {
+        id: crypto.randomUUID(),
+        tournament_id: reg.tournament_id,
+        source: "inscricao",
+        amount: tournament.registration_fee,
+        description: `Inscrição ${athlete?.name || "Atleta"} - ${tournament.title}`,
+        date: new Date().toISOString().split("T")[0],
+        created_by: reg.athlete_id,
+        created_at: new Date().toISOString(),
+      }
+      data.revenues.push(revenue)
+    }
+  }
   await saveData(data)
   return reg
 }

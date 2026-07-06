@@ -40,7 +40,7 @@ export function getStatusColor(status: string): string {
 export function getStatusLabel(status: string): string {
   const labels: Record<string, string> = {
     pending: "Pendente",
-    approved: "Aprovado",
+    approved: "Confirmado",
     rejected: "Recusado",
     upcoming: "Agendado",
     registering: "Inscrições Abertas",
