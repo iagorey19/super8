@@ -64,7 +64,8 @@ export async function persist(): Promise<void> {
     if (res.status === 401) {
       console.warn("Sessão expirada — alterações não salvas no servidor. Faça login novamente.")
       if (typeof window !== "undefined") {
-        alert("Sessão expirada. Faça login novamente para salvar as alterações.")
+        sessionStorage.removeItem("super8-session")
+        window.location.href = "/auth/login"
       }
       return
     }

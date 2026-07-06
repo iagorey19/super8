@@ -34,6 +34,7 @@ export default function AthletesPage() {
   const [selectedTournament, setSelectedTournament] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("")
   const [selectedGroup, setSelectedGroup] = useState("")
+  const [registerPaymentStatus, setRegisterPaymentStatus] = useState<"paid" | "pending">("pending")
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editingAthlete, setEditingAthlete] = useState<User | null>(null)
@@ -81,6 +82,7 @@ export default function AthletesPage() {
     setSelectedTournament("")
     setSelectedCategory("")
     setSelectedGroup("")
+    setRegisterPaymentStatus("pending")
     setModalOpen(true)
   }
 
@@ -96,7 +98,8 @@ export default function AthletesPage() {
         selectedTournament,
         selectedAthlete.id,
         cat,
-        undefined
+        undefined,
+        registerPaymentStatus
       )
       showToast("success", "Atleta registrado no torneio com sucesso!")
       setModalOpen(false)
@@ -307,8 +310,19 @@ export default function AthletesPage() {
               onChange={(e) => setSelectedCategory(e.target.value)}
             />
           )}
+          {selectedTournamentData?.registration_fee && (
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={registerPaymentStatus === "paid"}
+                onChange={(e) => setRegisterPaymentStatus(e.target.checked ? "paid" : "pending")}
+                className="w-4 h-4 text-amber-600 dark:text-amber-400 border-gray-300 dark:border-gray-600 rounded focus:ring-amber-500"
+              />
+              <span className="text-sm text-gray-700 dark:text-gray-300">Já pagou a inscrição?</span>
+            </label>
+          )}
           <div className="flex gap-3 pt-2">
-            <Button variant="secondary" className="flex-1" onClick={() => setModalOpen(false)}>
+            <Button variant="secondary" className="flex-1" onClick={() => { setModalOpen(false); setRegisterPaymentStatus("pending") }}>
               Cancelar
             </Button>
             <Button

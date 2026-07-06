@@ -37,6 +37,7 @@ export default function TournamentDetail() {
   const [registerAthleteIds, setRegisterAthleteIds] = useState<string[]>([])
   const [registerCategory, setRegisterCategory] = useState("")
   const [registerGroup, setRegisterGroup] = useState("A")
+  const [registerPaymentStatus, setRegisterPaymentStatus] = useState<"paid" | "pending">("pending")
   const [saving, setSaving] = useState(false)
   const [actionRegId, setActionRegId] = useState<Set<string>>(new Set())
   const [successRegId, setSuccessRegId] = useState<Set<string>>(new Set())
@@ -314,6 +315,7 @@ export default function TournamentDetail() {
                       setRegisterAthleteIds([])
                       setRegisterCategory(cat)
                       setRegisterGroup("A")
+                      setRegisterPaymentStatus("pending")
                       setRegisterModal(true)
                     }}
                   >
@@ -658,7 +660,7 @@ export default function TournamentDetail() {
 
       <Modal
         open={registerModal}
-        onClose={() => { setRegisterModal(false); setRegisterAthleteIds([]); setRegisterCategory(""); setRegisterGroup("A") }}
+        onClose={() => { setRegisterModal(false); setRegisterAthleteIds([]); setRegisterCategory(""); setRegisterGroup("A"); setRegisterPaymentStatus("pending") }}
         title="Registrar Atletas no Torneio"
       >
         <div className="space-y-4">
@@ -709,6 +711,17 @@ export default function TournamentDetail() {
               />
             </div>
           </div>
+          {tournament.registration_fee && (
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={registerPaymentStatus === "paid"}
+                onChange={(e) => setRegisterPaymentStatus(e.target.checked ? "paid" : "pending")}
+                className="w-4 h-4 text-amber-600 dark:text-amber-400 border-gray-300 dark:border-gray-600 rounded focus:ring-amber-500"
+              />
+              <span className="text-sm text-gray-700 dark:text-gray-300">Já pagou a inscrição?</span>
+            </label>
+          )}
           <div>
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Atletas disponíveis ({allAthletes.length})
@@ -751,7 +764,7 @@ export default function TournamentDetail() {
               {registerAthleteIds.length} selecionado(s)
             </span>
             <div className="flex gap-3">
-              <Button variant="secondary" onClick={() => { setRegisterModal(false); setRegisterAthleteIds([]); setRegisterCategory(""); setRegisterGroup("A") }}>
+              <Button variant="secondary" onClick={() => { setRegisterModal(false); setRegisterAthleteIds([]); setRegisterCategory(""); setRegisterGroup("A"); setRegisterPaymentStatus("pending") }}>
                 Cancelar
               </Button>
               <Button
@@ -760,11 +773,12 @@ export default function TournamentDetail() {
                   setSaving(true)
                   try {
                     const cat = registerCategory || tournament.categories[0]
-                    await store.registerMultipleAthletes(id, registerAthleteIds, cat, registerGroup)
+                    await store.registerMultipleAthletes(id, registerAthleteIds, cat, registerGroup, registerPaymentStatus)
                     setRegisterModal(false)
                     setRegisterAthleteIds([])
                     setRegisterCategory("")
                     setRegisterGroup("A")
+                    setRegisterPaymentStatus("pending")
                   } catch (e) {
                     alert("Erro ao registrar atleta(s). Tente novamente.")
                   } finally {

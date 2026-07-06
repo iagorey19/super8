@@ -90,6 +90,7 @@ export default function AthleteDashboard() {
     if (session) {
       try {
         sessionStorage.setItem("super8-session", JSON.stringify({
+          ...session,
           user: { ...session.user, name: profileForm.name, email: profileForm.email, phone: profileForm.phone },
         }))
       } catch {

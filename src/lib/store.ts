@@ -331,7 +331,8 @@ export async function registerAthleteInTournament(
   tournamentId: string,
   athleteId: string,
   category?: string,
-  groupName?: string
+  groupName?: string,
+  paymentStatus?: "paid" | "pending"
 ): Promise<AthleteRegistration | null> {
   const data = getData()
   const tournament = data.tournaments.find((t) => t.id === tournamentId)
@@ -348,8 +349,8 @@ export async function registerAthleteInTournament(
     id: crypto.randomUUID(),
     tournament_id: tournamentId,
     athlete_id: athleteId,
-    status: "pending",
-    payment_status: tournament.registration_fee ? "pending" : undefined,
+    status: paymentStatus === "paid" ? "approved" : "pending",
+    payment_status: paymentStatus || (tournament.registration_fee ? "pending" : undefined),
     registration_order: existingCount + 1,
     is_waiting: isWaiting,
     category: cat,
@@ -357,6 +358,22 @@ export async function registerAthleteInTournament(
     created_at: new Date().toISOString(),
   }
   data.athlete_registrations.push(reg)
+
+  if (paymentStatus === "paid" && tournament?.registration_fee) {
+    const athlete = data.users.find((u) => u.id === athleteId)
+    const revenue: Revenue = {
+      id: crypto.randomUUID(),
+      tournament_id: tournamentId,
+      source: "inscricao",
+      amount: tournament.registration_fee,
+      description: `Inscrição ${athlete?.name || "Atleta"} - ${tournament.title}`,
+      date: new Date().toISOString().split("T")[0],
+      created_by: athleteId,
+      created_at: new Date().toISOString(),
+    }
+    data.revenues.push(revenue)
+  }
+
   await saveData(data)
 
   const athlete = data.users.find((u) => u.id === athleteId)
@@ -367,14 +384,16 @@ export async function registerAthleteInTournament(
     createNotification(athleteId, "geral", "Lista de Espera",
       `Você está na lista de espera do ${tournamentName} (${cat}). Posição: ${existingCount + 1}ª.`)
   } else {
-    createNotification(athleteId, "geral", "Inscrição Realizada",
-      `Sua inscrição no ${tournamentName} (${cat}) foi registrada! Posição: ${existingCount + 1}ª de 8.`)
+    createNotification(athleteId, "geral", paymentStatus === "paid" ? "Inscrição Confirmada" : "Inscrição Realizada",
+      paymentStatus === "paid"
+        ? `Sua inscrição no ${tournamentName} (${cat}) foi confirmada! Posição: ${existingCount + 1}ª de 8.`
+        : `Sua inscrição no ${tournamentName} (${cat}) foi registrada! Posição: ${existingCount + 1}ª de 8.`)
   }
 
   const admins = data.users.filter((u) => u.role === "admin")
   for (const admin of admins) {
     createNotification(admin.id, "geral", "Nova Inscrição",
-      `${athleteName} se inscreveu no ${tournamentName} (${cat}) — ${isWaiting ? "Lista de Espera" : `Posição ${existingCount + 1}`}`)
+      `${athleteName} se inscreveu no ${tournamentName} (${cat})${paymentStatus === "paid" ? " — PAGO" : ""} — ${isWaiting ? "Lista de Espera" : `Posição ${existingCount + 1}`}`)
   }
 
   return reg
@@ -404,7 +423,8 @@ export async function registerMultipleAthletes(
   tournamentId: string,
   athleteIds: string[],
   category?: string,
-  groupName?: string
+  groupName?: string,
+  paymentStatus?: "paid" | "pending"
 ): Promise<AthleteRegistration[]> {
   const data = getData()
   const tournament = data.tournaments.find((t) => t.id === tournamentId)
@@ -426,8 +446,8 @@ export async function registerMultipleAthletes(
       id: crypto.randomUUID(),
       tournament_id: tournamentId,
       athlete_id: athleteId,
-      status: "pending",
-      payment_status: tournament.registration_fee ? "pending" : undefined,
+      status: paymentStatus === "paid" ? "approved" : "pending",
+      payment_status: paymentStatus || (tournament.registration_fee ? "pending" : undefined),
       registration_order: order,
       is_waiting: isWaiting,
       category: cat,
@@ -437,6 +457,21 @@ export async function registerMultipleAthletes(
     data.athlete_registrations.push(reg)
     created.push(reg)
 
+    if (paymentStatus === "paid" && tournament?.registration_fee) {
+      const athlete = data.users.find((u) => u.id === athleteId)
+      const revenue: Revenue = {
+        id: crypto.randomUUID(),
+        tournament_id: tournamentId,
+        source: "inscricao",
+        amount: tournament.registration_fee,
+        description: `Inscrição ${athlete?.name || "Atleta"} - ${tournament.title}`,
+        date: new Date().toISOString().split("T")[0],
+        created_by: athleteId,
+        created_at: new Date().toISOString(),
+      }
+      data.revenues.push(revenue)
+    }
+
     const athlete = data.users.find((u) => u.id === athleteId)
     const athleteName = athlete?.name || "Atleta"
     const tournamentName = tournament?.title || "Torneio"
@@ -445,14 +480,16 @@ export async function registerMultipleAthletes(
       createNotification(athleteId, "geral", "Lista de Espera",
         `Você está na lista de espera do ${tournamentName} (${cat}). Posição: ${order}ª.`)
     } else {
-      createNotification(athleteId, "geral", "Inscrição Realizada",
-        `Sua inscrição no ${tournamentName} (${cat}) foi registrada! Posição: ${order}ª de 8.`)
+      createNotification(athleteId, "geral", paymentStatus === "paid" ? "Inscrição Confirmada" : "Inscrição Realizada",
+        paymentStatus === "paid"
+          ? `Sua inscrição no ${tournamentName} (${cat}) foi confirmada! Posição: ${order}ª de 8.`
+          : `Sua inscrição no ${tournamentName} (${cat}) foi registrada! Posição: ${order}ª de 8.`)
     }
 
     const admins = data.users.filter((u) => u.role === "admin")
     for (const admin of admins) {
       createNotification(admin.id, "geral", "Nova Inscrição",
-        `${athleteName} se inscreveu no ${tournamentName} (${cat}) — ${isWaiting ? "Lista de Espera" : `Posição ${order}`}`)
+        `${athleteName} se inscreveu no ${tournamentName} (${cat})${paymentStatus === "paid" ? " — PAGO" : ""} — ${isWaiting ? "Lista de Espera" : `Posição ${order}`}`)
     }
   }
 
