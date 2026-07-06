@@ -32,6 +32,7 @@ export default function EventoDetalhePage() {
   const [loading, setLoading] = useState(false)
   const [sendingPayment, setSendingPayment] = useState(false)
   const { toast } = useToast()
+  const [showInscritos, setShowInscritos] = useState(false)
 
   const loadData = useCallback(async () => {
     try { await store.refreshFromServer() } catch {}
@@ -410,49 +411,6 @@ export default function EventoDetalhePage() {
         </Link>
       </div>
 
-      {registrations.length > 0 && (
-        <Card>
-          <CardHeader title="🎟️ Inscritos" subtitle={`${registrations.filter((r: any) => !r.is_waiting).length} inscritos · ${registrations.filter((r: any) => r.is_waiting).length} na lista de espera`} />
-          {(() => {
-            const groups = new Map<string, any[]>()
-            for (const r of registrations) {
-              const key = `${r.category}-${r.group_name || "A"}`
-              if (!groups.has(key)) groups.set(key, [])
-              groups.get(key)!.push(r)
-            }
-            const waiting = registrations.filter((r: any) => r.is_waiting)
-            return [...groups.entries()].map(([key, regs]) => {
-              const [cat, grp] = key.split("-")
-              const sorted = [...regs].sort((a: any, b: any) => (a.registration_order || 999) - (b.registration_order || 999))
-              return (
-                <div key={key} className="px-4 pb-4">
-                  <h4 className="text-sm font-bold text-gray-600 dark:text-gray-400 tracking-wider mb-2 mt-4 first:mt-0">
-                    {getCategoryLabel(cat)} — Grupo {grp}
-                  </h4>
-                  <div className="space-y-1">
-                    {sorted.map((r: any, idx: number) => (
-                      <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs font-bold text-gray-400 w-6 text-right">{idx + 1}</span>
-                          <p className="font-medium text-gray-900 dark:text-white">{r.name}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {r.is_waiting && <Badge className="bg-amber-100 text-amber-800">Espera</Badge>}
-                          {r.status === "approved" && r.payment_status === "paid" && <Badge className="bg-emerald-100 text-emerald-800">Pago</Badge>}
-                          {r.status === "approved" && (!r.payment_status || r.payment_status === "pending") && <Badge className="bg-green-100 text-green-800">Confirmado</Badge>}
-                          {r.status === "pending" && <Badge className="bg-gray-100 text-gray-600">Pendente</Badge>}
-                          {r.status === "rejected" && <Badge className="bg-red-100 text-red-800">Recusado</Badge>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            })
-          })()}
-        </Card>
-      )}
-
       {(sponsors.length > 0 || apoiadores.length > 0) && (
         <Card>
           <CardHeader title="🤝 Agradecimentos" />
@@ -513,6 +471,68 @@ export default function EventoDetalhePage() {
               </div>
             ))}
           </div>
+        </Card>
+      )}
+
+      {registrations.length > 0 && (
+        <Card>
+          <button
+            onClick={() => setShowInscritos(!showInscritos)}
+            className="w-full flex items-center justify-between mb-4"
+          >
+            <div className="text-left">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">🎟️ Inscritos</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {registrations.filter((r: any) => !r.is_waiting).length} inscritos
+                {registrations.filter((r: any) => r.is_waiting).length > 0 && (
+                  <span className="text-amber-600 dark:text-amber-400 ml-1">
+                    · {registrations.filter((r: any) => r.is_waiting).length} na lista de espera
+                  </span>
+                )}
+              </p>
+            </div>
+            <span className="text-gray-400 dark:text-gray-500 text-lg transition-transform duration-200" style={{ transform: showInscritos ? "rotate(180deg)" : "rotate(0deg)" }}>▼</span>
+          </button>
+          {showInscritos && (
+            <div className="px-4 pb-4 space-y-4">
+              {(() => {
+                const groups = new Map<string, any[]>()
+                for (const r of registrations) {
+                  const key = `${r.category}-${r.group_name || "A"}`
+                  if (!groups.has(key)) groups.set(key, [])
+                  groups.get(key)!.push(r)
+                }
+                return [...groups.entries()].map(([key, regs]) => {
+                  const [cat, grp] = key.split("-")
+                  const sorted = [...regs].sort((a: any, b: any) => (a.registration_order || 999) - (b.registration_order || 999))
+                  return (
+                    <div key={key}>
+                      <h4 className="text-sm font-bold text-gray-600 dark:text-gray-400 tracking-wider mb-2">
+                        {getCategoryLabel(cat)} — Grupo {grp}
+                      </h4>
+                      <div className="space-y-1">
+                        {sorted.map((r: any, idx: number) => (
+                          <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                            <div className="flex items-center gap-3">
+                              <span className="text-xs font-bold text-gray-400 w-6 text-right">{idx + 1}</span>
+                              <p className="font-medium text-gray-900 dark:text-white">{r.name}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {r.is_waiting && <Badge className="bg-amber-100 text-amber-800">Espera</Badge>}
+                              {r.status === "approved" && r.payment_status === "paid" && <Badge className="bg-emerald-100 text-emerald-800">Pago</Badge>}
+                              {r.status === "approved" && (!r.payment_status || r.payment_status === "pending") && <Badge className="bg-green-100 text-green-800">Confirmado</Badge>}
+                              {r.status === "pending" && <Badge className="bg-gray-100 text-gray-600">Pendente</Badge>}
+                              {r.status === "rejected" && <Badge className="bg-red-100 text-red-800">Recusado</Badge>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })
+              })()}
+            </div>
+          )}
         </Card>
       )}
     </div>
