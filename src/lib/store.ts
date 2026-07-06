@@ -26,26 +26,41 @@ import { generatePairings, calculateTournamentResults, WHIST_SCHEDULE } from "./
 
 export async function initData() {
   await db.init()
+  lastPersistedSnapshot = JSON.stringify(db.getData())
 }
 
 export async function refreshFromServer() {
   await db.reloadFromServer()
+  lastPersistedSnapshot = JSON.stringify(db.getData())
 }
 
 function getData(): AppData {
   return db.getData()
 }
 
+let lastPersistedSnapshot: string = ""
+
 async function saveData(data: AppData) {
-  const oldSnapshot = JSON.parse(JSON.stringify(db.getData()))
   db.setData(data)
-  for (const key of Object.keys(data)) {
-    if (key === "seed_version" || key === "config") continue
-    if (JSON.stringify((oldSnapshot as any)[key]) !== JSON.stringify((data as any)[key])) {
+  const currentSnapshot = JSON.stringify(data)
+
+  if (!lastPersistedSnapshot) {
+    for (const key of Object.keys(data)) {
+      if (key === "seed_version" || key === "config") continue
       db.markDirty(key)
     }
+  } else {
+    const oldData = JSON.parse(lastPersistedSnapshot)
+    for (const key of Object.keys(data)) {
+      if (key === "seed_version" || key === "config") continue
+      if (JSON.stringify((oldData as any)[key]) !== JSON.stringify((data as any)[key])) {
+        db.markDirty(key)
+      }
+    }
   }
+
   await db.persist()
+  lastPersistedSnapshot = currentSnapshot
 }
 
 export function getConfig() {
