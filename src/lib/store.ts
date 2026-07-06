@@ -37,7 +37,14 @@ function getData(): AppData {
 }
 
 async function saveData(data: AppData) {
+  const oldData = db.getData()
   db.setData(data)
+  for (const key of Object.keys(data)) {
+    if (key === "seed_version" || key === "config") continue
+    if (JSON.stringify((oldData as any)[key]) !== JSON.stringify((data as any)[key])) {
+      db.markDirty(key)
+    }
+  }
   await db.persist()
 }
 

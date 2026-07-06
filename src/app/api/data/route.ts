@@ -3,7 +3,7 @@ import { getServiceClient } from "@/lib/supabase"
 import { seed } from "@/lib/seed"
 import { getClientIp, isRateLimited } from "@/lib/rate-limit"
 import { getAuthSecret, validateToken } from "@/lib/auth-secret"
-import { appDataSchema } from "@/lib/validation"
+import { appDataSchema, validateTableData } from "@/lib/validation"
 import type { AppData, User, Tournament, AthleteRegistration, Pairing, Match, TournamentResult, AnnualRanking, Sponsorship, Expense, Revenue, Photo, Notification, Apoiador, Brinde, RaffleRecord, Note } from "@/lib/types"
 import bcrypt from "bcryptjs"
 
@@ -153,16 +153,46 @@ export async function POST(req: Request) {
     const callerRole: Role = callerUser?.role || "athlete"
 
     const raw = await req.json()
-    const parsed = appDataSchema.safeParse(raw)
-    if (!parsed.success) {
-      console.warn("POST /api/data validation error:", parsed.error.flatten())
-      return NextResponse.json({
-        error: "Dados inválidos",
-        details: parsed.error.flatten().fieldErrors,
-      }, { status: 400 })
+
+    const tables = raw.tables as string[] | undefined
+    const bodyData = tables ? raw.data : raw
+    let data: AppData
+
+    if (tables && Array.isArray(tables)) {
+      if (!bodyData.seed_version || !bodyData.config) {
+        return NextResponse.json({ error: "Dados inválidos: seed_version e config são obrigatórios" }, { status: 400 })
+      }
+      data = {
+        seed_version: bodyData.seed_version,
+        config: bodyData.config,
+        users: [], tournaments: [], athlete_registrations: [],
+        pairings: [], matches: [], tournament_results: [],
+        annual_rankings: [], sponsorships: [], expenses: [],
+        revenues: [], photos: [], notifications: [],
+        apoiadores: [], brindes: [], raffle_records: [], notes: [],
+      }
+      for (const table of tables) {
+        if (bodyData[table] !== undefined) {
+          const result = validateTableData(table, bodyData[table])
+          if (!result.success) {
+            return NextResponse.json({ error: `Dados inválidos em ${table}`, details: result.error }, { status: 400 })
+          }
+          (data as any)[table] = result.data
+        }
+      }
+    } else {
+      const parsed = appDataSchema.safeParse(raw)
+      if (!parsed.success) {
+        console.warn("POST /api/data validation error:", parsed.error.flatten())
+        return NextResponse.json({
+          error: "Dados inválidos",
+          details: parsed.error.flatten().fieldErrors,
+        }, { status: 400 })
+      }
+      data = parsed.data as unknown as AppData
     }
-    const data = parsed.data as unknown as AppData
-    const errors = await syncToSupabase(data, callerRole, authUser.userId)
+
+    const errors = await syncToSupabase(data, callerRole, authUser.userId, tables)
     if (errors.length > 0) {
       console.error("syncToSupabase errors:", errors)
       return NextResponse.json({ ok: false, errors: ["Falha ao salvar alguns dados"] }, { status: 500 })
@@ -174,11 +204,11 @@ export async function POST(req: Request) {
   }
 }
 
-async function syncToSupabase(data: AppData, callerRole: Role, callerUserId: string): Promise<string[]> {
+async function syncToSupabase(data: AppData, callerRole: Role, callerUserId: string, tables?: string[]): Promise<string[]> {
   const svc = getServiceClient()
   const errors: string[] = []
 
-  const upsertOrder = [
+  const allTables = [
     { table: "users", records: data.users },
     { table: "tournaments", records: data.tournaments },
     { table: "athlete_registrations", records: data.athlete_registrations },
@@ -196,6 +226,10 @@ async function syncToSupabase(data: AppData, callerRole: Role, callerUserId: str
     { table: "raffle_records", records: data.raffle_records },
     { table: "notes", records: data.notes },
   ]
+
+  const upsertOrder = tables
+    ? allTables.filter(t => tables.includes(t.table))
+    : allTables
 
   const { error: configErr } = await svc.from("config").upsert({ id: "global", ...data.config }, { onConflict: "id" })
   if (configErr) errors.push(`config upsert: ${configErr.message}`)

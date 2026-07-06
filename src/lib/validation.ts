@@ -214,3 +214,32 @@ export const appDataSchema = z.object({
   raffle_records: z.array(raffleRecordSchema),
   notes: z.array(noteSchema),
 }).passthrough()
+
+const TABLE_SCHEMAS: Record<string, z.ZodTypeAny> = {
+  users: z.array(userSchema),
+  tournaments: z.array(tournamentSchema),
+  athlete_registrations: z.array(athleteRegistrationSchema),
+  pairings: z.array(pairingSchema),
+  matches: z.array(matchSchema),
+  tournament_results: z.array(tournamentResultSchema),
+  annual_rankings: z.array(annualRankingSchema),
+  sponsorships: z.array(sponsorshipSchema),
+  expenses: z.array(expenseSchema),
+  revenues: z.array(revenueSchema),
+  photos: z.array(photoSchema),
+  notifications: z.array(notificationSchema),
+  apoiadores: z.array(apoiadorSchema),
+  brindes: z.array(brindeSchema),
+  raffle_records: z.array(raffleRecordSchema),
+  notes: z.array(noteSchema),
+}
+
+export function validateTableData(table: string, data: unknown): { success: true; data: unknown } | { success: false; error: string } {
+  const schema = TABLE_SCHEMAS[table]
+  if (!schema) return { success: false, error: `Unknown table: ${table}` }
+  const parsed = schema.safeParse(data)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues.map(i => i.message).join(", ") }
+  }
+  return { success: true, data: parsed.data }
+}

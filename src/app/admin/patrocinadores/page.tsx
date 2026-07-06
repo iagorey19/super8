@@ -338,6 +338,7 @@ function ApoiadoresTab() {
   const [selectedTournament, setSelectedTournament] = useState("")
   const [apoiadores, setApoiadores] = useState<any[]>([])
   const [registrations, setRegistrations] = useState<any[]>([])
+  const [saving, setSaving] = useState(false)
 
   const [apoioModal, setApoioModal] = useState(false)
   const [apoioForm, setApoioForm] = useState({ name: "", phone: "" })
@@ -373,7 +374,8 @@ function ApoiadoresTab() {
   useEffect(() => { load() }, [selectedTournament])
 
   async function handleAddApoio() {
-    if (!apoioForm.name || !selectedTournament) return
+    if (saving || !apoioForm.name || !selectedTournament) return
+    setSaving(true)
     try {
       await createApoiador(selectedTournament, apoioForm.name, apoioForm.phone || undefined)
       showToast("success", "Apoiador adicionado!")
@@ -382,43 +384,56 @@ function ApoiadoresTab() {
       load()
     } catch {
       showToast("error", "Erro ao adicionar apoiador")
+    } finally {
+      setSaving(false)
     }
   }
 
   async function handleDeleteApoio(apoioId: string) {
-    if (!window.confirm("Remover este apoiador e todos os brindes dele?")) return
+    if (saving || !window.confirm("Remover este apoiador e todos os brindes dele?")) return
+    setSaving(true)
     try {
       await deleteApoiador(apoioId)
       showToast("success", "Apoiador removido!")
       load()
     } catch {
       showToast("error", "Erro ao remover apoiador")
+    } finally {
+      setSaving(false)
     }
   }
 
   async function handleAddBrinde(apoiadorId: string) {
-    if (!selectedTournament) return
+    if (saving || !selectedTournament) return
     const form = brindeForm[apoiadorId]
     if (!form || !form.description) return
     const qty = form.type === "kit" ? totalCapacity : parseInt(form.quantity)
     if (form.type !== "kit" && (!form.quantity || qty <= 0)) return
+    setSaving(true)
+    setBrindeForm((prev) => ({ ...prev, [apoiadorId]: { description: "", quantity: "", type: "kit" } }))
     try {
       await addBrinde(apoiadorId, selectedTournament, form.description, qty, form.type)
       showToast("success", "Brinde adicionado!")
-      setBrindeForm((prev) => ({ ...prev, [apoiadorId]: { description: "", quantity: "", type: "kit" } }))
       load()
     } catch {
       showToast("error", "Erro ao adicionar brinde")
+      setBrindeForm((prev) => ({ ...prev, [apoiadorId]: form }))
+    } finally {
+      setSaving(false)
     }
   }
 
   async function handleRemoveBrinde(brindeId: string) {
+    if (saving) return
+    setSaving(true)
     try {
       await removeBrinde(brindeId)
       showToast("success", "Brinde removido!")
       load()
     } catch {
       showToast("error", "Erro ao remover brinde")
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -429,7 +444,8 @@ function ApoiadoresTab() {
   }
 
   async function handleSaveApoio() {
-    if (!editApoioId || !editApoioForm.name) return
+    if (saving || !editApoioId || !editApoioForm.name) return
+    setSaving(true)
     try {
       await updateApoiador(editApoioId, { name: editApoioForm.name, phone: editApoioForm.phone || undefined })
       showToast("success", "Apoiador atualizado!")
@@ -438,6 +454,8 @@ function ApoiadoresTab() {
       load()
     } catch {
       showToast("error", "Erro ao atualizar apoiador")
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -448,9 +466,10 @@ function ApoiadoresTab() {
   }
 
   async function handleSaveBrinde() {
-    if (!editBrindeId || !editBrindeForm.description) return
+    if (saving || !editBrindeId || !editBrindeForm.description) return
     const qty = editBrindeForm.type === "kit" ? totalCapacity : parseInt(editBrindeForm.quantity)
     if (editBrindeForm.type !== "kit" && (!editBrindeForm.quantity || qty <= 0)) return
+    setSaving(true)
     try {
       await updateBrinde(editBrindeId, { description: editBrindeForm.description, quantity: qty, type: editBrindeForm.type })
       showToast("success", "Brinde atualizado!")
@@ -459,6 +478,8 @@ function ApoiadoresTab() {
       load()
     } catch {
       showToast("error", "Erro ao atualizar brinde")
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -482,7 +503,7 @@ function ApoiadoresTab() {
             value={selectedTournament}
             onChange={(e) => setSelectedTournament(e.target.value)}
           />
-          <Button onClick={() => setApoioModal(true)} disabled={!selectedTournament}>+ Apoiador</Button>
+          <Button onClick={() => setApoioModal(true)} disabled={saving || !selectedTournament}>+ Apoiador</Button>
         </div>
       </div>
 
@@ -565,7 +586,9 @@ function ApoiadoresTab() {
                       className={`px-2 py-1.5 text-xs rounded font-medium ${bf.type === "sorteio" ? "bg-green-600 text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"}`}
                     >Sorteio</button>
                   </div>
-                  <Button size="sm" onClick={() => handleAddBrinde(apoio.id)} disabled={!bf.description || (bf.type !== "kit" && (!bf.quantity || parseInt(bf.quantity) <= 0))}>+</Button>
+                  <Button size="sm" onClick={() => handleAddBrinde(apoio.id)} disabled={saving || !bf.description || (bf.type !== "kit" && (!bf.quantity || parseInt(bf.quantity) <= 0))}>
+                    {saving ? "..." : "+"}
+                  </Button>
                 </div>
               </div>
             )
@@ -579,7 +602,7 @@ function ApoiadoresTab() {
           <Input label="Telefone (opcional)" placeholder="(11) 99999-9999" value={apoioForm.phone} onChange={(e) => setApoioForm({ ...apoioForm, phone: e.target.value })} />
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="secondary" onClick={() => { setApoioModal(false); setApoioForm({ name: "", phone: "" }) }}>Cancelar</Button>
-            <Button onClick={handleAddApoio} disabled={!apoioForm.name}>Adicionar</Button>
+            <Button onClick={handleAddApoio} disabled={saving || !apoioForm.name}>{saving ? "Salvando..." : "Adicionar"}</Button>
           </div>
         </div>
       </Modal>

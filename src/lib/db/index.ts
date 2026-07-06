@@ -3,9 +3,15 @@ import type { AppData } from "../types"
 let _data: AppData | null = null
 let _ready = false
 let _initPromise: Promise<void> | null = null
+let _dirtyTables = new Set<string>()
+let _persisting = false
 
 export function isReady() {
   return _ready
+}
+
+export function isPersisting() {
+  return _persisting
 }
 
 export function getData(): AppData {
@@ -15,6 +21,18 @@ export function getData(): AppData {
 
 export function setData(data: AppData) {
   _data = data
+}
+
+export function markDirty(table: string) {
+  _dirtyTables.add(table)
+}
+
+export function getDirtyTables(): string[] {
+  return [..._dirtyTables]
+}
+
+export function clearDirty() {
+  _dirtyTables.clear()
 }
 
 export async function init(): Promise<void> {
@@ -32,6 +50,7 @@ export async function reloadFromServer(): Promise<void> {
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     _data = await res.json()
     _ready = true
+    _dirtyTables.clear()
   } catch (e) {
     console.error("reloadFromServer failed:", e)
     throw e
@@ -52,24 +71,50 @@ function getSessionToken(): string | undefined {
 
 export async function persist(): Promise<void> {
   if (!_data) return
-  const headers: Record<string, string> = { "Content-Type": "application/json" }
-  const token = getSessionToken()
-  if (token) headers["Authorization"] = `Bearer ${token}`
-  const res = await fetch("/api/data", {
-    method: "POST",
-    headers,
-    body: JSON.stringify(_data),
-  })
-  if (!res.ok) {
-    if (res.status === 401) {
-      console.warn("Sessão expirada — alterações não salvas no servidor. Faça login novamente.")
-      if (typeof window !== "undefined") {
-        sessionStorage.removeItem("super8-session")
-        window.location.href = "/auth/login"
-      }
-      return
+
+  const tables = getDirtyTables()
+  if (tables.length === 0) return
+
+  _persisting = true
+  try {
+    const headers: Record<string, string> = { "Content-Type": "application/json" }
+    const token = getSessionToken()
+    if (token) headers["Authorization"] = `Bearer ${token}`
+
+    const payload: Record<string, unknown> = {
+      tables,
+      data: {
+        seed_version: _data.seed_version,
+        config: _data.config,
+      },
     }
-    const body = await res.text()
-    throw new Error(`Persist HTTP ${res.status}: ${body}`)
+
+    for (const table of tables) {
+      if (table in _data) {
+        (payload.data as any)[table] = (_data as any)[table]
+      }
+    }
+
+    const res = await fetch("/api/data", {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      if (res.status === 401) {
+        console.warn("Sessão expirada — alterações não salvas no servidor. Faça login novamente.")
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem("super8-session")
+          window.location.href = "/auth/login"
+        }
+        return
+      }
+      const body = await res.text()
+      throw new Error(`Persist HTTP ${res.status}: ${body}`)
+    }
+
+    _dirtyTables.clear()
+  } finally {
+    _persisting = false
   }
 }
