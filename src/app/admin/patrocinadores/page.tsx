@@ -223,46 +223,48 @@ function PatrocinadoresTab() {
                     ) : "-"}
                   </Td>
                   <Td>
-                    {sponsorShips.length === 0 ? (
-                      <span className="text-gray-400 dark:text-gray-500 text-sm">Nenhum</span>
-                    ) : (
-                      <button
-                        onClick={() => setExpandedSponsor(isExpanded ? null : s.id)}
-                        className="flex items-center gap-1 text-sm text-amber-600 dark:text-amber-400 hover:text-amber-700 font-medium"
-                      >
-                        {sponsorShips.length} patrocínio(s) {isExpanded ? "▲" : "▼"}
-                      </button>
-                    )}
-                    {isExpanded && sponsorShips.length > 0 && (
-                      <div className="mt-2 space-y-2">
-                        {sponsorShips.map((sp: any) => (
-                          <div key={sp.id} className="bg-gray-50 dark:bg-gray-950 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                            <div className="flex items-center justify-between">
-                              <div className="text-sm space-y-0.5">
-                                <p className="font-medium text-gray-900 dark:text-white">{tierEmoji[sp.tier]} {getTierLabel(sp.tier)}</p>
-                                <p className="text-gray-500 dark:text-gray-400">{getTournamentName(sp.tournament_id)}</p>
-                                {sp.description && <p className="text-gray-400 dark:text-gray-500 text-xs">{sp.description}</p>}
-                              </div>
-                              <div className="text-right text-sm">
-                                <p className="font-semibold text-gray-900 dark:text-white">{formatCurrency(sp.amount)}</p>
-                                <div className="flex gap-2 mt-1 justify-end">
-                                  <button onClick={() => openEditSponsorship(sp)} className="text-gray-400 dark:text-gray-500 hover:text-amber-500 text-xs" title="Editar">✏️</button>
-                                  <button onClick={() => handleDeleteSponsorship(sp.id)} className="text-gray-400 dark:text-gray-500 hover:text-red-500 text-xs" title="Remover">✕</button>
+                    <div className="flex flex-col gap-1">
+                      {sponsorShips.length === 0 ? (
+                        <span className="text-gray-400 dark:text-gray-500 text-sm">Nenhum</span>
+                      ) : (
+                        <button
+                          onClick={() => setExpandedSponsor(isExpanded ? null : s.id)}
+                          className="flex items-center gap-1 text-sm text-amber-600 dark:text-amber-400 hover:text-amber-700 font-medium"
+                        >
+                          {sponsorShips.length} patrocínio(s) {isExpanded ? "▲" : "▼"}
+                        </button>
+                      )}
+                      {isExpanded && sponsorShips.length > 0 && (
+                        <div className="mt-2 space-y-2">
+                          {sponsorShips.map((sp: any) => (
+                            <div key={sp.id} className="bg-gray-50 dark:bg-gray-950 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                              <div className="flex items-center justify-between">
+                                <div className="text-sm space-y-0.5">
+                                  <p className="font-medium text-gray-900 dark:text-white">{tierEmoji[sp.tier]} {getTierLabel(sp.tier)}</p>
+                                  <p className="text-gray-500 dark:text-gray-400">{getTournamentName(sp.tournament_id)}</p>
+                                  {sp.description && <p className="text-gray-400 dark:text-gray-500 text-xs">{sp.description}</p>}
+                                </div>
+                                <div className="text-right text-sm">
+                                  <p className="font-semibold text-gray-900 dark:text-white">{formatCurrency(sp.amount)}</p>
+                                  <div className="flex gap-2 mt-1 justify-end">
+                                    <button onClick={() => openEditSponsorship(sp)} className="text-gray-400 dark:text-gray-500 hover:text-amber-500 text-xs" title="Editar">✏️</button>
+                                    <button onClick={() => handleDeleteSponsorship(sp.id)} className="text-gray-400 dark:text-gray-500 hover:text-red-500 text-xs" title="Remover">✕</button>
+                                  </div>
                                 </div>
                               </div>
                             </div>
+                          ))}
+                          <div className="pt-1">
+                            <Button size="sm" variant="secondary" onClick={() => openAddSponsorship(s)}>+ Novo Patrocínio</Button>
                           </div>
-                        ))}
-                        <div className="pt-1">
-                          <Button size="sm" variant="secondary" onClick={() => openAddSponsorship(s)}>+ Novo Patrocínio</Button>
                         </div>
-                      </div>
-                    )}
-                    {!isExpanded && sponsorShips.length > 0 && (
-                      <div className="mt-1">
-                        <Button size="sm" variant="ghost" onClick={() => openAddSponsorship(s)}>+ Novo</Button>
-                      </div>
-                    )}
+                      )}
+                      {(sponsorShips.length === 0 || (!isExpanded && sponsorShips.length > 0)) && (
+                        <div className="mt-1">
+                          <Button size="sm" variant="ghost" onClick={() => openAddSponsorship(s)}>+ Novo</Button>
+                        </div>
+                      )}
+                    </div>
                   </Td>
                   <Td>
                     <div className="flex gap-2">
