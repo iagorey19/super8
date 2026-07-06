@@ -56,7 +56,8 @@ export async function GET(request: Request) {
 
   const exp = Date.now() + TOKEN_EXPIRY_MS
   const payload = JSON.stringify({ userId: appUser.id, email: appUser.email, exp })
-  const token = Buffer.from(payload).toString("base64url") + "." + signToken(payload)
+  const payloadB64 = Buffer.from(payload).toString("base64url")
+  const token = payloadB64 + "." + signToken(payloadB64)
 
   const redirectUrl = new URL(`${origin}/auth/handler`)
   redirectUrl.searchParams.set("next", next)

@@ -42,7 +42,8 @@ export async function POST(req: Request) {
 
     const exp = Date.now() + TOKEN_EXPIRY_MS
     const payload = JSON.stringify({ userId: user.id, email: user.email, exp })
-    const token = Buffer.from(payload).toString("base64url") + "." + signToken(payload)
+    const payloadB64 = Buffer.from(payload).toString("base64url")
+    const token = payloadB64 + "." + signToken(payloadB64)
 
     const { password: _, ...safeUser } = user
     return NextResponse.json({ token, user: safeUser })
