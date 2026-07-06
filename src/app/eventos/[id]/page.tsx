@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/toast"
 import * as store from "@/lib/store"
 import { sanitizeUrl } from "@/lib/validate-url"
-import { getStatusColor, getStatusLabel, getCategoryLabel } from "@/lib/utils"
+import { getStatusColor, getStatusLabel, getCategoryLabel, formatDateWithWeekday } from "@/lib/utils"
 import { generatePixPayload, generatePixQR, formatCurrency, generateWhatsAppLink } from "@/lib/pix"
 import type { Tournament, RaffleRecord, AthleteRegistration } from "@/lib/types"
 
@@ -33,6 +33,7 @@ export default function EventoDetalhePage() {
   const [sendingPayment, setSendingPayment] = useState(false)
   const { toast } = useToast()
   const [showInscritos, setShowInscritos] = useState(false)
+  const [showRegistration, setShowRegistration] = useState(false)
 
   const loadData = useCallback(async () => {
     try { await store.refreshFromServer() } catch {}
@@ -186,53 +187,73 @@ export default function EventoDetalhePage() {
 
       {tournament.date && (
         <p className="text-sm text-gray-600 dark:text-gray-300">
-          Data: {tournament.date}
+          Data: {formatDateWithWeekday(tournament.date)}
         </p>
       )}
 
       {tournament.status === "registering" && step === "idle" && !myReg && (
-        <Card className="border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20">
-          <div className="p-6 text-center space-y-4">
-            <p className="text-lg font-bold text-amber-800 dark:text-amber-200">
-              Quer jogar? 🎾
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {store.getCategoryAvailability(id).map((a) => (
-                <div key={a.category} className={`text-xs rounded-lg px-3 py-2 text-center font-medium ${
-                  a.available === 0
-                    ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
-                    : a.available <= 3
-                    ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
-                    : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
-                }`}>
-                  {a.category === "4e5" ? "4e5" : "6e7"}: {a.registered}/{a.max} vagas
-                  {a.waiting > 0 && ` · ${a.waiting} espera`}
-                  {a.available === 0 && " · Lotada"}
-                  {a.available > 0 && ` · ${a.available} vaga${a.available > 1 ? "s" : ""} restante${a.available > 1 ? "s" : ""}`}
+        showRegistration ? (
+          <Card className="border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20">
+            <div className="text-center space-y-4">
+              <button
+                onClick={() => setShowRegistration(false)}
+                className="w-full flex items-center justify-between px-6 pt-4"
+              >
+                <p className="text-lg font-bold text-amber-800 dark:text-amber-200">
+                  Quer jogar? 🎾
+                </p>
+                <span className="text-amber-400 dark:text-amber-500 text-lg">▲</span>
+              </button>
+              <div className="px-6 pb-6 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {store.getCategoryAvailability(id).map((a) => (
+                    <div key={a.category} className={`text-xs rounded-lg px-3 py-2 text-center font-medium ${
+                      a.available === 0
+                        ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                        : a.available <= 3
+                        ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
+                        : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                    }`}>
+                      {a.category === "4e5" ? "4e5" : "6e7"}: {a.registered}/{a.max} vagas
+                      {a.waiting > 0 && ` · ${a.waiting} espera`}
+                      {a.available === 0 && " · Lotada"}
+                      {a.available > 0 && ` · ${a.available} vaga${a.available > 1 ? "s" : ""} restante${a.available > 1 ? "s" : ""}`}
+                    </div>
+                  ))}
                 </div>
-              ))}
+                {tournament.registration_fee && (
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    Taxa de inscrição: {formatCurrency(tournament.registration_fee)}
+                  </p>
+                )}
+                {tournament.registration_fee && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 rounded-lg px-3 py-2">
+                    ⚠️ A inscrição só será confirmada após o pagamento e aprovação do organizador.
+                  </p>
+                )}
+                {store.getCategoryAvailability(id).every((a) => a.available === 0) ? (
+                  <p className="text-sm font-bold text-red-600 dark:text-red-400">
+                    Inscrições encerradas — todas as categorias estão lotadas.
+                  </p>
+                ) : (
+                  <Button onClick={handleStartRegistration} size="lg" className="bg-amber-600 hover:bg-amber-700 text-white font-bold" disabled={loading}>
+                    {loading ? "Entrando..." : "Inscrever-se"}
+                  </Button>
+                )}
+              </div>
             </div>
-            {tournament.registration_fee && (
-              <p className="text-sm text-amber-700 dark:text-amber-300">
-                Taxa de inscrição: {formatCurrency(tournament.registration_fee)}
-              </p>
-            )}
-            {tournament.registration_fee && (
-              <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 rounded-lg px-3 py-2">
-                ⚠️ A inscrição só será confirmada após o pagamento e aprovação do organizador.
-              </p>
-            )}
-            {store.getCategoryAvailability(id).every((a) => a.available === 0) ? (
-              <p className="text-sm font-bold text-red-600 dark:text-red-400">
-                Inscrições encerradas — todas as categorias estão lotadas.
-              </p>
-            ) : (
-              <Button onClick={handleStartRegistration} size="lg" className="bg-amber-600 hover:bg-amber-700 text-white font-bold" disabled={loading}>
-                {loading ? "Entrando..." : "Inscrever-se"}
-              </Button>
-            )}
-          </div>
-        </Card>
+          </Card>
+        ) : (
+          <button
+            onClick={() => setShowRegistration(true)}
+            className="w-full text-left px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors flex items-center justify-between gap-2"
+          >
+            <span className="text-sm font-medium text-amber-800 dark:text-amber-200">
+              🎾 Quer jogar? Clique para ver as vagas disponíveis
+            </span>
+            <span className="text-amber-400 dark:text-amber-500 text-sm">▼</span>
+          </button>
+        )
       )}
 
       {myReg && myReg.status === "pending" && step === "idle" && (
