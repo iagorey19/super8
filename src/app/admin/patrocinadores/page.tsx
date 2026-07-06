@@ -109,13 +109,13 @@ function PatrocinadoresTab() {
     return tournaments.find((t) => t.id === id)?.title || id
   }
 
-  function handleCreateSponsor() {
+  async function handleCreateSponsor() {
     if (!newName || !newEmail || !newPassword) {
       showToast("error", "Preencha nome, email e senha")
       return
     }
     try {
-      createSponsor(newName, newEmail, newPassword, newPhone, newUrl || undefined)
+      await createSponsor(newName, newEmail, newPassword, newPhone, newUrl || undefined)
       showToast("success", "Patrocinador criado com sucesso!")
       setNewModalOpen(false)
       setNewName("")
@@ -135,13 +135,13 @@ function PatrocinadoresTab() {
     setAddSponsorshipOpen(true)
   }
 
-  function handleAddSponsorship() {
+  async function handleAddSponsorship() {
     if (!addSponsorshipSponsor || !addSponsorshipForm.tournament || !addSponsorshipForm.amount) {
       showToast("error", "Preencha todos os campos")
       return
     }
     try {
-      createSponsorship(addSponsorshipForm.tournament, addSponsorshipSponsor.id, addSponsorshipForm.tier, Number(addSponsorshipForm.amount), addSponsorshipForm.description)
+      await createSponsorship(addSponsorshipForm.tournament, addSponsorshipSponsor.id, addSponsorshipForm.tier, Number(addSponsorshipForm.amount), addSponsorshipForm.description)
       showToast("success", "Patrocínio adicionado!")
       setAddSponsorshipOpen(false)
       loadData()
@@ -156,10 +156,10 @@ function PatrocinadoresTab() {
     setEditSponsorshipOpen(true)
   }
 
-  function handleEditSponsorship() {
+  async function handleEditSponsorship() {
     if (!editSponsorshipData || !editSponsorshipForm.tournament || !editSponsorshipForm.amount) return
     try {
-      updateSponsorship(editSponsorshipData.id, {
+      await updateSponsorship(editSponsorshipData.id, {
         tournament_id: editSponsorshipForm.tournament,
         tier: editSponsorshipForm.tier,
         amount: Number(editSponsorshipForm.amount),
@@ -173,11 +173,15 @@ function PatrocinadoresTab() {
     }
   }
 
-  function handleDeleteSponsorship(id: string) {
+  async function handleDeleteSponsorship(id: string) {
     if (!window.confirm("Remover este patrocínio?")) return
-    deleteSponsorship(id)
-    showToast("success", "Patrocínio removido!")
-    loadData()
+    try {
+      await deleteSponsorship(id)
+      showToast("success", "Patrocínio removido!")
+      loadData()
+    } catch {
+      showToast("error", "Erro ao remover patrocínio")
+    }
   }
 
   return (
@@ -263,7 +267,7 @@ function PatrocinadoresTab() {
                   <Td>
                     <div className="flex gap-2">
                       <Button size="sm" variant="ghost" onClick={() => { setEditingSponsor(s); setEditForm({ name: s.name, email: s.email, phone: s.phone || "", url: s.url || "" }); setEditModalOpen(true) }}>Editar</Button>
-                      <Button size="sm" variant="danger" onClick={() => { if (window.confirm(`Remover "${s.name}"?`)) { deleteSponsor(s.id); loadData() } }}>Remover</Button>
+                      <Button size="sm" variant="danger" onClick={async () => { if (window.confirm(`Remover "${s.name}"?`)) { try { await deleteSponsor(s.id); showToast("success", "Patrocinador removido!"); loadData() } catch { showToast("error", "Erro ao remover patrocinador") } } }}>Remover</Button>
                     </div>
                   </Td>
                 </tr>
@@ -295,7 +299,7 @@ function PatrocinadoresTab() {
           <Input label="Link (site/redes)" placeholder="https://instagram.com/..." value={editForm.url} onChange={(e) => setEditForm({ ...editForm, url: e.target.value })} />
           <div className="flex gap-3 pt-2">
             <Button variant="secondary" className="flex-1" onClick={() => setEditModalOpen(false)}>Cancelar</Button>
-            <Button className="flex-1" disabled={!editForm.name || !editForm.email} onClick={() => { if (editingSponsor) { updateSponsor(editingSponsor.id, editForm); setEditModalOpen(false); loadData(); } }}>Salvar</Button>
+            <Button className="flex-1" disabled={!editForm.name || !editForm.email} onClick={async () => { if (editingSponsor) { try { await updateSponsor(editingSponsor.id, editForm); showToast("success", "Patrocinador atualizado!"); setEditModalOpen(false); loadData() } catch { showToast("error", "Erro ao atualizar patrocinador") } } }}>Salvar</Button>
           </div>
         </div>
       </Modal>
@@ -368,10 +372,10 @@ function ApoiadoresTab() {
 
   useEffect(() => { load() }, [selectedTournament])
 
-  function handleAddApoio() {
+  async function handleAddApoio() {
     if (!apoioForm.name || !selectedTournament) return
     try {
-      createApoiador(selectedTournament, apoioForm.name, apoioForm.phone || undefined)
+      await createApoiador(selectedTournament, apoioForm.name, apoioForm.phone || undefined)
       showToast("success", "Apoiador adicionado!")
       setApoioForm({ name: "", phone: "" })
       setApoioModal(false)
@@ -381,10 +385,10 @@ function ApoiadoresTab() {
     }
   }
 
-  function handleDeleteApoio(apoioId: string) {
+  async function handleDeleteApoio(apoioId: string) {
     if (!window.confirm("Remover este apoiador e todos os brindes dele?")) return
     try {
-      deleteApoiador(apoioId)
+      await deleteApoiador(apoioId)
       showToast("success", "Apoiador removido!")
       load()
     } catch {
@@ -392,14 +396,14 @@ function ApoiadoresTab() {
     }
   }
 
-  function handleAddBrinde(apoiadorId: string) {
+  async function handleAddBrinde(apoiadorId: string) {
     if (!selectedTournament) return
     const form = brindeForm[apoiadorId]
     if (!form || !form.description) return
     const qty = form.type === "kit" ? totalCapacity : parseInt(form.quantity)
     if (form.type !== "kit" && (!form.quantity || qty <= 0)) return
     try {
-      addBrinde(apoiadorId, selectedTournament, form.description, qty, form.type)
+      await addBrinde(apoiadorId, selectedTournament, form.description, qty, form.type)
       showToast("success", "Brinde adicionado!")
       setBrindeForm((prev) => ({ ...prev, [apoiadorId]: { description: "", quantity: "", type: "kit" } }))
       load()
@@ -408,9 +412,9 @@ function ApoiadoresTab() {
     }
   }
 
-  function handleRemoveBrinde(brindeId: string) {
+  async function handleRemoveBrinde(brindeId: string) {
     try {
-      removeBrinde(brindeId)
+      await removeBrinde(brindeId)
       showToast("success", "Brinde removido!")
       load()
     } catch {
@@ -424,10 +428,10 @@ function ApoiadoresTab() {
     setEditApoioModal(true)
   }
 
-  function handleSaveApoio() {
+  async function handleSaveApoio() {
     if (!editApoioId || !editApoioForm.name) return
     try {
-      updateApoiador(editApoioId, { name: editApoioForm.name, phone: editApoioForm.phone || undefined })
+      await updateApoiador(editApoioId, { name: editApoioForm.name, phone: editApoioForm.phone || undefined })
       showToast("success", "Apoiador atualizado!")
       setEditApoioModal(false)
       setEditApoioId(null)
@@ -443,12 +447,12 @@ function ApoiadoresTab() {
     setEditBrindeModal(true)
   }
 
-  function handleSaveBrinde() {
+  async function handleSaveBrinde() {
     if (!editBrindeId || !editBrindeForm.description) return
     const qty = editBrindeForm.type === "kit" ? totalCapacity : parseInt(editBrindeForm.quantity)
     if (editBrindeForm.type !== "kit" && (!editBrindeForm.quantity || qty <= 0)) return
     try {
-      updateBrinde(editBrindeId, { description: editBrindeForm.description, quantity: qty, type: editBrindeForm.type })
+      await updateBrinde(editBrindeId, { description: editBrindeForm.description, quantity: qty, type: editBrindeForm.type })
       showToast("success", "Brinde atualizado!")
       setEditBrindeModal(false)
       setEditBrindeId(null)

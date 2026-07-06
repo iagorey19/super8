@@ -41,13 +41,13 @@ export default function AnotacoesPage() {
     setShowModal(true)
   }
 
-  function save() {
+  async function save() {
     if (!title.trim()) return
     try {
       if (editing) {
-        updateNote(editing.id, { title: title.trim(), content: content.trim() })
+        await updateNote(editing.id, { title: title.trim(), content: content.trim() })
       } else {
-        createNote(title.trim(), content.trim())
+        await createNote(title.trim(), content.trim())
       }
       showToast("success", editing ? "Anotação atualizada!" : "Anotação criada!")
       setShowModal(false)
@@ -57,9 +57,9 @@ export default function AnotacoesPage() {
     }
   }
 
-  function togglePin(n: Note) {
+  async function togglePin(n: Note) {
     try {
-      updateNote(n.id, { pinned: !n.pinned })
+      await updateNote(n.id, { pinned: !n.pinned })
       showToast("success", n.pinned ? "Anotação desafixada!" : "Anotação fixada!")
       load()
     } catch {
@@ -67,10 +67,10 @@ export default function AnotacoesPage() {
     }
   }
 
-  function remove(id: string) {
+  async function remove(id: string) {
     if (!confirm("Excluir esta anotação?")) return
     try {
-      deleteNote(id)
+      await deleteNote(id)
       showToast("success", "Anotação excluída!")
       load()
     } catch {

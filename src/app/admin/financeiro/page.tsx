@@ -84,18 +84,18 @@ export default function AdminFinanceiro() {
     loadData()
   }, [selectedTournament])
 
-  function handleAddExpense() {
+  async function handleAddExpense() {
     if (!expenseForm.description || !expenseForm.amount || !expenseForm.date) return
     try {
       if (expenseEditingId) {
-        store.updateExpense(expenseEditingId, {
+        await store.updateExpense(expenseEditingId, {
           category: expenseForm.category,
           description: expenseForm.description,
           amount: Number(expenseForm.amount),
           date: expenseForm.date,
         })
       } else {
-        store.createExpense(
+        await store.createExpense(
           selectedTournament,
           expenseForm.category,
           expenseForm.description,
@@ -114,18 +114,18 @@ export default function AdminFinanceiro() {
     }
   }
 
-  function handleAddRevenue() {
+  async function handleAddRevenue() {
     if (!revenueForm.amount || !revenueForm.description || !revenueForm.date) return
     try {
       if (revenueEditingId) {
-        store.updateRevenue(revenueEditingId, {
+        await store.updateRevenue(revenueEditingId, {
           source: revenueForm.source,
           description: revenueForm.description,
           amount: Number(revenueForm.amount),
           date: revenueForm.date,
         })
       } else {
-        store.createRevenue(
+        await store.createRevenue(
           selectedTournament,
           revenueForm.source,
           Number(revenueForm.amount),
@@ -341,11 +341,15 @@ export default function AdminFinanceiro() {
                           ✏️
                         </button>
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (window.confirm("Remover esta despesa?")) {
-                              store.deleteExpense(exp.id)
-                              showToast("success", "Despesa removida!")
-                              loadData()
+                              try {
+                                await store.deleteExpense(exp.id)
+                                showToast("success", "Despesa removida!")
+                                loadData()
+                              } catch {
+                                showToast("error", "Erro ao remover despesa")
+                              }
                             }
                           }}
                           className="text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors text-xs"
@@ -406,11 +410,15 @@ export default function AdminFinanceiro() {
                           ✏️
                         </button>
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (window.confirm("Remover esta receita?")) {
-                              store.deleteRevenue(rev.id)
-                              showToast("success", "Receita removida!")
-                              loadData()
+                              try {
+                                await store.deleteRevenue(rev.id)
+                                showToast("success", "Receita removida!")
+                                loadData()
+                              } catch {
+                                showToast("error", "Erro ao remover receita")
+                              }
                             }
                           }}
                           className="text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors text-xs"

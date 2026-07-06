@@ -84,7 +84,7 @@ export default function AdminFotos() {
         throw new Error(`Falha no upload (${uploadRes.status}): ${errText}`)
       }
 
-      store.createPhoto(
+      await store.createPhoto(
         data.publicUrl,
         form.caption.trim() || undefined,
         user!.id,
@@ -107,10 +107,10 @@ export default function AdminFotos() {
     return sanitizeUrl(url, "#")
   }
 
-  function handleAddUrl() {
+  async function handleAddUrl() {
     if (!form.url.trim()) return
     try {
-      store.createPhoto(
+      await store.createPhoto(
         convertDriveLink(form.url.trim()),
         form.caption.trim() || undefined,
         user!.id,
@@ -212,11 +212,15 @@ export default function AdminFotos() {
               <div className="px-3 py-2 flex items-center justify-between text-xs text-gray-400 dark:text-gray-500">
                 <span>{formatDate(photo.created_at)}</span>
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       if (window.confirm("Remover esta foto?")) {
-                        store.deletePhoto(photo.id)
-                        showToast("success", "Foto removida!")
-                        loadPhotos()
+                        try {
+                          await store.deletePhoto(photo.id)
+                          showToast("success", "Foto removida!")
+                          loadPhotos()
+                        } catch {
+                          showToast("error", "Erro ao remover foto")
+                        }
                       }
                     }}
                     className="text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors"

@@ -1194,7 +1194,7 @@ export function getUserById(id: string): User | undefined {
   return data.users.find((u) => u.id === id)
 }
 
-export function updateSponsor(sponsorId: string, updates: { name?: string; email?: string; phone?: string; url?: string }) {
+export async function updateSponsor(sponsorId: string, updates: { name?: string; email?: string; phone?: string; url?: string }) {
   const data = getData()
   const user = data.users.find((u) => u.id === sponsorId && u.role === "sponsor")
   if (user) {
@@ -1202,18 +1202,18 @@ export function updateSponsor(sponsorId: string, updates: { name?: string; email
     if (updates.email !== undefined) user.email = updates.email
     if (updates.phone !== undefined) user.phone = updates.phone || undefined
     if (updates.url !== undefined) user.url = updates.url || undefined
-    saveData(data)
+    await saveData(data)
   }
 }
 
-export function deleteSponsor(sponsorId: string) {
+export async function deleteSponsor(sponsorId: string) {
   const data = getData()
   data.sponsorships = data.sponsorships.filter((s) => s.sponsor_id !== sponsorId)
   data.users = data.users.filter((u) => u.id !== sponsorId)
-  saveData(data)
+  await saveData(data)
 }
 
-export function deleteSponsorship(sponsorshipId: string) {
+export async function deleteSponsorship(sponsorshipId: string) {
   const data = getData()
   const sponsorship = data.sponsorships.find((s) => s.id === sponsorshipId)
   data.sponsorships = data.sponsorships.filter((s) => s.id !== sponsorshipId)
@@ -1224,10 +1224,10 @@ export function deleteSponsorship(sponsorshipId: string) {
       (r) => !(r.tournament_id === sponsorship.tournament_id && r.description === descMatch && r.amount === sponsorship.amount)
     )
   }
-  saveData(data)
+  await saveData(data)
 }
 
-export function updateSponsorship(
+export async function updateSponsorship(
   id: string,
   updates: { tier?: SponsorTier; amount?: number; description?: string; tournament_id?: string }
 ) {
@@ -1238,16 +1238,16 @@ export function updateSponsorship(
   if (updates.amount !== undefined) sponsorship.amount = updates.amount
   if (updates.description !== undefined) sponsorship.description = updates.description
   if (updates.tournament_id !== undefined) sponsorship.tournament_id = updates.tournament_id
-  saveData(data)
+  await saveData(data)
 }
 
-export function createSponsor(
+export async function createSponsor(
   name: string,
   email: string,
   password: string,
   phone: string,
   url?: string
-): User {
+): Promise<User> {
   const data = getData()
   const sponsor: User = {
     id: crypto.randomUUID(),
@@ -1260,12 +1260,12 @@ export function createSponsor(
     created_at: new Date().toISOString(),
   }
   data.users.push(sponsor)
-  saveData(data)
+  await saveData(data)
   syncAuthUser(email, password)
   return sponsor
 }
 
-export function createSponsorship(
+export async function createSponsorship(
   tournamentId: string,
   sponsorId: string,
   tier: SponsorTier,
@@ -1273,7 +1273,7 @@ export function createSponsorship(
   description: string,
   createdBy?: string,
   date?: string
-): Sponsorship {
+): Promise<Sponsorship> {
   const data = getData()
   const sponsorship: Sponsorship = {
     id: crypto.randomUUID(),
@@ -1300,7 +1300,7 @@ export function createSponsorship(
   }
   data.revenues.push(revenue)
 
-  saveData(data)
+  await saveData(data)
   return sponsorship
 }
 
@@ -1323,20 +1323,20 @@ export function getSponsorTournaments(sponsorId: string): Tournament[] {
   return data.tournaments.filter((t) => tournamentIds.includes(t.id))
 }
 
-export function deleteExpense(expenseId: string) {
+export async function deleteExpense(expenseId: string) {
   const data = getData()
   data.expenses = data.expenses.filter((e) => e.id !== expenseId)
-  saveData(data)
+  await saveData(data)
 }
 
-export function createExpense(
+export async function createExpense(
   tournamentId: string,
   category: ExpenseCategory,
   description: string,
   amount: number,
   date: string,
   createdBy: string
-): Expense {
+): Promise<Expense> {
   const data = getData()
   const expense: Expense = {
     id: crypto.randomUUID(),
@@ -1349,7 +1349,7 @@ export function createExpense(
     created_at: new Date().toISOString(),
   }
   data.expenses.push(expense)
-  saveData(data)
+  await saveData(data)
   return expense
 }
 
@@ -1375,7 +1375,7 @@ export function getExpensesByCategory(tournamentId?: string) {
   return grouped
 }
 
-export function updateExpense(
+export async function updateExpense(
   id: string,
   updates: { category?: ExpenseCategory; description?: string; amount?: number; date?: string }
 ) {
@@ -1383,16 +1383,16 @@ export function updateExpense(
   const expense = data.expenses.find((e) => e.id === id)
   if (!expense) return
   Object.assign(expense, updates)
-  saveData(data)
+  await saveData(data)
 }
 
-export function deleteRevenue(revenueId: string) {
+export async function deleteRevenue(revenueId: string) {
   const data = getData()
   data.revenues = data.revenues.filter((r) => r.id !== revenueId)
-  saveData(data)
+  await saveData(data)
 }
 
-export function updateRevenue(
+export async function updateRevenue(
   id: string,
   updates: { source?: RevenueSource; description?: string; amount?: number; date?: string }
 ) {
@@ -1400,17 +1400,17 @@ export function updateRevenue(
   const revenue = data.revenues.find((r) => r.id === id)
   if (!revenue) return
   Object.assign(revenue, updates)
-  saveData(data)
+  await saveData(data)
 }
 
-export function createRevenue(
+export async function createRevenue(
   tournamentId: string,
   source: RevenueSource,
   amount: number,
   description: string,
   date: string,
   createdBy: string
-): Revenue {
+): Promise<Revenue> {
   const data = getData()
   const revenue: Revenue = {
     id: crypto.randomUUID(),
@@ -1423,7 +1423,7 @@ export function createRevenue(
     created_at: new Date().toISOString(),
   }
   data.revenues.push(revenue)
-  saveData(data)
+  await saveData(data)
   return revenue
 }
 
@@ -1462,12 +1462,12 @@ export function getFinancialSummary(tournamentId?: string) {
   }
 }
 
-export function createPhoto(
+export async function createPhoto(
   url: string,
   caption: string | undefined,
   uploadedBy: string,
   tournamentId?: string
-): Photo {
+): Promise<Photo> {
   const data = getData()
   const photo: Photo = {
     id: crypto.randomUUID(),
@@ -1478,14 +1478,14 @@ export function createPhoto(
     created_at: new Date().toISOString(),
   }
   data.photos.push(photo)
-  saveData(data)
+  await saveData(data)
   return photo
 }
 
-export function deletePhoto(photoId: string) {
+export async function deletePhoto(photoId: string) {
   const data = getData()
   data.photos = data.photos.filter((p) => p.id !== photoId)
-  saveData(data)
+  await saveData(data)
 }
 
 export function getPhotos(tournamentId?: string): Photo[] {
@@ -1497,12 +1497,12 @@ export function getPhotos(tournamentId?: string): Photo[] {
   )
 }
 
-export function createNotification(
+export async function createNotification(
   userId: string,
   type: Notification["type"],
   title: string,
   message: string
-): Notification {
+): Promise<Notification> {
   const data = getData()
   const notification: Notification = {
     id: crypto.randomUUID(),
@@ -1514,7 +1514,7 @@ export function createNotification(
     created_at: new Date().toISOString(),
   }
   data.notifications.push(notification)
-  saveData(data)
+  await saveData(data)
   return notification
 }
 
@@ -1525,12 +1525,12 @@ export function getNotifications(userId: string): Notification[] {
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 }
 
-export function markNotificationRead(notificationId: string) {
+export async function markNotificationRead(notificationId: string) {
   const data = getData()
   const notif = data.notifications.find((n) => n.id === notificationId)
   if (notif) {
     notif.read = true
-    saveData(data)
+    await saveData(data)
   }
 }
 
@@ -1539,7 +1539,7 @@ export function getUnreadCount(userId: string): number {
   return data.notifications.filter((n) => n.user_id === userId && !n.read).length
 }
 
-export function markAllNotificationsRead(userId: string) {
+export async function markAllNotificationsRead(userId: string) {
   const data = getData()
   let changed = false
   for (const n of data.notifications) {
@@ -1548,22 +1548,22 @@ export function markAllNotificationsRead(userId: string) {
       changed = true
     }
   }
-  if (changed) saveData(data)
+  if (changed) await saveData(data)
 }
 
-export function deleteNotification(notificationId: string) {
+export async function deleteNotification(notificationId: string) {
   const data = getData()
   const idx = data.notifications.findIndex((n) => n.id === notificationId)
   if (idx !== -1) {
     data.notifications.splice(idx, 1)
-    saveData(data)
+    await saveData(data)
   }
 }
 
-export function deleteAllNotifications(userId: string) {
+export async function deleteAllNotifications(userId: string) {
   const data = getData()
   data.notifications = data.notifications.filter((n) => n.user_id !== userId)
-  saveData(data)
+  await saveData(data)
 }
 
 export function getAthleteMatches(athleteId: string, tournamentId?: string): Match[] {
@@ -1889,7 +1889,7 @@ export function getAthleteRegistration(
 
 // ---- Apoiadores e Brindes ----
 
-export function createApoiador(tournamentId: string, name: string, phone?: string): Apoiador {
+export async function createApoiador(tournamentId: string, name: string, phone?: string): Promise<Apoiador> {
   const data = getData()
   const apoiador: Apoiador = {
     id: crypto.randomUUID(),
@@ -1899,7 +1899,7 @@ export function createApoiador(tournamentId: string, name: string, phone?: strin
     created_at: new Date().toISOString(),
   }
   data.apoiadores.push(apoiador)
-  saveData(data)
+  await saveData(data)
   return apoiador
 }
 
@@ -1913,29 +1913,29 @@ export function getApoiadores(tournamentId: string): (Apoiador & { brindes: Brin
     }))
 }
 
-export function deleteApoiador(apoiadorId: string) {
+export async function deleteApoiador(apoiadorId: string) {
   const data = getData()
   data.brindes = data.brindes.filter((b) => b.apoiador_id !== apoiadorId)
   data.apoiadores = data.apoiadores.filter((a) => a.id !== apoiadorId)
-  saveData(data)
+  await saveData(data)
 }
 
-export function updateApoiador(apoiadorId: string, updates: { name?: string; phone?: string }) {
+export async function updateApoiador(apoiadorId: string, updates: { name?: string; phone?: string }) {
   const data = getData()
   const apoiador = data.apoiadores.find((a) => a.id === apoiadorId)
   if (!apoiador) return
   if (updates.name !== undefined) apoiador.name = updates.name
   if (updates.phone !== undefined) apoiador.phone = updates.phone || undefined
-  saveData(data)
+  await saveData(data)
 }
 
-export function addBrinde(
+export async function addBrinde(
   apoiadorId: string,
   tournamentId: string,
   description: string,
   quantity: number,
   type: "kit" | "sorteio"
-): Brinde {
+): Promise<Brinde> {
   const data = getData()
   const brinde: Brinde = {
     id: crypto.randomUUID(),
@@ -1947,17 +1947,17 @@ export function addBrinde(
     created_at: new Date().toISOString(),
   }
   data.brindes.push(brinde)
-  saveData(data)
+  await saveData(data)
   return brinde
 }
 
-export function removeBrinde(brindeId: string) {
+export async function removeBrinde(brindeId: string) {
   const data = getData()
   data.brindes = data.brindes.filter((b) => b.id !== brindeId)
-  saveData(data)
+  await saveData(data)
 }
 
-export function updateBrinde(
+export async function updateBrinde(
   brindeId: string,
   updates: { description?: string; quantity?: number; type?: "kit" | "sorteio" }
 ) {
@@ -1967,7 +1967,7 @@ export function updateBrinde(
   if (updates.description !== undefined) brinde.description = updates.description
   if (updates.quantity !== undefined) brinde.quantity = updates.quantity
   if (updates.type !== undefined) brinde.type = updates.type
-  saveData(data)
+  await saveData(data)
 }
 
 export function getBrindes(tournamentId: string, type?: "kit" | "sorteio"): Brinde[] {
@@ -2078,7 +2078,7 @@ export function getNotes(): Note[] {
   })
 }
 
-export function createNote(title: string, content: string, tournament_id?: string): Note {
+export async function createNote(title: string, content: string, tournament_id?: string): Promise<Note> {
   const data = getData()
   const note: Note = {
     id: crypto.randomUUID(),
@@ -2090,21 +2090,21 @@ export function createNote(title: string, content: string, tournament_id?: strin
     updated_at: new Date().toISOString(),
   }
   data.notes.push(note)
-  saveData(data)
+  await saveData(data)
   return note
 }
 
-export function updateNote(id: string, updates: Partial<Pick<Note, "title" | "content" | "pinned">>): Note | null {
+export async function updateNote(id: string, updates: Partial<Pick<Note, "title" | "content" | "pinned">>): Promise<Note | null> {
   const data = getData()
   const idx = data.notes.findIndex((n) => n.id === id)
   if (idx === -1) return null
   data.notes[idx] = { ...data.notes[idx], ...updates, updated_at: new Date().toISOString() }
-  saveData(data)
+  await saveData(data)
   return data.notes[idx]
 }
 
-export function deleteNote(id: string) {
+export async function deleteNote(id: string) {
   const data = getData()
   data.notes = data.notes.filter((n) => n.id !== id)
-  saveData(data)
+  await saveData(data)
 }
