@@ -33,6 +33,11 @@ export default function PlacarPage() {
   const initialRoundSet = useRef(false)
   const [locked, setLocked] = useState(false)
   const [editingCourts, setEditingCourts] = useState(false)
+  const [scoring, setScoring] = useState<Set<string>>(new Set())
+  const [resetting, setResetting] = useState(false)
+  const [finalizing, setFinalizing] = useState(false)
+  const [savingEdit, setSavingEdit] = useState(false)
+  const [savingCourt, setSavingCourt] = useState<Set<string>>(new Set())
 
   const loadData = useCallback(() => {
     const t = getTournamentById(id)
@@ -66,14 +71,26 @@ export default function PlacarPage() {
     return () => clearInterval(interval)
   }, [loadData])
 
-  const handleScore = (matchId: string, team: 1 | 2) => {
-    updateMatchScore(matchId, team)
-    loadData()
+  const handleScore = async (matchId: string, team: 1 | 2) => {
+    const key = `score-${matchId}-${team}`
+    setScoring((prev) => new Set(prev).add(key))
+    try {
+      await updateMatchScore(matchId, team)
+      loadData()
+    } finally {
+      setScoring((prev) => { const next = new Set(prev); next.delete(key); return next })
+    }
   }
 
-  const handleDecrement = (matchId: string, team: 1 | 2) => {
-    decrementMatchScore(matchId, team)
-    loadData()
+  const handleDecrement = async (matchId: string, team: 1 | 2) => {
+    const key = `decrement-${matchId}-${team}`
+    setScoring((prev) => new Set(prev).add(key))
+    try {
+      await decrementMatchScore(matchId, team)
+      loadData()
+    } finally {
+      setScoring((prev) => { const next = new Set(prev); next.delete(key); return next })
+    }
   }
 
   const [fixing, setFixing] = useState(false)
@@ -90,12 +107,17 @@ export default function PlacarPage() {
     })
   }
 
-  const handleSaveEdit = (matchId: string) => {
+  const handleSaveEdit = async (matchId: string) => {
     if (!editPlayers) return
-    updateMatchPlayers(matchId, editPlayers.t1p1, editPlayers.t1p2, editPlayers.t2p1, editPlayers.t2p2)
-    setEditingMatchId(null)
-    setEditPlayers(null)
-    loadData()
+    setSavingEdit(true)
+    try {
+      await updateMatchPlayers(matchId, editPlayers.t1p1, editPlayers.t1p2, editPlayers.t2p1, editPlayers.t2p2)
+      setEditingMatchId(null)
+      setEditPlayers(null)
+      loadData()
+    } finally {
+      setSavingEdit(false)
+    }
   }
 
   const handleCancelEdit = () => {
@@ -118,10 +140,14 @@ export default function PlacarPage() {
     }
   }
 
-  const handleReset = () => {
-    if (window.confirm("Tem certeza que deseja reiniciar todos os placares?")) {
-      resetAllScores(id)
+  const handleReset = async () => {
+    if (!window.confirm("Tem certeza que deseja reiniciar todos os placares?")) return
+    setResetting(true)
+    try {
+      await resetAllScores(id)
       loadData()
+    } finally {
+      setResetting(false)
     }
   }
 
@@ -186,16 +212,21 @@ export default function PlacarPage() {
                   Recria as partidas da Rodada {currentRound} até a 7 usando a escala Whist corrigida. Os placares em andamento são mantidos.
                 </div>
               </div>
-              <Button variant="danger" size="sm" onClick={handleReset}>
-                Reiniciar Placar
+              <Button variant="danger" size="sm" onClick={handleReset} disabled={resetting}>
+                {resetting ? "Reiniciando..." : "Reiniciar Placar"}
               </Button>
-              <Button variant="success" size="sm" onClick={() => {
+              <Button variant="success" size="sm" disabled={finalizing} onClick={async () => {
                 if (window.confirm("Finalizar evento? As partidas pendentes serão encerradas e os resultados calculados.")) {
-                  finalizeTournament(id)
-                  loadData()
+                  setFinalizing(true)
+                  try {
+                    await finalizeTournament(id)
+                    loadData()
+                  } finally {
+                    setFinalizing(false)
+                  }
                 }
               }}>
-                Finalizar Evento
+                {finalizing ? "Finalizando..." : "Finalizar Evento"}
               </Button>
             </>
           )}
@@ -243,10 +274,16 @@ export default function PlacarPage() {
                   {editingCourts ? (
                     <select
                       value={match.court}
-                      onChange={(e) => {
+                      disabled={savingCourt.has(match.id)}
+                      onChange={async (e) => {
                         if (window.confirm(`Alterar quadra de "${match.court}" para "${e.target.value}"?`)) {
-                          updateMatchCourt(match.id, e.target.value)
-                          loadData()
+                          setSavingCourt((prev) => new Set(prev).add(match.id))
+                          try {
+                            await updateMatchCourt(match.id, e.target.value)
+                            loadData()
+                          } finally {
+                            setSavingCourt((prev) => { const next = new Set(prev); next.delete(match.id); return next })
+                          }
                         }
                       }}
                       className="text-xs font-semibold border border-gray-300 dark:border-gray-600 rounded px-1 py-0.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
@@ -328,8 +365,8 @@ export default function PlacarPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="primary" size="sm" className="flex-1" onClick={() => handleSaveEdit(match.id)}>
-                      Salvar
+                    <Button variant="primary" size="sm" className="flex-1" onClick={() => handleSaveEdit(match.id)} disabled={savingEdit}>
+                      {savingEdit ? "Salvando..." : "Salvar"}
                     </Button>
                     <Button variant="ghost" size="sm" className="flex-1" onClick={handleCancelEdit}>
                       Cancelar
@@ -351,7 +388,7 @@ export default function PlacarPage() {
                   <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                     <button
                       className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold text-lg sm:text-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-30"
-                      disabled={match.score_team1 <= 0 || locked}
+                      disabled={match.score_team1 <= 0 || locked || scoring.has(`decrement-${match.id}-1`)}
                       onClick={() => handleDecrement(match.id, 1)}
                     >
                       −
@@ -365,7 +402,7 @@ export default function PlacarPage() {
                     </p>
                     <button
                       className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold text-lg sm:text-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-30"
-                      disabled={match.score_team2 <= 0 || locked}
+                      disabled={match.score_team2 <= 0 || locked || scoring.has(`decrement-${match.id}-2`)}
                       onClick={() => handleDecrement(match.id, 2)}
                     >
                       −
@@ -390,19 +427,19 @@ export default function PlacarPage() {
                     variant="success"
                     size="lg"
                     className="flex-1 text-base sm:text-lg font-bold py-3 sm:py-4"
-                    disabled={match.score_team1 >= (tournament?.max_score || 5) || locked}
+                    disabled={match.score_team1 >= (tournament?.max_score || 5) || locked || scoring.has(`score-${match.id}-1`)}
                     onClick={() => handleScore(match.id, 1)}
                   >
-                    +1
+                    {scoring.has(`score-${match.id}-1`) ? "..." : "+1"}
                   </Button>
                   <Button
                     variant="success"
                     size="lg"
                     className="flex-1 text-base sm:text-lg font-bold py-3 sm:py-4"
-                    disabled={match.score_team2 >= (tournament?.max_score || 5) || locked}
+                    disabled={match.score_team2 >= (tournament?.max_score || 5) || locked || scoring.has(`score-${match.id}-2`)}
                     onClick={() => handleScore(match.id, 2)}
                   >
-                    +1
+                    {scoring.has(`score-${match.id}-2`) ? "..." : "+1"}
                   </Button>
                 </div>
               )}

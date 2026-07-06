@@ -96,13 +96,13 @@ export default function SortearNumeros() {
 
     const totalSteps = 15
     let step = 0
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       setRollingNumber(availableNumbers[Math.floor(Math.random() * availableNumbers.length)])
       step++
       if (step >= totalSteps) {
         clearInterval(interval)
         const cat = hasMultipleCategories && selectedCategory ? selectedCategory : undefined
-        const result = store.drawSingleNumber(selectedTournament, cat, selectedGroup || undefined)
+        const result = await store.drawSingleNumber(selectedTournament, cat, selectedGroup || undefined)
         if (result) {
           setRollingNumber(result.number)
           setDrawingAthlete({ athlete_id: result.athlete_id, name: result.name, number: result.number, category: cat, group_name: selectedGroup || undefined })

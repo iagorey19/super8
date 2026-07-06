@@ -218,7 +218,7 @@ export async function unregisterAthlete(registrationId: string) {
   await saveData(data)
 }
 
-export function deleteTournament(tournamentId: string) {
+export async function deleteTournament(tournamentId: string) {
   const data = getData()
   data.tournaments = data.tournaments.filter((t) => t.id !== tournamentId)
   data.athlete_registrations = data.athlete_registrations.filter((r) => r.tournament_id !== tournamentId)
@@ -233,10 +233,10 @@ export function deleteTournament(tournamentId: string) {
   data.brindes = data.brindes.filter((b) => b.tournament_id !== tournamentId)
   if (data.raffle_records) data.raffle_records = data.raffle_records.filter((r) => r.tournament_id !== tournamentId)
   data.notes = data.notes.filter((n) => n.tournament_id !== tournamentId)
-  saveData(data)
+  await saveData(data)
 }
 
-export function resetTournament(tournamentId: string) {
+export async function resetTournament(tournamentId: string) {
   const data = getData()
   const tournament = data.tournaments.find((t) => t.id === tournamentId)
   if (!tournament) return
@@ -251,7 +251,7 @@ export function resetTournament(tournamentId: string) {
     }
   })
   tournament.status = "upcoming"
-  saveData(data)
+  await saveData(data)
 }
 
 export async function updateAthlete(athleteId: string, updates: { name?: string; email?: string; phone?: string; password?: string }) {
@@ -269,7 +269,7 @@ export async function updateAthlete(athleteId: string, updates: { name?: string;
   }
 }
 
-export function deleteAthlete(athleteId: string) {
+export async function deleteAthlete(athleteId: string) {
   const data = getData()
   data.users = data.users.filter((u) => u.id !== athleteId)
   data.athlete_registrations = data.athlete_registrations.filter((r) => r.athlete_id !== athleteId)
@@ -278,10 +278,10 @@ export function deleteAthlete(athleteId: string) {
   data.tournament_results = data.tournament_results.filter((r) => r.athlete_id !== athleteId)
   data.annual_rankings = data.annual_rankings.filter((r) => r.athlete_id !== athleteId)
   data.notifications = data.notifications.filter((n) => n.user_id !== athleteId)
-  saveData(data)
+  await saveData(data)
 }
 
-export function createTournament(
+export async function createTournament(
   title: string,
   edition: string,
   date: string,
@@ -290,7 +290,7 @@ export function createTournament(
   categories: string[] = ["4e5"],
   registration_fee?: number,
   max_score?: number
-): Tournament {
+): Promise<Tournament> {
   const data = getData()
   const tournament: Tournament = {
     id: crypto.randomUUID(),
@@ -306,11 +306,11 @@ export function createTournament(
     created_by: createdBy,
   }
   data.tournaments.push(tournament)
-  saveData(data)
+  await saveData(data)
   return tournament
 }
 
-export function updateTournament(
+export async function updateTournament(
   id: string,
   updates: Partial<Tournament>
 ) {
@@ -319,7 +319,7 @@ export function updateTournament(
   if (idx >= 0) {
     const { id: _id, created_at: _ca, created_by: _cb, ...safe } = updates
     Object.assign(data.tournaments[idx], safe)
-    saveData(data)
+    await saveData(data)
   }
 }
 
@@ -335,7 +335,7 @@ export function getCourtNames(tournamentId: string): string[] {
   return Array.from({ length: count }, (_, i) => `Quadra ${i + 1}`)
 }
 
-export function updateCourtName(tournamentId: string, index: number, name: string) {
+export async function updateCourtName(tournamentId: string, index: number, name: string) {
   const data = getData()
   const t = data.tournaments.find((tour) => tour.id === tournamentId)
   if (!t) return
@@ -345,7 +345,7 @@ export function updateCourtName(tournamentId: string, index: number, name: strin
   }
   if (index >= 0 && index < t.court_names.length) {
     t.court_names[index] = name || `Quadra ${index + 1}`
-    saveData(data)
+    await saveData(data)
   }
 }
 
@@ -519,7 +519,7 @@ export async function registerMultipleAthletes(
   return created
 }
 
-export function startTournament(tournamentId: string, category?: string, groupName?: string) {
+export async function startTournament(tournamentId: string, category?: string, groupName?: string) {
   const data = getData()
   const tournament = data.tournaments.find((t) => t.id === tournamentId)
   if (!tournament) throw new Error("Torneio não encontrado")
@@ -559,7 +559,7 @@ export function startTournament(tournamentId: string, category?: string, groupNa
 
   if (tournament) tournament.status = "ongoing"
 
-  saveData(data)
+  await saveData(data)
   return { pairings, matches }
 }
 
@@ -586,10 +586,10 @@ export function getTournamentPairings(tournamentId: string, category?: string, g
     })
 }
 
-export function updateMatchScore(
+export async function updateMatchScore(
   matchId: string,
   team: 1 | 2
-): Match | null {
+): Promise<Match | null> {
   const data = getData()
   const match = data.matches.find((m) => m.id === matchId)
   if (!match) return null
@@ -610,14 +610,14 @@ export function updateMatchScore(
     checkTournamentCompletion(data, match.tournament_id, match.category || "4e5", match.group_name || "A")
   }
 
-  saveData(data)
+  await saveData(data)
   return { ...match }
 }
 
-export function decrementMatchScore(
+export async function decrementMatchScore(
   matchId: string,
   team: 1 | 2
-): Match | null {
+): Promise<Match | null> {
   const data = getData()
   const match = data.matches.find((m) => m.id === matchId)
   if (!match) return null
@@ -637,11 +637,11 @@ export function decrementMatchScore(
     match.status = "live"
   }
 
-  saveData(data)
+  await saveData(data)
   return { ...match }
 }
 
-export function swapMatchTeams(matchId: string): Match | null {
+export async function swapMatchTeams(matchId: string): Promise<Match | null> {
   const data = getData()
   const match = data.matches.find((m) => m.id === matchId)
   if (!match) return null
@@ -672,11 +672,11 @@ export function swapMatchTeams(matchId: string): Match | null {
     pairing.player4_id = pp2
   }
 
-  saveData(data)
+  await saveData(data)
   return { ...match }
 }
 
-export function updateMatchPlayers(
+export async function updateMatchPlayers(
   matchId: string,
   t1p1: string,
   t1p2: string,
@@ -700,15 +700,15 @@ export function updateMatchPlayers(
     pairing.player4_id = t2p2
   }
 
-  saveData(data)
+  await saveData(data)
 }
 
-export function updateMatchCourt(matchId: string, court: string) {
+export async function updateMatchCourt(matchId: string, court: string) {
   const data = getData()
   const match = data.matches.find((m) => m.id === matchId)
   if (match) {
     match.court = court
-    saveData(data)
+    await saveData(data)
   }
 }
 
@@ -781,7 +781,7 @@ export async function regenerateWhistFromRound(tournamentId: string, fromRound: 
   return updated
 }
 
-function checkTournamentCompletion(data: AppData, tournamentId: string, category: string, groupName: string) {
+async function checkTournamentCompletion(data: AppData, tournamentId: string, category: string, groupName: string) {
   const matches = data.matches.filter(
     (m) => m.tournament_id === tournamentId && m.category === category && m.group_name === groupName
   )
@@ -828,11 +828,11 @@ function checkTournamentCompletion(data: AppData, tournamentId: string, category
 
     updateAnnualRankings(data, category)
 
-    saveData(data)
+    await saveData(data)
   }
 }
 
-export function finalizeTournament(tournamentId: string) {
+export async function finalizeTournament(tournamentId: string) {
   const data = getData()
   const tournament = data.tournaments.find((t) => t.id === tournamentId)
   if (!tournament) return
@@ -884,10 +884,10 @@ export function finalizeTournament(tournamentId: string) {
   })
 
   tournament.status = "completed"
-  saveData(data)
+  await saveData(data)
 }
 
-export function resetAllScores(tournamentId: string, category?: string, groupName?: string) {
+export async function resetAllScores(tournamentId: string, category?: string, groupName?: string) {
   const data = getData()
   data.matches
     .filter((m) => m.tournament_id === tournamentId && (!category || m.category === category) && (!groupName || m.group_name === groupName))
@@ -896,10 +896,10 @@ export function resetAllScores(tournamentId: string, category?: string, groupNam
       m.score_team2 = 0
       m.status = "pending"
     })
-  saveData(data)
+  await saveData(data)
 }
 
-export function recalculateTournamentResults(tournamentId: string) {
+export async function recalculateTournamentResults(tournamentId: string) {
   const data = getData()
   const keys = new Set<string>()
 
@@ -958,7 +958,7 @@ export function recalculateTournamentResults(tournamentId: string) {
   })
 
   data.annual_rankings = []
-  saveData(data)
+  await saveData(data)
 }
 
 function updateAnnualRankings(data: AppData, category: string) {
@@ -1204,11 +1204,11 @@ export async function updateUser(id: string, updates: { name?: string; email?: s
   await saveData(data)
 }
 
-export function deleteUser(id: string) {
+export async function deleteUser(id: string) {
   const data = getData()
   data.users = data.users.filter((u) => u.id !== id)
   data.notifications = data.notifications.filter((n) => n.user_id !== id)
-  saveData(data)
+  await saveData(data)
 }
 
 export function getUserById(id: string): User | undefined {
@@ -1681,7 +1681,7 @@ export function getAthleteStats(athleteId: string) {
   }
 }
 
-export function drawNumbers(tournamentId: string, category?: string, groupName?: string) {
+export async function drawNumbers(tournamentId: string, category?: string, groupName?: string) {
   const data = getData()
   const cat = category || "4e5"
   const grp = groupName || "A"
@@ -1708,7 +1708,7 @@ export function drawNumbers(tournamentId: string, category?: string, groupName?:
     (r) => !(r.tournament_id === tournamentId && r.category === cat && r.group_name === grp)
   )
 
-  saveData(data)
+  await saveData(data)
   return registrations.map((r) => ({
     athlete_id: r.athlete_id,
     name: data.users.find((u) => u.id === r.athlete_id)?.name || "",
@@ -1716,7 +1716,7 @@ export function drawNumbers(tournamentId: string, category?: string, groupName?:
   }))
 }
 
-export function drawSingleNumber(tournamentId: string, category?: string, groupName?: string) {
+export async function drawSingleNumber(tournamentId: string, category?: string, groupName?: string) {
   const data = getData()
   const cat = category || "4e5"
   const grp = groupName || "A"
@@ -1748,7 +1748,7 @@ export function drawSingleNumber(tournamentId: string, category?: string, groupN
     )
   }
 
-  saveData(data)
+  await saveData(data)
   return {
     athlete_id: chosen.athlete_id,
     name: data.users.find((u) => u.id === chosen.athlete_id)?.name || "",
@@ -1756,7 +1756,7 @@ export function drawSingleNumber(tournamentId: string, category?: string, groupN
   }
 }
 
-export function resetNumberDraw(tournamentId: string, category?: string, groupName?: string) {
+export async function resetNumberDraw(tournamentId: string, category?: string, groupName?: string) {
   const data = getData()
   const cat = category || "4e5"
   const grp = groupName || "A"
@@ -1772,7 +1772,7 @@ export function resetNumberDraw(tournamentId: string, category?: string, groupNa
   data.tournament_results = data.tournament_results.filter(
     (r) => !(r.tournament_id === tournamentId && r.category === cat && r.group_name === grp)
   )
-  saveData(data)
+  await saveData(data)
 }
 
 export function rafflePrize(
@@ -1830,7 +1830,7 @@ export function getRegisteredAthletes(tournamentId: string, category?: string, g
   })
 }
 
-export function toggleAttendance(tournamentId: string, athleteId: string) {
+export async function toggleAttendance(tournamentId: string, athleteId: string) {
   const data = getData()
   const reg = data.athlete_registrations.find(
     (r) => r.tournament_id === tournamentId && r.athlete_id === athleteId
@@ -1843,7 +1843,7 @@ export function toggleAttendance(tournamentId: string, athleteId: string) {
       reg.confirmed = true
       reg.confirmed_at = new Date().toISOString()
     }
-    saveData(data)
+    await saveData(data)
   }
 }
 
@@ -1857,7 +1857,7 @@ export function getUnconfirmedAthletes(tournamentId: string) {
     })
 }
 
-export function sendConfirmationReminder(tournamentId: string) {
+export async function sendConfirmationReminder(tournamentId: string) {
   const data = getData()
   const unconfirmed = data.athlete_registrations.filter(
     (r) => r.tournament_id === tournamentId && r.status === "approved" && !r.confirmed
@@ -1874,7 +1874,7 @@ export function sendConfirmationReminder(tournamentId: string) {
       created_at: new Date().toISOString(),
     })
   }
-  saveData(data)
+  await saveData(data)
 }
 
 export function getCurrentTournament(): Tournament | undefined {
@@ -1999,10 +1999,10 @@ export function getBrindes(tournamentId: string, type?: "kit" | "sorteio"): Brin
   return result
 }
 
-export function raffleBrinde(tournamentId: string): {
+export async function raffleBrinde(tournamentId: string): Promise<{
   brinde: Brinde
   winner: { id: string; name: string }
-} | null {
+} | null> {
   const data = getData()
   const sorteioBrindes = data.brindes.filter(
     (b) => b.tournament_id === tournamentId && b.type === "sorteio"
@@ -2036,7 +2036,7 @@ export function raffleBrinde(tournamentId: string): {
     created_at: new Date().toISOString(),
   })
 
-  saveData(data)
+  await saveData(data)
 
   return {
     brinde,
@@ -2052,7 +2052,7 @@ export function getRaffleRecords(tournamentId: string): RaffleRecord[] {
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 }
 
-export function recordRaffle(tournamentId: string, description: string, winnerName: string) {
+export async function recordRaffle(tournamentId: string, description: string, winnerName: string) {
   const data = getData()
   if (!data.raffle_records) data.raffle_records = []
   data.raffle_records.push({
@@ -2063,33 +2063,33 @@ export function recordRaffle(tournamentId: string, description: string, winnerNa
     winner_name: winnerName,
     created_at: new Date().toISOString(),
   })
-  saveData(data)
+  await saveData(data)
 }
 
-export function updateRaffleRecord(recordId: string, updates: { winner_name?: string; brinde_description?: string }) {
+export async function updateRaffleRecord(recordId: string, updates: { winner_name?: string; brinde_description?: string }) {
   const data = getData()
   const record = data.raffle_records?.find((r) => r.id === recordId)
   if (record) {
     if (updates.winner_name !== undefined) record.winner_name = updates.winner_name
     if (updates.brinde_description !== undefined) record.brinde_description = updates.brinde_description
-    saveData(data)
+    await saveData(data)
   }
 }
 
-export function removeRaffleRecord(recordId: string) {
+export async function removeRaffleRecord(recordId: string) {
   const data = getData()
   if (data.raffle_records) {
     data.raffle_records = data.raffle_records.filter((r) => r.id !== recordId)
   }
-  saveData(data)
+  await saveData(data)
 }
 
-export function resetRaffleRecords(tournamentId: string) {
+export async function resetRaffleRecords(tournamentId: string) {
   const data = getData()
   if (data.raffle_records) {
     data.raffle_records = data.raffle_records.filter((r) => r.tournament_id !== tournamentId)
   }
-  saveData(data)
+  await saveData(data)
 }
 
 export function getNotes(): Note[] {

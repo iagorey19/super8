@@ -44,6 +44,7 @@ export default function AthletesPage() {
   const [addForm, setAddForm] = useState({ name: "", email: "", password: "", phone: "" })
   const [statsModalOpen, setStatsModalOpen] = useState(false)
   const [statsData, setStatsData] = useState<any>(null)
+  const [saving, setSaving] = useState<Set<string>>(new Set())
 
   function loadData() {
     setAthletes(getAthletes())
@@ -57,23 +58,29 @@ export default function AthletesPage() {
     setTimeout(() => setToast(null), 3000)
   }
 
-  function handleApprove(registrationId: string) {
+  async function handleApprove(registrationId: string) {
+    setSaving((prev) => new Set(prev).add(`approve-${registrationId}`))
     try {
-      approveAthlete(registrationId)
+      await approveAthlete(registrationId)
       showToast("success", "Atleta aprovado com sucesso!")
       loadData()
     } catch {
       showToast("error", "Erro ao aprovar atleta")
+    } finally {
+      setSaving((prev) => { const next = new Set(prev); next.delete(`approve-${registrationId}`); return next })
     }
   }
 
-  function handleReject(registrationId: string) {
+  async function handleReject(registrationId: string) {
+    setSaving((prev) => new Set(prev).add(`reject-${registrationId}`))
     try {
-      rejectAthlete(registrationId)
+      await rejectAthlete(registrationId)
       showToast("success", "Atleta rejeitado")
       loadData()
     } catch {
       showToast("error", "Erro ao rejeitar atleta")
+    } finally {
+      setSaving((prev) => { const next = new Set(prev); next.delete(`reject-${registrationId}`); return next })
     }
   }
 
@@ -90,11 +97,12 @@ export default function AthletesPage() {
   const tournamentCategories = selectedTournamentData?.categories || []
   const hasMultipleCategories = tournamentCategories.length > 1
 
-  function handleRegister() {
+  async function handleRegister() {
     if (!selectedAthlete || !selectedTournament) return
+    setSaving((prev) => new Set(prev).add("register"))
     try {
       const cat = hasMultipleCategories ? selectedCategory || tournamentCategories[0] : tournamentCategories[0]
-      registerAthleteInTournament(
+      await registerAthleteInTournament(
         selectedTournament,
         selectedAthlete.id,
         cat,
@@ -106,6 +114,8 @@ export default function AthletesPage() {
       loadData()
     } catch {
       showToast("error", "Erro ao registrar atleta no torneio")
+    } finally {
+      setSaving((prev) => { const next = new Set(prev); next.delete("register"); return next })
     }
   }
 
@@ -158,11 +168,11 @@ export default function AthletesPage() {
                   </Td>
                   <Td>
                     <div className="flex gap-2">
-                      <Button size="sm" variant="success" onClick={() => handleApprove(p.registration_id)}>
-                        Aprovar
+                      <Button size="sm" variant="success" onClick={() => handleApprove(p.registration_id)} disabled={saving.has(`approve-${p.registration_id}`) || saving.has(`reject-${p.registration_id}`)}>
+                        {saving.has(`approve-${p.registration_id}`) ? "..." : "Aprovar"}
                       </Button>
-                      <Button size="sm" variant="danger" onClick={() => handleReject(p.registration_id)}>
-                        Rejeitar
+                      <Button size="sm" variant="danger" onClick={() => handleReject(p.registration_id)} disabled={saving.has(`reject-${p.registration_id}`) || saving.has(`approve-${p.registration_id}`)}>
+                        {saving.has(`reject-${p.registration_id}`) ? "..." : "Rejeitar"}
                       </Button>
                     </div>
                   </Td>
@@ -216,14 +226,23 @@ export default function AthletesPage() {
                     <Button
                       size="sm"
                       variant="danger"
-                      onClick={() => {
+                      disabled={saving.has(`delete-${a.id}`)}
+                      onClick={async () => {
                         if (window.confirm(`Remover atleta "${a.name}" permanentemente?`)) {
-                          deleteAthlete(a.id)
-                          loadData()
+                          setSaving((prev) => new Set(prev).add(`delete-${a.id}`))
+                          try {
+                            await deleteAthlete(a.id)
+                            loadData()
+                            showToast("success", "Atleta removido!")
+                          } catch {
+                            showToast("error", "Erro ao remover atleta")
+                          } finally {
+                            setSaving((prev) => { const next = new Set(prev); next.delete(`delete-${a.id}`); return next })
+                          }
                         }
                       }}
                     >
-                      Remover
+                      {saving.has(`delete-${a.id}`) ? "..." : "Remover"}
                     </Button>
                   </div>
                 </Td>
@@ -258,17 +277,24 @@ export default function AthletesPage() {
             </Button>
             <Button
               className="flex-1"
-              disabled={!editForm.name || !editForm.email}
+              disabled={!editForm.name || !editForm.email || saving.has("edit")}
               onClick={async () => {
                 if (editingAthlete) {
-                  await updateAthlete(editingAthlete.id, editForm)
-                  setEditModalOpen(false)
-                  loadData()
-                  showToast("success", "Atleta atualizado!")
+                  setSaving((prev) => new Set(prev).add("edit"))
+                  try {
+                    await updateAthlete(editingAthlete.id, editForm)
+                    setEditModalOpen(false)
+                    loadData()
+                    showToast("success", "Atleta atualizado!")
+                  } catch {
+                    showToast("error", "Erro ao atualizar atleta")
+                  } finally {
+                    setSaving((prev) => { const next = new Set(prev); next.delete("edit"); return next })
+                  }
                 }
               }}
             >
-              Salvar
+              {saving.has("edit") ? "Salvando..." : "Salvar"}
             </Button>
           </div>
         </div>
@@ -327,10 +353,10 @@ export default function AthletesPage() {
             </Button>
             <Button
               className="flex-1"
-              disabled={!selectedTournament || (hasMultipleCategories && !selectedCategory)}
+              disabled={!selectedTournament || (hasMultipleCategories && !selectedCategory) || saving.has("register")}
               onClick={handleRegister}
             >
-              Registrar
+              {saving.has("register") ? "Registrando..." : "Registrar"}
             </Button>
           </div>
         </div>
@@ -370,20 +396,27 @@ export default function AthletesPage() {
             </Button>
             <Button
               className="flex-1"
-              disabled={!addForm.name || !addForm.email || !addForm.password}
-              onClick={() => {
-                const result = createUser(addForm.name, addForm.email, addForm.password, "athlete", addForm.phone)
-                if (!result) {
-                  showToast("error", "Email já cadastrado")
-                  return
+              disabled={!addForm.name || !addForm.email || !addForm.password || saving.has("create")}
+              onClick={async () => {
+                setSaving((prev) => new Set(prev).add("create"))
+                try {
+                  const result = await createUser(addForm.name, addForm.email, addForm.password, "athlete", addForm.phone)
+                  if (!result) {
+                    showToast("error", "Email já cadastrado")
+                    return
+                  }
+                  setAddModalOpen(false)
+                  setAddForm({ name: "", email: "", password: "", phone: "" })
+                  loadData()
+                  showToast("success", "Atleta criado com sucesso!")
+                } catch {
+                  showToast("error", "Erro ao criar atleta")
+                } finally {
+                  setSaving((prev) => { const next = new Set(prev); next.delete("create"); return next })
                 }
-                setAddModalOpen(false)
-                setAddForm({ name: "", email: "", password: "", phone: "" })
-                loadData()
-                showToast("success", "Atleta criado com sucesso!")
               }}
             >
-              Criar
+              {saving.has("create") ? "Criando..." : "Criar"}
             </Button>
           </div>
         </div>

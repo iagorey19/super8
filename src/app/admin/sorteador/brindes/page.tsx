@@ -88,7 +88,7 @@ export default function SortearBrindes() {
     })
   }
 
-  function handleAutoRaffle(brindeId: string) {
+  async function handleAutoRaffle(brindeId: string) {
     if (!selectedTournamentId) return
     if (participants.length === 0) {
       alert("Adicione participantes primeiro.")
@@ -110,7 +110,7 @@ export default function SortearBrindes() {
         clearInterval(scrollRef.current!)
         const slowSteps = 10
         let slow = 0
-        const slowInterval = setInterval(() => {
+        const slowInterval = setInterval(async () => {
           const randomName = names[Math.floor(Math.random() * names.length)]
           setScrollingName(randomName)
           slow++
@@ -118,7 +118,7 @@ export default function SortearBrindes() {
           if (slow >= slowSteps) {
             clearInterval(slowInterval)
 
-            const result = store.raffleBrinde(selectedTournamentId)
+            const result = await store.raffleBrinde(selectedTournamentId)
             if (!result) {
               alert("Nenhum brinde disponível para sorteio.")
               setIsAnimating(false)
