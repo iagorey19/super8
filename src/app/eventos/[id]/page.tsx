@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/toast"
 import * as store from "@/lib/store"
+import { sanitizeUrl } from "@/lib/validate-url"
 import { getStatusColor, getStatusLabel, getCategoryLabel } from "@/lib/utils"
 import { generatePixPayload, generatePixQR, formatCurrency, generateWhatsAppLink } from "@/lib/pix"
 import type { Tournament, RaffleRecord, AthleteRegistration } from "@/lib/types"
@@ -468,7 +469,7 @@ export default function EventoDetalhePage() {
                       <div>
                         <p className="font-bold text-gray-900 dark:text-white text-base">{s.sponsor_name}</p>
                         {s.sponsor_url && (
-                          <a href={s.sponsor_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-bold text-amber-600 hover:text-amber-700 mt-0.5">
+                          <a href={sanitizeUrl(s.sponsor_url, "#")} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-bold text-amber-600 hover:text-amber-700 mt-0.5">
                             🔗 Acesse o site
                           </a>
                         )}

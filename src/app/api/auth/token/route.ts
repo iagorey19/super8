@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
+import { getClientIp, isRateLimited } from "@/lib/rate-limit"
 
-export async function GET() {
+export async function GET(req: Request) {
+  const ip = getClientIp(req)
+  if (isRateLimited(ip, 30, 60_000)) {
+    return NextResponse.json({ error: "Muitas requisições. Tente novamente mais tarde." }, { status: 429 })
+  }
+
   const cookieStore = await cookies()
   const token = cookieStore.get("super8-auth-token")
 

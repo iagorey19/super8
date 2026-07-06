@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, Td } from "@/components/ui/table"
 import * as store from "@/lib/store"
+import { sanitizeUrl } from "@/lib/validate-url"
 import { RankingInfo } from "@/components/ui/ranking-info"
 import { getStatusLabel } from "@/lib/utils"
 import type { Tournament } from "@/lib/types"
@@ -185,7 +186,7 @@ export default function PublicRankingPage() {
                       <div>
                         <p className="font-bold text-gray-900 dark:text-white text-base">{s.sponsor_name}</p>
                         {s.sponsor_url && (
-                          <a href={s.sponsor_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 mt-0.5">
+                          <a href={sanitizeUrl(s.sponsor_url, "#")} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 mt-0.5">
                             🔗 Acesse o site
                           </a>
                         )}

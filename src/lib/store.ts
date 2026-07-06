@@ -127,9 +127,17 @@ export async function registerAthlete(
 }
 
 function syncAuthUser(email: string, password: string) {
+  let token = ""
+  try {
+    const session = sessionStorage.getItem("super8-session")
+    if (session) {
+      const parsed = JSON.parse(session)
+      token = parsed.token || ""
+    }
+  } catch { /* no session */ }
   fetch("/api/auth/admin-register", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     body: JSON.stringify({ email, password }),
   }).catch((e) => console.warn("syncAuthUser: failed", e))
 }

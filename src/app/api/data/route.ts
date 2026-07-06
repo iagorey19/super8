@@ -1,12 +1,20 @@
 import { NextResponse } from "next/server"
 import { getServiceClient } from "@/lib/supabase"
 import { seed } from "@/lib/seed"
-import { isRateLimited } from "@/lib/rate-limit"
-import { getAuthSecret } from "@/lib/auth-secret"
+import { getClientIp, isRateLimited } from "@/lib/rate-limit"
+import { getAuthSecret, validateToken } from "@/lib/auth-secret"
 import { appDataSchema } from "@/lib/validation"
 import type { AppData, User, Tournament, AthleteRegistration, Pairing, Match, TournamentResult, AnnualRanking, Sponsorship, Expense, Revenue, Photo, Notification, Apoiador, Brinde, RaffleRecord, Note } from "@/lib/types"
-import crypto from "crypto"
 import bcrypt from "bcryptjs"
+
+type Role = "admin" | "athlete" | "sponsor"
+
+const TABLE_PERMISSIONS: Record<string, { roles: Role[]; ownerField?: string }> = {
+  users: { roles: ["admin", "athlete", "sponsor"], ownerField: "id" },
+  athlete_registrations: { roles: ["admin", "athlete"], ownerField: "athlete_id" },
+  notifications: { roles: ["admin", "athlete"], ownerField: "user_id" },
+  sponsorships: { roles: ["admin", "sponsor"], ownerField: "sponsor_id" },
+}
 
 const DB_TABLES = [
   "raffle_records", "brindes", "apoiadores",
@@ -14,21 +22,6 @@ const DB_TABLES = [
   "athlete_registrations", "sponsorships", "expenses", "revenues",
   "photos", "notifications", "notes", "tournaments", "users",
 ] as const
-
-function validateToken(token: string): { userId: string } | null {
-  try {
-    const [payloadB64, signatureB64] = token.split(".")
-    if (!payloadB64 || !signatureB64) return null
-    const secret = getAuthSecret()
-    const expectedSig = crypto.createHmac("sha256", secret).update(payloadB64).digest("base64url")
-    if (signatureB64 !== expectedSig) return null
-    const payload = JSON.parse(Buffer.from(payloadB64, "base64url").toString())
-    if (payload.exp && payload.exp < Date.now()) return null
-    return { userId: payload.userId }
-  } catch {
-    return null
-  }
-}
 
 async function queryAll<T>(table: string): Promise<T[]> {
   const { data } = await getServiceClient().from(table).select("*")
@@ -87,11 +80,15 @@ async function getFullData(): Promise<AppData> {
 
 export async function GET(req: Request) {
   try {
+    const ip = getClientIp(req)
+    if (isRateLimited(ip, 30)) {
+      return NextResponse.json({ error: "Muitas requisições. Tente novamente mais tarde." }, { status: 429 })
+    }
     const svc = getServiceClient()
     const { count, error } = await svc.from("users").select("*", { count: "exact", head: true })
     if (count === 0) {
       const data = seed()
-      await syncToSupabase(data)
+      await syncToSupabase(data, "admin", "seed")
       data.users = data.users.map(({ password, ...rest }) => rest as User)
       return NextResponse.json(data)
     }
@@ -103,22 +100,23 @@ export async function GET(req: Request) {
     data.users = data.users.map(({ password, ...rest }) => rest as User)
 
     const auth = req.headers.get("authorization")
+    let currentUser: User | null = null
     if (auth?.startsWith("Bearer ")) {
-      const token = auth.slice(7)
-      const authUser = validateToken(token)
+      const authUser = validateToken(auth.slice(7))
       if (authUser) {
-        const currentUser = data.users.find((u) => u.id === authUser.userId)
-        if (currentUser && currentUser.role !== "admin") {
-          data.users = data.users.map((u) => {
-            if (u.id === currentUser.id) return u
-            const sanitized: Record<string, unknown> = { ...u }
-            sanitized.phone = undefined
-            sanitized.email = "oculto@super8.app"
-            sanitized.avatar = undefined
-            return sanitized as unknown as User
-          })
-        }
+        currentUser = data.users.find((u) => u.id === authUser.userId) || null
       }
+    }
+    const isAdmin = currentUser?.role === "admin"
+    if (!isAdmin) {
+      data.users = data.users.map((u) => {
+        if (currentUser && u.id === currentUser.id) return u
+        const sanitized: Record<string, unknown> = { ...u }
+        sanitized.phone = undefined
+        sanitized.email = "oculto@super8.app"
+        sanitized.avatar = undefined
+        return sanitized as unknown as User
+      })
     }
 
     return NextResponse.json(data)
@@ -130,9 +128,14 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const ip = req.headers.get("x-forwarded-for") || "unknown"
+    const ip = getClientIp(req)
     if (isRateLimited(ip, 30)) {
       return NextResponse.json({ error: "Muitas requisições. Tente novamente mais tarde." }, { status: 429 })
+    }
+
+    const contentLength = req.headers.get("content-length")
+    if (contentLength && parseInt(contentLength) > 50_000_000) {
+      return NextResponse.json({ error: "Payload muito grande" }, { status: 413 })
     }
 
     const auth = req.headers.get("authorization")
@@ -145,6 +148,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "auth_required", message: "Token de autenticação necessário. Faça login novamente." }, { status: 401 })
     }
 
+    const svc = getServiceClient()
+    const { data: callerUser } = await svc.from("users").select("role").eq("id", authUser.userId).single()
+    const callerRole: Role = callerUser?.role || "athlete"
+
     const raw = await req.json()
     const parsed = appDataSchema.safeParse(raw)
     if (!parsed.success) {
@@ -155,9 +162,10 @@ export async function POST(req: Request) {
       }, { status: 400 })
     }
     const data = parsed.data as unknown as AppData
-    const errors = await syncToSupabase(data)
+    const errors = await syncToSupabase(data, callerRole, authUser.userId)
     if (errors.length > 0) {
-      return NextResponse.json({ ok: false, errors }, { status: 500 })
+      console.error("syncToSupabase errors:", errors)
+      return NextResponse.json({ ok: false, errors: ["Falha ao salvar alguns dados"] }, { status: 500 })
     }
     return NextResponse.json({ ok: true })
   } catch (e) {
@@ -166,7 +174,7 @@ export async function POST(req: Request) {
   }
 }
 
-async function syncToSupabase(data: AppData): Promise<string[]> {
+async function syncToSupabase(data: AppData, callerRole: Role, callerUserId: string): Promise<string[]> {
   const svc = getServiceClient()
   const errors: string[] = []
 
@@ -193,9 +201,19 @@ async function syncToSupabase(data: AppData): Promise<string[]> {
   if (configErr) errors.push(`config upsert: ${configErr.message}`)
 
   for (const { table, records } of upsertOrder) {
-    if (records.length > 0) {
+    const perm = TABLE_PERMISSIONS[table]
+    if (callerRole !== "admin" && (!perm || !perm.roles.includes(callerRole))) {
+      continue
+    }
+
+    let filteredRecords: any[] = records as any[]
+    if (callerRole !== "admin" && perm?.ownerField) {
+      filteredRecords = (records as any[]).filter((r: any) => r[perm.ownerField!] === callerUserId)
+    }
+
+    if (filteredRecords.length > 0) {
       if (table === "users") {
-        for (const user of records as User[]) {
+        for (const user of filteredRecords as User[]) {
           const { password, ...rest } = user
           if (password) {
             const upsertData = { ...rest, password: bcrypt.hashSync(password, 10) }
@@ -207,14 +225,17 @@ async function syncToSupabase(data: AppData): Promise<string[]> {
           }
         }
       } else {
-        const { error } = await svc.from(table).upsert(records as any, { onConflict: "id", ignoreDuplicates: false })
+        const { error } = await svc.from(table).upsert(filteredRecords as any, { onConflict: "id", ignoreDuplicates: false })
         if (error) {
           errors.push(`${table} upsert: ${error.message}`)
           continue
         }
       }
     }
-    const currentIds = new Set(records.map((r: any) => r.id))
+
+    if (callerRole !== "admin") continue
+
+    const currentIds = new Set(filteredRecords.map((r) => r.id))
     const { data: existing, error: selErr } = await svc.from(table).select("id")
     if (selErr) {
       errors.push(`${table} select: ${selErr.message}`)

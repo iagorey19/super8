@@ -1,20 +1,37 @@
 import { NextResponse } from "next/server"
 import { getServiceClient } from "@/lib/supabase"
-import { isRateLimited } from "@/lib/rate-limit"
+import { getClientIp, isRateLimited } from "@/lib/rate-limit"
+import { validateToken } from "@/lib/auth-secret"
 
 export async function POST(req: Request) {
   try {
-    const ip = req.headers.get("x-forwarded-for") || "unknown"
+    const ip = getClientIp(req)
     if (isRateLimited(ip, 10, 60_000)) {
       return NextResponse.json({ error: "Muitas requisições. Tente novamente em 1 minuto." }, { status: 429 })
+    }
+
+    const auth = req.headers.get("authorization")
+    if (!auth?.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "admin_required" }, { status: 401 })
+    }
+    const authUser = validateToken(auth.slice(7))
+    if (!authUser) {
+      return NextResponse.json({ error: "admin_required" }, { status: 401 })
+    }
+    const svc = getServiceClient()
+    const { data: requester } = await svc.from("users").select("role").eq("id", authUser.userId).single()
+    if (!requester || requester.role !== "admin") {
+      return NextResponse.json({ error: "admin_required" }, { status: 401 })
     }
 
     const { email, password } = await req.json()
     if (!email || !password) {
       return NextResponse.json({ error: "email and password required" }, { status: 400 })
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: "Invalid email format" }, { status: 400 })
+    }
 
-    const svc = getServiceClient()
     const { error: createError } = await svc.auth.admin.createUser({
       email,
       password,

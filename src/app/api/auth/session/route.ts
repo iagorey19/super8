@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getServiceClient } from "@/lib/supabase"
-import { isRateLimited } from "@/lib/rate-limit"
+import { getClientIp, isRateLimited } from "@/lib/rate-limit"
 import { getAuthSecret } from "@/lib/auth-secret"
 import crypto from "crypto"
 import bcrypt from "bcryptjs"
@@ -14,7 +14,7 @@ function signToken(payload: string): string {
 
 export async function POST(req: Request) {
   try {
-    const ip = req.headers.get("x-forwarded-for") || "unknown"
+    const ip = getClientIp(req)
     if (isRateLimited(ip, 5, 60_000)) {
       return NextResponse.json({ error: "Muitas tentativas. Tente novamente em 1 minuto." }, { status: 429 })
     }
@@ -22,6 +22,9 @@ export async function POST(req: Request) {
     const { email, password } = await req.json()
     if (!email || !password) {
       return NextResponse.json({ error: "Email e senha obrigatórios" }, { status: 400 })
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: "Formato de email inválido" }, { status: 400 })
     }
 
     const svc = getServiceClient()

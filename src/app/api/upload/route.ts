@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getServiceClient } from "@/lib/supabase"
-import { isRateLimited } from "@/lib/rate-limit"
+import { getClientIp, isRateLimited } from "@/lib/rate-limit"
 
 const ALLOWED_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "mp4"])
 const MAX_FILE_SIZE = 10 * 1024 * 1024
@@ -23,7 +23,7 @@ async function validateSession(req: Request): Promise<boolean> {
 
 export async function POST(req: Request) {
   try {
-    const ip = req.headers.get("x-forwarded-for") || "unknown"
+    const ip = getClientIp(req)
     if (isRateLimited(ip, 30, 60_000)) {
       return NextResponse.json({ error: "Muitas requisições. Tente novamente mais tarde." }, { status: 429 })
     }
@@ -55,7 +55,8 @@ export async function POST(req: Request) {
 
     if (error) {
       console.error("Signed URL error:", error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      console.error("upload error:", error.message)
+      return NextResponse.json({ error: "Erro ao fazer upload" }, { status: 500 })
     }
 
     const { data: publicUrl } = svc.storage.from("photos").getPublicUrl(fileName)
