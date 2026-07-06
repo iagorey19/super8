@@ -462,16 +462,37 @@ export default function EventoDetalhePage() {
               <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Apoiadores</p>
                 <div className="flex flex-wrap gap-2">
-                  {apoiadores.map((a: any) => (
-                    <div key={a.id} className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 text-sm">
-                      <span className="font-medium text-gray-900 dark:text-white">{a.name}</span>
-                      {a.brindes?.length > 0 && (
-                        <span className="text-gray-600 dark:text-gray-300 ml-1">
-                          - {a.brindes.map((b: any) => `${b.description} (${b.type === "kit" ? "Kit" : "Sorteio"})`).join(", ")}
-                        </span>
-                      )}
-                    </div>
-                  ))}
+                  {(() => {
+                    const master = apoiadores.find((a: any) => a.name === "REY MADEIRAS")
+                    const others = apoiadores.filter((a: any) => a.name !== "REY MADEIRAS")
+                    return (
+                      <>
+                        {master && (
+                          <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 text-sm w-full">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mb-0.5">
+                              🏆 Tábua Oficial The Super 8
+                            </p>
+                            <span className="font-medium text-gray-900 dark:text-white">{master.name}</span>
+                            {master.brindes?.length > 0 && (
+                              <span className="text-gray-600 dark:text-gray-300 ml-1">
+                                - {master.brindes.map((b: any) => `${b.description} (${b.type === "kit" ? "Kit" : "Sorteio"})`).join(", ")}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {others.map((a: any) => (
+                          <div key={a.id} className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 text-sm">
+                            <span className="font-medium text-gray-900 dark:text-white">{a.name}</span>
+                            {a.brindes?.length > 0 && (
+                              <span className="text-gray-600 dark:text-gray-300 ml-1">
+                                - {a.brindes.map((b: any) => `${b.description} (${b.type === "kit" ? "Kit" : "Sorteio"})`).join(", ")}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </>
+                    )
+                  })()}
                 </div>
               </div>
             )}
