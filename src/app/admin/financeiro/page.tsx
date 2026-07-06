@@ -49,6 +49,12 @@ export default function AdminFinanceiro() {
   const [revenueEditingId, setRevenueEditingId] = useState<string | null>(null)
   const [revenueForm, setRevenueForm] = useState(emptyRevenueForm)
   const [currentTournament, setCurrentTournament] = useState<Tournament | null>(null)
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
+
+  function showToast(type: "success" | "error", message: string) {
+    setToast({ type, message })
+    setTimeout(() => setToast(null), 3000)
+  }
 
   function loadData() {
     if (!selectedTournament) {
@@ -80,52 +86,62 @@ export default function AdminFinanceiro() {
 
   function handleAddExpense() {
     if (!expenseForm.description || !expenseForm.amount || !expenseForm.date) return
-    if (expenseEditingId) {
-      store.updateExpense(expenseEditingId, {
-        category: expenseForm.category,
-        description: expenseForm.description,
-        amount: Number(expenseForm.amount),
-        date: expenseForm.date,
-      })
-    } else {
-      store.createExpense(
-        selectedTournament,
-        expenseForm.category,
-        expenseForm.description,
-        Number(expenseForm.amount),
-        expenseForm.date,
-        user!.id
-      )
+    try {
+      if (expenseEditingId) {
+        store.updateExpense(expenseEditingId, {
+          category: expenseForm.category,
+          description: expenseForm.description,
+          amount: Number(expenseForm.amount),
+          date: expenseForm.date,
+        })
+      } else {
+        store.createExpense(
+          selectedTournament,
+          expenseForm.category,
+          expenseForm.description,
+          Number(expenseForm.amount),
+          expenseForm.date,
+          user!.id
+        )
+      }
+      showToast("success", expenseEditingId ? "Despesa atualizada!" : "Despesa adicionada!")
+      setExpenseModalOpen(false)
+      setExpenseEditingId(null)
+      setExpenseForm(emptyExpenseForm)
+      loadData()
+    } catch {
+      showToast("error", "Erro ao salvar despesa")
     }
-    setExpenseModalOpen(false)
-    setExpenseEditingId(null)
-    setExpenseForm(emptyExpenseForm)
-    loadData()
   }
 
   function handleAddRevenue() {
     if (!revenueForm.amount || !revenueForm.description || !revenueForm.date) return
-    if (revenueEditingId) {
-      store.updateRevenue(revenueEditingId, {
-        source: revenueForm.source,
-        description: revenueForm.description,
-        amount: Number(revenueForm.amount),
-        date: revenueForm.date,
-      })
-    } else {
-      store.createRevenue(
-        selectedTournament,
-        revenueForm.source,
-        Number(revenueForm.amount),
-        revenueForm.description,
-        revenueForm.date,
-        user!.id
-      )
+    try {
+      if (revenueEditingId) {
+        store.updateRevenue(revenueEditingId, {
+          source: revenueForm.source,
+          description: revenueForm.description,
+          amount: Number(revenueForm.amount),
+          date: revenueForm.date,
+        })
+      } else {
+        store.createRevenue(
+          selectedTournament,
+          revenueForm.source,
+          Number(revenueForm.amount),
+          revenueForm.description,
+          revenueForm.date,
+          user!.id
+        )
+      }
+      showToast("success", revenueEditingId ? "Receita atualizada!" : "Receita adicionada!")
+      setRevenueModalOpen(false)
+      setRevenueEditingId(null)
+      setRevenueForm(emptyRevenueForm)
+      loadData()
+    } catch {
+      showToast("error", "Erro ao salvar receita")
     }
-    setRevenueModalOpen(false)
-    setRevenueEditingId(null)
-    setRevenueForm(emptyRevenueForm)
-    loadData()
   }
 
   function openEditExpense(exp: Expense) {
@@ -181,6 +197,11 @@ export default function AdminFinanceiro() {
 
   return (
     <div className="space-y-6">
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
+          {toast.message}
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Financeiro</h1>
         <div className="w-72">
@@ -323,6 +344,7 @@ export default function AdminFinanceiro() {
                           onClick={() => {
                             if (window.confirm("Remover esta despesa?")) {
                               store.deleteExpense(exp.id)
+                              showToast("success", "Despesa removida!")
                               loadData()
                             }
                           }}
@@ -387,6 +409,7 @@ export default function AdminFinanceiro() {
                           onClick={() => {
                             if (window.confirm("Remover esta receita?")) {
                               store.deleteRevenue(rev.id)
+                              showToast("success", "Receita removida!")
                               loadData()
                             }
                           }}

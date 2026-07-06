@@ -26,7 +26,13 @@ export default function AdminFotos() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set())
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  function showToast(type: "success" | "error", message: string) {
+    setToast({ type, message })
+    setTimeout(() => setToast(null), 3000)
+  }
 
   function loadTournaments() {
     setTournaments(store.getTournaments())
@@ -84,11 +90,12 @@ export default function AdminFotos() {
         user!.id,
         form.tournamentId || undefined
       )
+      showToast("success", "Foto adicionada!")
       setModalOpen(false)
       resetForm()
       loadPhotos()
-    } catch (e) {
-      alert("Erro ao fazer upload: " + (e instanceof Error ? e.message : "desconhecido"))
+    } catch {
+      showToast("error", "Erro ao fazer upload")
     } finally {
       setUploading(false)
     }
@@ -102,15 +109,20 @@ export default function AdminFotos() {
 
   function handleAddUrl() {
     if (!form.url.trim()) return
-    store.createPhoto(
-      convertDriveLink(form.url.trim()),
-      form.caption.trim() || undefined,
-      user!.id,
-      form.tournamentId || undefined
-    )
-    setModalOpen(false)
-    resetForm()
-    loadPhotos()
+    try {
+      store.createPhoto(
+        convertDriveLink(form.url.trim()),
+        form.caption.trim() || undefined,
+        user!.id,
+        form.tournamentId || undefined
+      )
+      showToast("success", "Foto adicionada!")
+      setModalOpen(false)
+      resetForm()
+      loadPhotos()
+    } catch {
+      showToast("error", "Erro ao adicionar foto")
+    }
   }
 
   function resetForm() {
@@ -135,6 +147,11 @@ export default function AdminFotos() {
 
   return (
     <div className="space-y-6">
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
+          {toast.message}
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Fotos</h1>
         <div className="w-72">
@@ -194,17 +211,18 @@ export default function AdminFotos() {
               )}
               <div className="px-3 py-2 flex items-center justify-between text-xs text-gray-400 dark:text-gray-500">
                 <span>{formatDate(photo.created_at)}</span>
-                <button
-                  onClick={() => {
-                    if (window.confirm("Remover esta foto?")) {
-                      store.deletePhoto(photo.id)
-                      loadPhotos()
-                    }
-                  }}
-                  className="text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors"
-                >
-                  ✕
-                </button>
+                  <button
+                    onClick={() => {
+                      if (window.confirm("Remover esta foto?")) {
+                        store.deletePhoto(photo.id)
+                        showToast("success", "Foto removida!")
+                        loadPhotos()
+                      }
+                    }}
+                    className="text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors"
+                  >
+                    ✕
+                  </button>
               </div>
             </div>
           ))}

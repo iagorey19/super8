@@ -11,15 +11,27 @@ export default function AdminConfigPage() {
   const [config, setConfig] = useState<AppConfig | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [dirty, setDirty] = useState(false)
 
   useEffect(() => {
     const c = store.getConfig()
     setConfig({ ...c })
   }, [])
 
+  useEffect(() => {
+    if (!dirty) return
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ""
+    }
+    window.addEventListener("beforeunload", handler)
+    return () => window.removeEventListener("beforeunload", handler)
+  }, [dirty])
+
   function handleChange(field: keyof AppConfig, value: string) {
     if (!config) return
     setConfig({ ...config, [field]: value })
+    setDirty(true)
   }
 
   async function handleSave() {
@@ -28,6 +40,7 @@ export default function AdminConfigPage() {
     await store.updateConfig(config)
     setSaving(false)
     setSaved(true)
+    setDirty(false)
     setTimeout(() => setSaved(false), 3000)
   }
 

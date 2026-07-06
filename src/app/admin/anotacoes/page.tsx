@@ -14,6 +14,12 @@ export default function AnotacoesPage() {
   const [editing, setEditing] = useState<Note | null>(null)
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
+
+  function showToast(type: "success" | "error", message: string) {
+    setToast({ type, message })
+    setTimeout(() => setToast(null), 3000)
+  }
 
   function load() {
     setNotes(getNotes())
@@ -37,29 +43,48 @@ export default function AnotacoesPage() {
 
   function save() {
     if (!title.trim()) return
-    if (editing) {
-      updateNote(editing.id, { title: title.trim(), content: content.trim() })
-    } else {
-      createNote(title.trim(), content.trim())
+    try {
+      if (editing) {
+        updateNote(editing.id, { title: title.trim(), content: content.trim() })
+      } else {
+        createNote(title.trim(), content.trim())
+      }
+      showToast("success", editing ? "Anotação atualizada!" : "Anotação criada!")
+      setShowModal(false)
+      load()
+    } catch {
+      showToast("error", "Erro ao salvar anotação")
     }
-    setShowModal(false)
-    load()
   }
 
   function togglePin(n: Note) {
-    updateNote(n.id, { pinned: !n.pinned })
-    load()
+    try {
+      updateNote(n.id, { pinned: !n.pinned })
+      showToast("success", n.pinned ? "Anotação desafixada!" : "Anotação fixada!")
+      load()
+    } catch {
+      showToast("error", "Erro ao atualizar anotação")
+    }
   }
 
   function remove(id: string) {
-    if (confirm("Excluir esta anotação?")) {
+    if (!confirm("Excluir esta anotação?")) return
+    try {
       deleteNote(id)
+      showToast("success", "Anotação excluída!")
       load()
+    } catch {
+      showToast("error", "Erro ao excluir anotação")
     }
   }
 
   return (
     <div className="space-y-6">
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
+          {toast.message}
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Anotações</h1>
         <Button variant="primary" size="sm" onClick={openNew}>Nova Anotação</Button>

@@ -347,6 +347,12 @@ function ApoiadoresTab() {
   const [editBrindeId, setEditBrindeId] = useState<string | null>(null)
 
   const [brindeForm, setBrindeForm] = useState<Record<string, { description: string; quantity: string; type: "kit" | "sorteio" }>>({})
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
+
+  function showToast(type: "success" | "error", message: string) {
+    setToast({ type, message })
+    setTimeout(() => setToast(null), 3000)
+  }
 
   useEffect(() => {
     const all = getTournaments()
@@ -364,16 +370,25 @@ function ApoiadoresTab() {
 
   function handleAddApoio() {
     if (!apoioForm.name || !selectedTournament) return
-    createApoiador(selectedTournament, apoioForm.name, apoioForm.phone || undefined)
-    setApoioForm({ name: "", phone: "" })
-    setApoioModal(false)
-    load()
+    try {
+      createApoiador(selectedTournament, apoioForm.name, apoioForm.phone || undefined)
+      showToast("success", "Apoiador adicionado!")
+      setApoioForm({ name: "", phone: "" })
+      setApoioModal(false)
+      load()
+    } catch {
+      showToast("error", "Erro ao adicionar apoiador")
+    }
   }
 
   function handleDeleteApoio(apoioId: string) {
-    if (window.confirm("Remover este apoiador e todos os brindes dele?")) {
+    if (!window.confirm("Remover este apoiador e todos os brindes dele?")) return
+    try {
       deleteApoiador(apoioId)
+      showToast("success", "Apoiador removido!")
       load()
+    } catch {
+      showToast("error", "Erro ao remover apoiador")
     }
   }
 
@@ -383,14 +398,24 @@ function ApoiadoresTab() {
     if (!form || !form.description) return
     const qty = form.type === "kit" ? totalCapacity : parseInt(form.quantity)
     if (form.type !== "kit" && (!form.quantity || qty <= 0)) return
-    addBrinde(apoiadorId, selectedTournament, form.description, qty, form.type)
-    setBrindeForm((prev) => ({ ...prev, [apoiadorId]: { description: "", quantity: "", type: "kit" } }))
-    load()
+    try {
+      addBrinde(apoiadorId, selectedTournament, form.description, qty, form.type)
+      showToast("success", "Brinde adicionado!")
+      setBrindeForm((prev) => ({ ...prev, [apoiadorId]: { description: "", quantity: "", type: "kit" } }))
+      load()
+    } catch {
+      showToast("error", "Erro ao adicionar brinde")
+    }
   }
 
   function handleRemoveBrinde(brindeId: string) {
-    removeBrinde(brindeId)
-    load()
+    try {
+      removeBrinde(brindeId)
+      showToast("success", "Brinde removido!")
+      load()
+    } catch {
+      showToast("error", "Erro ao remover brinde")
+    }
   }
 
   function openEditApoio(apoio: any) {
@@ -401,10 +426,15 @@ function ApoiadoresTab() {
 
   function handleSaveApoio() {
     if (!editApoioId || !editApoioForm.name) return
-    updateApoiador(editApoioId, { name: editApoioForm.name, phone: editApoioForm.phone || undefined })
-    setEditApoioModal(false)
-    setEditApoioId(null)
-    load()
+    try {
+      updateApoiador(editApoioId, { name: editApoioForm.name, phone: editApoioForm.phone || undefined })
+      showToast("success", "Apoiador atualizado!")
+      setEditApoioModal(false)
+      setEditApoioId(null)
+      load()
+    } catch {
+      showToast("error", "Erro ao atualizar apoiador")
+    }
   }
 
   function openEditBrinde(brinde: any) {
@@ -417,10 +447,15 @@ function ApoiadoresTab() {
     if (!editBrindeId || !editBrindeForm.description) return
     const qty = editBrindeForm.type === "kit" ? totalCapacity : parseInt(editBrindeForm.quantity)
     if (editBrindeForm.type !== "kit" && (!editBrindeForm.quantity || qty <= 0)) return
-    updateBrinde(editBrindeId, { description: editBrindeForm.description, quantity: qty, type: editBrindeForm.type })
-    setEditBrindeModal(false)
-    setEditBrindeId(null)
-    load()
+    try {
+      updateBrinde(editBrindeId, { description: editBrindeForm.description, quantity: qty, type: editBrindeForm.type })
+      showToast("success", "Brinde atualizado!")
+      setEditBrindeModal(false)
+      setEditBrindeId(null)
+      load()
+    } catch {
+      showToast("error", "Erro ao atualizar brinde")
+    }
   }
 
   const selectedTournamentData = tournaments.find((t) => t.id === selectedTournament)
@@ -429,6 +464,11 @@ function ApoiadoresTab() {
 
   return (
     <>
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
+          {toast.message}
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">Apoiadores</h2>
         <div className="flex items-center gap-3">
