@@ -27,8 +27,6 @@ const categoryEmojis: { key: ExpenseCategory; emoji: string; label: string }[] =
   { key: "outros", emoji: "📦", label: "Outros" },
 ]
 
-type Tab = "despesas" | "receitas"
-
 const emptyExpenseForm = { category: "premiacao" as ExpenseCategory, description: "", amount: "", date: "" }
 const emptyRevenueForm = { source: "patrocinio" as RevenueSource, amount: "", description: "", date: "" }
 
@@ -41,7 +39,6 @@ export default function AdminFinanceiro() {
   const [summary, setSummary] = useState<{ totalExpenses: number; totalRevenues: number; balance: number; expensesByCategory: Record<string, { total: number; items: Expense[] }> } | null>(null)
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [revenues, setRevenues] = useState<Revenue[]>([])
-  const [tab, setTab] = useState<Tab>("despesas")
   const [expenseModalOpen, setExpenseModalOpen] = useState(false)
   const [expenseEditingId, setExpenseEditingId] = useState<string | null>(null)
   const [expenseForm, setExpenseForm] = useState(emptyExpenseForm)
@@ -279,30 +276,9 @@ export default function AdminFinanceiro() {
 
           <Card>
             <CardHeader
-              title="Lançamentos"
+              title="📥 Despesas"
               action={
                 <div className="flex gap-2">
-                  <Button
-                    variant={tab === "despesas" ? "primary" : "secondary"}
-                    size="sm"
-                    onClick={() => setTab("despesas")}
-                  >
-                    Despesas
-                  </Button>
-                  <Button
-                    variant={tab === "receitas" ? "primary" : "secondary"}
-                    size="sm"
-                    onClick={() => setTab("receitas")}
-                  >
-                    Receitas
-                  </Button>
-                </div>
-              }
-            />
-
-            {tab === "despesas" && (
-              <div className="space-y-3">
-                <div className="flex justify-end gap-2">
                   <Button size="sm" variant="secondary" onClick={() => exportToCSV(
                     ["Categoria","Descrição","Valor","Data"],
                     expenses.map((e) => [getCategoryLabel(e.category), e.description, formatCurrency(e.amount), formatDate(e.date)]),
@@ -314,58 +290,63 @@ export default function AdminFinanceiro() {
                     Adicionar Despesa
                   </Button>
                 </div>
-                {expenses.length === 0 ? (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-6">Nenhuma despesa registrada.</p>
-                ) : (
-                  expenses.map((exp) => (
-                    <div
-                      key={exp.id}
-                      className="flex items-center justify-between bg-gray-50 dark:bg-gray-950 rounded-lg px-4 py-3"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <Badge className="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 shrink-0">
-                          {getCategoryIcon(exp.category)} {getCategoryLabel(exp.category)}
-                        </Badge>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{exp.description}</p>
-                          <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(exp.date)}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0 ml-3">
-                        <span className="text-sm font-semibold text-red-600">- {formatCurrency(exp.amount)}</span>
-                        <button
-                          onClick={() => openEditExpense(exp)}
-                          className="text-gray-400 dark:text-gray-500 hover:text-amber-500 transition-colors text-xs"
-                          title="Editar"
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          onClick={async () => {
-                            if (window.confirm("Remover esta despesa?")) {
-                              try {
-                                await store.deleteExpense(exp.id)
-                                showToast("success", "Despesa removida!")
-                                loadData()
-                              } catch {
-                                showToast("error", "Erro ao remover despesa")
-                              }
-                            }
-                          }}
-                          className="text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors text-xs"
-                        >
-                          ✕
-                        </button>
+              }
+            />
+            {expenses.length === 0 ? (
+              <p className="text-gray-500 dark:text-gray-400 text-center py-6">Nenhuma despesa registrada.</p>
+            ) : (
+              <div className="space-y-2">
+                {expenses.map((exp) => (
+                  <div
+                    key={exp.id}
+                    className="flex items-center justify-between bg-gray-50 dark:bg-gray-950 rounded-lg px-4 py-3"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Badge className="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 shrink-0">
+                        {getCategoryIcon(exp.category)} {getCategoryLabel(exp.category)}
+                      </Badge>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{exp.description}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(exp.date)}</p>
                       </div>
                     </div>
-                  ))
-                )}
+                    <div className="flex items-center gap-2 shrink-0 ml-3">
+                      <span className="text-sm font-semibold text-red-600">- {formatCurrency(exp.amount)}</span>
+                      <button
+                        onClick={() => openEditExpense(exp)}
+                        className="text-gray-400 dark:text-gray-500 hover:text-amber-500 transition-colors text-xs"
+                        title="Editar"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (window.confirm("Remover esta despesa?")) {
+                            try {
+                              await store.deleteExpense(exp.id)
+                              showToast("success", "Despesa removida!")
+                              loadData()
+                            } catch {
+                              showToast("error", "Erro ao remover despesa")
+                            }
+                          }
+                        }}
+                        className="text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors text-xs"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
+          </Card>
 
-            {tab === "receitas" && (
-              <div className="space-y-3">
-                <div className="flex justify-end gap-2">
+          <Card>
+            <CardHeader
+              title="📤 Receitas"
+              action={
+                <div className="flex gap-2">
                   <Button size="sm" variant="secondary" onClick={() => exportToCSV(
                     ["Fonte","Descrição","Valor","Data"],
                     revenues.map((r) => [
@@ -382,53 +363,55 @@ export default function AdminFinanceiro() {
                     Adicionar Receita
                   </Button>
                 </div>
-                {revenues.length === 0 ? (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-6">Nenhuma receita registrada.</p>
-                ) : (
-                  revenues.map((rev) => (
-                    <div
-                      key={rev.id}
-                      className="flex items-center justify-between bg-gray-50 dark:bg-gray-950 rounded-lg px-4 py-3"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <Badge className="bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 shrink-0">
-                          {rev.source === "patrocinio" ? "🤝" : rev.source === "inscricao" ? "📝" : "📦"}{" "}
-                          {rev.source === "patrocinio" ? "Patrocínio" : rev.source === "inscricao" ? "Inscrição" : "Outros"}
-                        </Badge>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{rev.description}</p>
-                          <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(rev.date)}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0 ml-3">
-                        <span className="text-sm font-semibold text-green-600 dark:text-green-400">+ {formatCurrency(rev.amount)}</span>
-                        <button
-                          onClick={() => openEditRevenue(rev)}
-                          className="text-gray-400 dark:text-gray-500 hover:text-amber-500 transition-colors text-xs"
-                          title="Editar"
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          onClick={async () => {
-                            if (window.confirm("Remover esta receita?")) {
-                              try {
-                                await store.deleteRevenue(rev.id)
-                                showToast("success", "Receita removida!")
-                                loadData()
-                              } catch {
-                                showToast("error", "Erro ao remover receita")
-                              }
-                            }
-                          }}
-                          className="text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors text-xs"
-                        >
-                          ✕
-                        </button>
+              }
+            />
+            {revenues.length === 0 ? (
+              <p className="text-gray-500 dark:text-gray-400 text-center py-6">Nenhuma receita registrada.</p>
+            ) : (
+              <div className="space-y-2">
+                {revenues.map((rev) => (
+                  <div
+                    key={rev.id}
+                    className="flex items-center justify-between bg-gray-50 dark:bg-gray-950 rounded-lg px-4 py-3"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Badge className="bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 shrink-0">
+                        {rev.source === "patrocinio" ? "🤝" : rev.source === "inscricao" ? "📝" : "📦"}{" "}
+                        {rev.source === "patrocinio" ? "Patrocínio" : rev.source === "inscricao" ? "Inscrição" : "Outros"}
+                      </Badge>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{rev.description}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(rev.date)}</p>
                       </div>
                     </div>
-                  ))
-                )}
+                    <div className="flex items-center gap-2 shrink-0 ml-3">
+                      <span className="text-sm font-semibold text-green-600 dark:text-green-400">+ {formatCurrency(rev.amount)}</span>
+                      <button
+                        onClick={() => openEditRevenue(rev)}
+                        className="text-gray-400 dark:text-gray-500 hover:text-amber-500 transition-colors text-xs"
+                        title="Editar"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (window.confirm("Remover esta receita?")) {
+                            try {
+                              await store.deleteRevenue(rev.id)
+                              showToast("success", "Receita removida!")
+                              loadData()
+                            } catch {
+                              showToast("error", "Erro ao remover receita")
+                            }
+                          }
+                        }}
+                        className="text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors text-xs"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </Card>
