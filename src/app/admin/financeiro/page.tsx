@@ -299,18 +299,20 @@ export default function AdminFinanceiro() {
                 {expenses.map((exp) => (
                   <div
                     key={exp.id}
-                    className="flex items-center justify-between bg-gray-50 dark:bg-gray-950 rounded-lg px-4 py-3"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between bg-gray-50 dark:bg-gray-950 rounded-lg px-4 py-3 gap-1 sm:gap-0"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-start gap-3 min-w-0">
                       <Badge className="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 shrink-0">
-                        {getCategoryIcon(exp.category)} {getCategoryLabel(exp.category)}
+                        {getCategoryIcon(exp.category)}
+                        <span className="hidden sm:inline"> {getCategoryLabel(exp.category)}</span>
                       </Badge>
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{exp.description}</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">{exp.description}</p>
                         <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(exp.date)}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0 ml-3">
+                    <div className="flex items-center gap-2 shrink-0 sm:ml-3">
+                      <span className="text-xs text-gray-500 sm:hidden">{getCategoryLabel(exp.category)}</span>
                       <span className="text-sm font-semibold text-red-600">- {formatCurrency(exp.amount)}</span>
                       <button
                         onClick={() => openEditExpense(exp)}
@@ -369,49 +371,54 @@ export default function AdminFinanceiro() {
               <p className="text-gray-500 dark:text-gray-400 text-center py-6">Nenhuma receita registrada.</p>
             ) : (
               <div className="space-y-2">
-                {revenues.map((rev) => (
-                  <div
-                    key={rev.id}
-                    className="flex items-center justify-between bg-gray-50 dark:bg-gray-950 rounded-lg px-4 py-3"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Badge className="bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 shrink-0">
-                        {rev.source === "patrocinio" ? "🤝" : rev.source === "inscricao" ? "📝" : "📦"}{" "}
-                        {rev.source === "patrocinio" ? "Patrocínio" : rev.source === "inscricao" ? "Inscrição" : "Outros"}
-                      </Badge>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{rev.description}</p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(rev.date)}</p>
+                {revenues.map((rev) => {
+                  const revLabel = rev.source === "patrocinio" ? "Patrocínio" : rev.source === "inscricao" ? "Inscrição" : "Outros"
+                  const revIcon = rev.source === "patrocinio" ? "🤝" : rev.source === "inscricao" ? "📝" : "📦"
+                  return (
+                    <div
+                      key={rev.id}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between bg-gray-50 dark:bg-gray-950 rounded-lg px-4 py-3 gap-1 sm:gap-0"
+                    >
+                      <div className="flex items-start gap-3 min-w-0">
+                        <Badge className="bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 shrink-0">
+                          {revIcon}
+                          <span className="hidden sm:inline"> {revLabel}</span>
+                        </Badge>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{rev.description}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">{formatDate(rev.date)}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0 sm:ml-3">
+                        <span className="text-xs text-gray-500 sm:hidden">{revLabel}</span>
+                        <span className="text-sm font-semibold text-green-600 dark:text-green-400">+ {formatCurrency(rev.amount)}</span>
+                        <button
+                          onClick={() => openEditRevenue(rev)}
+                          className="text-gray-400 dark:text-gray-500 hover:text-amber-500 transition-colors text-xs"
+                          title="Editar"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (window.confirm("Remover esta receita?")) {
+                              try {
+                                await store.deleteRevenue(rev.id)
+                                showToast("success", "Receita removida!")
+                                loadData()
+                              } catch {
+                                showToast("error", "Erro ao remover receita")
+                              }
+                            }
+                          }}
+                          className="text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors text-xs"
+                        >
+                          ✕
+                        </button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0 ml-3">
-                      <span className="text-sm font-semibold text-green-600 dark:text-green-400">+ {formatCurrency(rev.amount)}</span>
-                      <button
-                        onClick={() => openEditRevenue(rev)}
-                        className="text-gray-400 dark:text-gray-500 hover:text-amber-500 transition-colors text-xs"
-                        title="Editar"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        onClick={async () => {
-                          if (window.confirm("Remover esta receita?")) {
-                            try {
-                              await store.deleteRevenue(rev.id)
-                              showToast("success", "Receita removida!")
-                              loadData()
-                            } catch {
-                              showToast("error", "Erro ao remover receita")
-                            }
-                          }
-                        }}
-                        className="text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors text-xs"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </Card>
