@@ -199,8 +199,8 @@ export default function EventoDetalhePage() {
         return (
           <Card className="border-yellow-200 dark:border-yellow-800 bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20">
             <div className="text-center space-y-4">
-              <p className="text-sm font-bold text-yellow-700 dark:text-yellow-300 uppercase tracking-wider">
-                🏆 Campeã{champions.length > 1 ? "s" : ""}
+              <p className="text-xl font-bold text-yellow-700 dark:text-yellow-300 uppercase tracking-wider flex items-center justify-center gap-2">
+                <span className="text-2xl">🏆</span> Campeã{champions.length > 1 ? "s" : ""}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {champions.map((champ: any) => (
