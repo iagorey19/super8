@@ -208,14 +208,14 @@ export default function EventoDetalhePage() {
                     <p className="text-lg font-bold text-gray-900 dark:text-white">
                       {store.getUserName(champ.athlete_id)}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                       {getCategoryLabel(champ.category)} — Grupo {champ.group_name}
                     </p>
                     <div className="mt-3 pt-3 border-t border-yellow-100 dark:border-yellow-800">
-                      <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center justify-center gap-1">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center gap-1">
                         <span className="text-lg">🏆</span> Prêmio: Tábua Oficial The Super 8
                       </p>
-                      <p className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
                         <img src="/images/logo-rey-madeiras.jpg" alt="REY MADEIRAS" className="inline-block w-7 h-7 object-contain align-text-bottom rounded-sm" /> REY MADEIRAS
                       </p>
                     </div>
