@@ -213,10 +213,10 @@ export default function EventoDetalhePage() {
                     </p>
                     <div className="mt-3 pt-3 border-t border-yellow-100 dark:border-yellow-800">
                       <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center justify-center gap-1">
-                        🏆 Prêmio: Tábua Oficial The Super 8
+                        <span className="text-lg">🏆</span> Prêmio: Tábua Oficial The Super 8
                       </p>
                       <p className="text-xs font-medium text-gray-600 dark:text-gray-300">
-                        <img src="/images/logo-rey-madeiras.jpg" alt="REY MADEIRAS" className="inline-block w-4 h-4 object-contain align-text-bottom rounded-sm" /> REY MADEIRAS
+                        <img src="/images/logo-rey-madeiras.jpg" alt="REY MADEIRAS" className="inline-block w-7 h-7 object-contain align-text-bottom rounded-sm" /> REY MADEIRAS
                       </p>
                     </div>
                   </div>
