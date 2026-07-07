@@ -216,7 +216,7 @@ export default function EventoDetalhePage() {
                         🏆 Prêmio: Tábua Oficial The Super 8
                       </p>
                       <p className="text-xs font-medium text-gray-600 dark:text-gray-300">
-                        🪵 REY MADEIRAS
+                        <img src="/images/logo-rey-madeiras.jpg" alt="REY MADEIRAS" className="inline-block w-4 h-4 object-contain align-text-bottom rounded-sm" /> REY MADEIRAS
                       </p>
                     </div>
                   </div>
