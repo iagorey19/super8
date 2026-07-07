@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
+import crypto from "crypto"
 import { getServiceClient } from "@/lib/supabase"
 import { getClientIp, isRateLimited } from "@/lib/rate-limit"
+import { validateToken } from "@/lib/auth-secret"
 
 const ALLOWED_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "mp4"])
 const MAX_FILE_SIZE = 10 * 1024 * 1024
@@ -8,17 +10,8 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024
 async function validateSession(req: Request): Promise<boolean> {
   const auth = req.headers.get("authorization")
   if (!auth?.startsWith("Bearer ")) return false
-  const token = auth.slice(7)
-  try {
-    const [payloadB64] = token.split(".")
-    const payload = JSON.parse(Buffer.from(payloadB64, "base64url").toString())
-    if (payload.exp && payload.exp < Date.now()) return false
-    const svc = getServiceClient()
-    const { data } = await svc.from("users").select("id").eq("id", payload.userId).single()
-    return !!data
-  } catch {
-    return false
-  }
+  const result = validateToken(auth.slice(7))
+  return result !== null
 }
 
 export async function POST(req: Request) {

@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth-context"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,6 +10,8 @@ import * as store from "@/lib/store"
 import type { AppConfig } from "@/lib/types"
 
 export default function AdminConfigPage() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
   const [config, setConfig] = useState<AppConfig | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -37,13 +41,18 @@ export default function AdminConfigPage() {
   async function handleSave() {
     if (!config) return
     setSaving(true)
-    await store.updateConfig(config)
+    try {
+      await store.updateConfig(config)
+      setSaved(true)
+      setDirty(false)
+      setTimeout(() => setSaved(false), 3000)
+    } catch {
+      setSaved(false)
+    }
     setSaving(false)
-    setSaved(true)
-    setDirty(false)
-    setTimeout(() => setSaved(false), 3000)
   }
 
+  if (loading || !user || user.role !== "admin") return null
   if (!config) return null
 
   return (

@@ -7,13 +7,13 @@ const userSchema = z.object({
   id: idField,
   email: z.string().nullish(),
   name: z.string(),
-  role: z.string(),
+  role: z.enum(["admin", "athlete", "sponsor"]),
   password: z.string().nullish(),
   phone: z.string().nullish(),
   avatar: z.string().nullish(),
   url: z.string().nullish(),
   created_at: dateField,
-}).passthrough()
+})
 
 const tournamentSchema = z.object({
   id: idField,
@@ -21,21 +21,21 @@ const tournamentSchema = z.object({
   edition: z.string(),
   date: dateField,
   location: z.string().nullish(),
-  status: z.string(),
+  status: z.enum(["upcoming", "registering", "ongoing", "completed"]),
   categories: z.array(z.string()).nullish(),
   registration_fee: z.number().nullish(),
   max_score: z.number().nullish(),
   court_names: z.array(z.string()).nullish(),
   created_at: dateField,
   created_by: z.string(),
-}).passthrough()
+})
 
 const athleteRegistrationSchema = z.object({
   id: idField,
   tournament_id: z.string(),
   athlete_id: z.string(),
-  status: z.string(),
-  payment_status: z.string().nullish(),
+  status: z.enum(["pending", "approved", "rejected"]),
+  payment_status: z.enum(["pending", "paid", "cancelled"]).nullish(),
   registration_order: z.number().nullish(),
   is_waiting: z.boolean().nullish(),
   draw_number: z.number().nullish(),
@@ -44,7 +44,7 @@ const athleteRegistrationSchema = z.object({
   confirmed: z.boolean().nullish(),
   confirmed_at: z.string().nullish(),
   created_at: dateField,
-}).passthrough()
+})
 
 const pairingSchema = z.object({
   id: idField,
@@ -57,7 +57,7 @@ const pairingSchema = z.object({
   player2_id: z.string(),
   player3_id: z.string().nullish(),
   player4_id: z.string().nullish(),
-}).passthrough()
+})
 
 const matchSchema = z.object({
   id: idField,
@@ -73,9 +73,9 @@ const matchSchema = z.object({
   team2_player2_id: z.string().nullish(),
   score_team1: z.number().nullish(),
   score_team2: z.number().nullish(),
-  status: z.string(),
+  status: z.enum(["pending", "live", "finished"]),
   created_at: dateField,
-}).passthrough()
+})
 
 const tournamentResultSchema = z.object({
   id: idField,
@@ -87,7 +87,7 @@ const tournamentResultSchema = z.object({
   total_games: z.number(),
   position: z.number(),
   points: z.number(),
-}).passthrough()
+})
 
 const annualRankingSchema = z.object({
   id: idField,
@@ -98,40 +98,40 @@ const annualRankingSchema = z.object({
   total_games: z.number(),
   tournaments_count: z.number(),
   wins_count: z.number(),
-}).passthrough()
+})
 
 const sponsorshipSchema = z.object({
   id: idField,
   tournament_id: z.string(),
   sponsor_id: z.string(),
-  tier: z.string(),
+  tier: z.enum(["gold", "silver", "bronze"]),
   amount: z.number(),
   description: z.string(),
   created_at: dateField,
-}).passthrough()
+})
 
 const expenseSchema = z.object({
   id: idField,
   tournament_id: z.string(),
-  category: z.string(),
+  category: z.enum(["premiacao", "estrutura", "marketing", "arbitragem", "alimentacao", "fotografia", "brindes", "outros"]),
   description: z.string(),
   amount: z.number(),
   receipt_url: z.string().nullish(),
   date: dateField,
   created_by: z.string(),
   created_at: dateField,
-}).passthrough()
+})
 
 const revenueSchema = z.object({
   id: idField,
   tournament_id: z.string(),
-  source: z.string(),
+  source: z.enum(["patrocinio", "inscricao", "outros"]),
   amount: z.number(),
   description: z.string(),
   date: dateField,
   created_by: z.string(),
   created_at: dateField,
-}).passthrough()
+})
 
 const photoSchema = z.object({
   id: idField,
@@ -140,17 +140,17 @@ const photoSchema = z.object({
   caption: z.string().nullish(),
   uploaded_by: z.string(),
   created_at: dateField,
-}).passthrough()
+})
 
 const notificationSchema = z.object({
   id: idField,
   user_id: z.string(),
-  type: z.string(),
+  type: z.enum(["jogo", "resultado", "ranking", "sorteio", "geral"]),
   title: z.string(),
   message: z.string(),
   read: z.boolean(),
   created_at: dateField,
-}).passthrough()
+})
 
 const apoiadorSchema = z.object({
   id: idField,
@@ -158,7 +158,7 @@ const apoiadorSchema = z.object({
   name: z.string(),
   phone: z.string().nullish(),
   created_at: dateField,
-}).passthrough()
+})
 
 const brindeSchema = z.object({
   id: idField,
@@ -166,9 +166,9 @@ const brindeSchema = z.object({
   apoiador_id: z.string(),
   description: z.string(),
   quantity: z.number(),
-  type: z.string(),
+  type: z.enum(["kit", "sorteio"]),
   created_at: dateField,
-}).passthrough()
+})
 
 const raffleRecordSchema = z.object({
   id: idField,
@@ -177,7 +177,7 @@ const raffleRecordSchema = z.object({
   winner_id: z.string(),
   winner_name: z.string(),
   created_at: dateField,
-}).passthrough()
+})
 
 const noteSchema = z.object({
   id: idField,
@@ -187,7 +187,7 @@ const noteSchema = z.object({
   pinned: z.boolean(),
   created_at: dateField,
   updated_at: dateField,
-}).passthrough()
+})
 
 export const appDataSchema = z.object({
   seed_version: z.number(),
@@ -196,7 +196,7 @@ export const appDataSchema = z.object({
     pix_name: z.string(),
     pix_city: z.string(),
     admin_whatsapp: z.string(),
-  }).passthrough(),
+  }),
   users: z.array(userSchema),
   tournaments: z.array(tournamentSchema),
   athlete_registrations: z.array(athleteRegistrationSchema),
@@ -213,7 +213,7 @@ export const appDataSchema = z.object({
   brindes: z.array(brindeSchema),
   raffle_records: z.array(raffleRecordSchema),
   notes: z.array(noteSchema),
-}).passthrough()
+})
 
 const TABLE_SCHEMAS: Record<string, z.ZodTypeAny> = {
   users: z.array(userSchema),

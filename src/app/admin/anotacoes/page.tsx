@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth-context"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,6 +11,8 @@ import { getNotes, createNote, updateNote, deleteNote } from "@/lib/store"
 import type { Note } from "@/lib/types"
 
 export default function AnotacoesPage() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
   const [notes, setNotes] = useState<Note[]>([])
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Note | null>(null)
@@ -77,6 +81,8 @@ export default function AnotacoesPage() {
       showToast("error", "Erro ao excluir anotação")
     }
   }
+
+  if (loading || !user || user.role !== "admin") return null
 
   return (
     <div className="space-y-6">

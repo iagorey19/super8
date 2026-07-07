@@ -25,7 +25,8 @@ export function formatDateWithWeekday(dateStr: string): string {
 }
 
 export function formatDateShort(dateStr: string): string {
-  return new Date(dateStr + "T12:00:00").toLocaleDateString("pt-BR", {
+  const d = dateStr.includes("T") ? new Date(dateStr) : new Date(dateStr + "T12:00:00")
+  return d.toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

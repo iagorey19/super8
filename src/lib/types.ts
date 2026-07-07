@@ -12,6 +12,8 @@ export interface User {
   created_at: string
 }
 
+export type SafeUser = Omit<User, "password">
+
 export type AthleteStatus = "pending" | "approved" | "rejected"
 export type PaymentStatus = "pending" | "paid" | "cancelled"
 

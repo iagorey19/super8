@@ -142,7 +142,8 @@ export async function registerAthlete(
     syncAuthUser(email, password)
     return newUser
   } catch (e) {
-    data.users.pop()
+    const idx = data.users.findIndex((u) => u.email === email)
+    if (idx >= 0) data.users.splice(idx, 1)
     console.error("registerAthlete: persist failed", e)
     return null
   }
@@ -772,7 +773,11 @@ export async function regenerateWhistFromRound(tournamentId: string, fromRound: 
           (m.group_name || "A") === grp &&
           m.round === match.round
       )
-      .sort((a, b) => parseInt(a.court) - parseInt(b.court))
+      .sort((a, b) => {
+        const numA = parseInt(String(a.court).replace(/\D/g, "")) || 0
+        const numB = parseInt(String(b.court).replace(/\D/g, "")) || 0
+        return numA - numB
+      })
 
     const matchIdx = roundMatches.indexOf(match)
     if (matchIdx < 0 || matchIdx > 1) continue
