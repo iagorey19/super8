@@ -191,6 +191,42 @@ export default function EventoDetalhePage() {
         </p>
       )}
 
+      {tournament.status === "completed" && (() => {
+        const champions = tournament.categories.flatMap((cat) =>
+          store.getRankings(id, cat).filter((r: any) => r.position === 1)
+        )
+        if (champions.length === 0) return null
+        return (
+          <Card className="border-yellow-200 dark:border-yellow-800 bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20">
+            <div className="text-center space-y-4">
+              <p className="text-sm font-bold text-yellow-700 dark:text-yellow-300 uppercase tracking-wider">
+                🏆 Campeã{champions.length > 1 ? "s" : ""}
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {champions.map((champ: any) => (
+                  <div key={champ.athlete_id} className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-yellow-200 dark:border-yellow-700 shadow-sm">
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">
+                      {store.getUserName(champ.athlete_id)}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      {getCategoryLabel(champ.category)} — Grupo {champ.group_name}
+                    </p>
+                    <div className="mt-3 pt-3 border-t border-yellow-100 dark:border-yellow-800">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center justify-center gap-1">
+                        🏆 Prêmio: Tábua Oficial The Super 8
+                      </p>
+                      <p className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                        🪵 REY MADEIRAS
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+        )
+      })()}
+
       {tournament.status === "registering" && step === "idle" && !myReg && (
         showRegistration ? (
           <Card className="border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20">
