@@ -76,15 +76,19 @@ export function PWAPrompt() {
           <ol className="text-sm text-gray-600 dark:text-gray-300 space-y-3 ml-1">
             <li className="flex items-start gap-2">
               <span className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-              <span>Toque no botão <strong className="text-gray-900 dark:text-white">Compartilhar</strong> <span className="text-lg">⎙</span> na barra inferior do Safari</span>
+              <span>Clique nos <strong className="text-gray-900 dark:text-white">3 pontinhos</strong> (•••) no canto inferior direito</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-              <span>Role para baixo e toque em <strong className="text-gray-900 dark:text-white">Adicionar à Tela de Início</strong></span>
+              <span>Clique em <strong className="text-gray-900 dark:text-white">Compartilhar</strong>, também no canto inferior direito</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-              <span>Toque em <strong className="text-gray-900 dark:text-white">Adicionar</strong> no canto superior direito</span>
+              <span>Clique em <strong className="text-gray-900 dark:text-white">Ver mais</strong> na parte inferior da tela</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
+              <span>Arraste para baixo até achar <strong className="text-gray-900 dark:text-white">Adicionar à Tela Inicial</strong></span>
             </li>
           </ol>
 

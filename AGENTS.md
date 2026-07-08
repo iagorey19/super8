@@ -39,14 +39,11 @@ Supabase project: `ylltshboiejlcbhksrci` (THE SUPER 8, PRODUCTION)
 Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (arquivo + resumo). Manter só últimas 5. Se conversa ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e reiniciar."
 
 ## Últimas Alterações
+- `atleta/page.tsx`: Seção Agradecimentos agora destaca REY MADEIRAS como "🏆 Tábua Oficial The Super 8" (full-width) igual à página pública do evento
 - `components/ui/grade-preview.tsx` + `lib/grade-*.ts`: GradePreview modularizado em grade-types, grade-builder, grade-canvas, grade-exports; WHIST_SCHEDULE deduplicado (importa de chaveamento.ts)
 - `eventos/[id]/jogos/page.tsx`: GradePreview integrado na visualização por categoria (com exportação PNG/PDF/CSV/TXT)
 - `app/api/auth/session/route.ts`: `POST` agora seta cookie httpOnly (24h); novo `GET` valida cookie e retorna user; novo `DELETE` limpa cookie
 - `app/auth/callback/route.ts`: Cookie httpOnly estendido de 300s para 24h
-- `app/auth/handler/page.tsx`: Simplificado — não copia mais cookie para sessionStorage (cookie já persiste 24h)
-- `lib/store.ts`: `getSession()` mantém sessionStorage como cache rápido; nova `fetchSessionFromCookie()` busca `GET /api/auth/session` como fallback; `logout()` agora é async e limpa cookie; `syncAuthUser()` usa `getSession()` em vez de sessionStorage direto
-- `lib/auth-context.tsx`: No mount, tenta sessionStorage primeiro, depois fallback para cookie; logout é async
-- `atleta/page.tsx`: Removeu escrita manual de sessionStorage (cookie + fetchSessionFromCookie substituem)
 
 ## Próximos Passos
 1. **Auditoria de segurança completa** - Migrar rate limit para store compartilhado (Upstash Redis)
