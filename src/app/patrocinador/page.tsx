@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Modal } from "@/components/ui/modal"
 import * as store from "@/lib/store"
+import { useToast } from "@/components/ui/toast"
 import { formatCurrency, formatDate, getStatusColor, getStatusLabel } from "@/lib/utils"
 import type { Tournament, Sponsorship } from "@/lib/types"
 
@@ -18,7 +19,7 @@ export default function SponsorDashboard() {
   const [sponsorships, setSponsorships] = useState<Sponsorship[]>([])
   const [profileModal, setProfileModal] = useState(false)
   const [profileForm, setProfileForm] = useState({ name: "", email: "", phone: "" })
-  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
+  const { toast: notify } = useToast()
 
   useEffect(() => {
     if (!user) return
@@ -46,21 +47,12 @@ export default function SponsorDashboard() {
     if (profileForm.name && profileForm.email && user) {
       store.updateSponsor(user.id, profileForm)
       setProfileModal(false)
-      setToast({ type: "success", message: "Perfil atualizado!" })
-      setTimeout(() => setToast(null), 3000)
+      notify("Perfil atualizado!", "success")
     }
   }
 
   return (
     <div className="space-y-6">
-      {toast && (
-        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${
-          toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"
-        }`}>
-          {toast.message}
-        </div>
-      )}
-
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Olá, {user.name}!</h1>

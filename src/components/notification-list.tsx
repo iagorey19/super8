@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Modal } from "@/components/ui/modal"
+import { useToast } from "@/components/ui/toast"
 import * as store from "@/lib/store"
 import type { Notification } from "@/lib/types"
 
@@ -32,7 +33,7 @@ export function NotificationList({ userId, canSend }: { userId: string; canSend?
   const [sendModal, setSendModal] = useState(false)
   const [sendForm, setSendForm] = useState({ type: "geral" as string, title: "", message: "" })
   const [sending, setSending] = useState(false)
-  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
+  const { toast: notify } = useToast()
 
   function load() {
     setNotifications(store.getNotifications(userId))
@@ -71,8 +72,7 @@ export function NotificationList({ userId, canSend }: { userId: string; canSend?
     setSending(false)
     setSendModal(false)
     setSendForm({ type: "geral", title: "", message: "" })
-    setToast({ type: "success", message: `Notificação enviada para ${athletes.length} atletas!` })
-    setTimeout(() => setToast(null), 3000)
+    notify(`Notificação enviada para ${athletes.length} atletas!`, "success")
   }
 
   const unreadCount = notifications.filter((n) => !n.read).length
@@ -87,14 +87,6 @@ export function NotificationList({ userId, canSend }: { userId: string; canSend?
 
   return (
     <div className="space-y-4">
-      {toast && (
-        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${
-          toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"
-        }`}>
-          {toast.message}
-        </div>
-      )}
-
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Notificações</h1>

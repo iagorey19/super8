@@ -7,6 +7,7 @@ import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Modal } from "@/components/ui/modal"
+import { useToast } from "@/components/ui/toast"
 import { getNotes, createNote, updateNote, deleteNote } from "@/lib/store"
 import type { Note } from "@/lib/types"
 
@@ -18,12 +19,8 @@ export default function AnotacoesPage() {
   const [editing, setEditing] = useState<Note | null>(null)
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
-  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
-
-  function showToast(type: "success" | "error", message: string) {
-    setToast({ type, message })
-    setTimeout(() => setToast(null), 3000)
-  }
+  const { toast: baseToast } = useToast()
+  const showToast = (type: "success" | "error", message: string) => baseToast(message, type)
 
   function load() {
     setNotes(getNotes())
@@ -86,11 +83,6 @@ export default function AnotacoesPage() {
 
   return (
     <div className="space-y-6">
-      {toast && (
-        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
-          {toast.message}
-        </div>
-      )}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Anotações</h1>
         <Button variant="primary" size="sm" onClick={openNew}>Nova Anotação</Button>

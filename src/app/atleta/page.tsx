@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Modal } from "@/components/ui/modal"
 import * as store from "@/lib/store"
 import { sanitizeUrl } from "@/lib/validate-url"
+import { useToast } from "@/components/ui/toast"
 import { formatDate, getStatusColor, getStatusLabel } from "@/lib/utils"
 import type { Tournament, AthleteRegistration, RaffleRecord } from "@/lib/types"
 
@@ -24,7 +25,7 @@ export default function AthleteDashboard() {
   const [profileModal, setProfileModal] = useState(false)
   const [profileForm, setProfileForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "" })
   const [showPassword, setShowPassword] = useState(false)
-  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
+  const { toast: notify } = useToast()
   const [raffleRecords, setRaffleRecords] = useState<RaffleRecord[]>([])
   const [apoiadores, setApoiadores] = useState<any[]>([])
   const [sponsors, setSponsors] = useState<any[]>([])
@@ -75,51 +76,41 @@ export default function AthleteDashboard() {
   async function handleSaveProfile() {
     if (!profileForm.name || !profileForm.email || !user || savingProfile) return
     if (profileForm.password && profileForm.password !== profileForm.confirmPassword) {
-      setToast({ type: "error", message: "Senhas não conferem" })
-      setTimeout(() => setToast(null), 3000)
+      notify("Senhas não conferem", "error")
       return
     }
     setSavingProfile(true)
-    await store.updateAthlete(user.id, {
-      name: profileForm.name,
-      email: profileForm.email,
-      phone: profileForm.phone,
-      ...(profileForm.password ? { password: profileForm.password } : {}),
-    })
-    const session = store.getSession()
-    if (session) {
-      try {
-        sessionStorage.setItem("super8-session", JSON.stringify({
-          ...session,
-          user: { ...session.user, name: profileForm.name, email: profileForm.email, phone: profileForm.phone },
-        }))
-      } catch {
-        // storage unavailable
+    try {
+      const ok = await store.updateAthlete(user.id, {
+        name: profileForm.name,
+        email: profileForm.email,
+        phone: profileForm.phone,
+        ...(profileForm.password ? { password: profileForm.password } : {}),
+      })
+      if (!ok) {
+        notify("Este email já está em uso por outro atleta", "error")
+        setSavingProfile(false)
+        return
       }
+    } catch {
+      notify("Erro ao salvar. Este email pode já estar em uso.", "error")
+      setSavingProfile(false)
+      return
     }
     setProfileModal(false)
-    setToast({ type: "success", message: "Perfil atualizado!" })
-    setTimeout(() => setToast(null), 3000)
+    notify("Perfil atualizado!", "success")
     setSavingProfile(false)
   }
 
   return (
     <div className="space-y-6">
-      {toast && (
-        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${
-          toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"
-        }`}>
-          {toast.message}
-        </div>
-      )}
-
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Olá, {user.name}!</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">Bem-vindo ao THE SUPER 8</p>
         </div>
         <div className="flex gap-2">
-          <Button size="sm" variant="secondary" onClick={() => window.location.reload()}>
+          <Button size="sm" variant="secondary" onClick={() => loadData()}>
             Atualizar
           </Button>
           <Button size="sm" variant="ghost" onClick={() => {
@@ -333,16 +324,36 @@ export default function AthleteDashboard() {
               <div className={(sponsors.length > 0 ? "pt-4 border-t border-gray-200 dark:border-gray-700" : "") + ""}>
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Apoiadores</p>
                 <div className="flex flex-wrap gap-2">
-                  {apoiadores.map((a: any) => (
-                    <div key={a.id} className="bg-green-50 dark:bg-green-900/20 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 text-sm">
-                      <span className="font-medium text-gray-900 dark:text-white">{a.name}</span>
-                      {a.brindes?.length > 0 && (
-                        <span className="text-gray-600 dark:text-gray-400 dark:text-gray-300 ml-1">
-                          - {a.brindes.map((b: any) => `${b.description} (${b.type === "kit" ? "Kit" : "Sorteio"})`).join(", ")}
-                        </span>
-                      )}
-                    </div>
-                  ))}
+                  {(() => {
+                    const masterName = "REY MADEIRAS"
+                    const master = apoiadores.find((a: any) => a.name?.trim().toUpperCase() === masterName)
+                    const others = apoiadores.filter((a: any) => a.name?.trim().toUpperCase() !== masterName)
+                    return (
+                      <>
+                        <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 text-sm w-full">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mb-0.5">
+                            🏆 Tábua Oficial The Super 8
+                          </p>
+                          <span className="font-medium text-gray-900 dark:text-white">REY MADEIRAS</span>
+                          {master?.brindes && master.brindes.length > 0 && (
+                            <span className="text-gray-600 dark:text-gray-300 ml-1">
+                              - {master.brindes.map((b: any) => `${b.description} (${b.type === "kit" ? "Kit" : "Sorteio"})`).join(", ")}
+                            </span>
+                          )}
+                        </div>
+                        {others.map((a: any) => (
+                          <div key={a.id} className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 text-sm">
+                            <span className="font-medium text-gray-900 dark:text-white">{a.name}</span>
+                            {a.brindes?.length > 0 && (
+                              <span className="text-gray-600 dark:text-gray-300 ml-1">
+                                - {a.brindes.map((b: any) => `${b.description} (${b.type === "kit" ? "Kit" : "Sorteio"})`).join(", ")}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </>
+                    )
+                  })()}
                 </div>
               </div>
             )}

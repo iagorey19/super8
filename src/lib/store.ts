@@ -79,12 +79,41 @@ export function getSession(): Session | null {
   if (typeof window === "undefined") return null
   try {
     const stored = sessionStorage.getItem("super8-session")
-    if (!stored) return null
-    const parsed: Session = JSON.parse(stored)
-    return parsed.user ? parsed : null
+    if (stored) {
+      const parsed: Session = JSON.parse(stored)
+      if (parsed.user) return parsed
+    }
+    return null
   } catch {
     sessionStorage.removeItem("super8-session")
     return null
+  }
+}
+
+let _sessionFetchPromise: Promise<Session | null> | null = null
+
+export async function fetchSessionFromCookie(): Promise<Session | null> {
+  if (typeof window === "undefined") return null
+  if (_sessionFetchPromise) return _sessionFetchPromise
+  _sessionFetchPromise = (async () => {
+    try {
+      const res = await fetch("/api/auth/session")
+      if (!res.ok) return null
+      const data = await res.json()
+      if (data.user) {
+        const sess: Session = { user: data.user, token: data.token }
+        saveSession(sess)
+        return sess
+      }
+      return null
+    } catch {
+      return null
+    }
+  })()
+  try {
+    return await _sessionFetchPromise
+  } finally {
+    _sessionFetchPromise = null
   }
 }
 
@@ -113,9 +142,12 @@ export async function login(email: string, password: string): Promise<User | nul
   }
 }
 
-export function logout() {
+export async function logout() {
   if (typeof window !== "undefined") {
     sessionStorage.removeItem("super8-session")
+    try {
+      await fetch("/api/auth/session", { method: "DELETE" })
+    } catch { /* ignore */ }
   }
 }
 
@@ -150,14 +182,8 @@ export async function registerAthlete(
 }
 
 function syncAuthUser(email: string, password: string) {
-  let token = ""
-  try {
-    const session = sessionStorage.getItem("super8-session")
-    if (session) {
-      const parsed = JSON.parse(session)
-      token = parsed.token || ""
-    }
-  } catch { /* no session */ }
+  const session = getSession()
+  const token = session?.token || ""
   fetch("/api/auth/admin-register", {
     method: "POST",
     headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
@@ -173,7 +199,7 @@ export async function approveAthlete(registrationId: string) {
   if (reg) {
     reg.status = "approved"
     const tournament = data.tournaments.find((t) => t.id === reg.tournament_id)
-    if (tournament?.registration_fee) {
+    if (tournament?.registration_fee && reg.payment_status === "paid") {
       const athlete = data.users.find((u) => u.id === reg.athlete_id)
       const revenue: Revenue = {
         id: crypto.randomUUID(),
@@ -255,19 +281,24 @@ export async function resetTournament(tournamentId: string) {
   await saveData(data)
 }
 
-export async function updateAthlete(athleteId: string, updates: { name?: string; email?: string; phone?: string; password?: string }) {
+export async function updateAthlete(athleteId: string, updates: { name?: string; email?: string; phone?: string; password?: string }): Promise<boolean> {
   const data = getData()
   const user = data.users.find((u) => u.id === athleteId && u.role === "athlete")
-  if (user) {
-    if (updates.name !== undefined) user.name = updates.name
-    if (updates.email !== undefined) user.email = updates.email
-    if (updates.phone !== undefined) user.phone = updates.phone || undefined
-    if (updates.password !== undefined) {
-      user.password = updates.password
-      syncAuthUser(user.email, updates.password)
+  if (!user) return false
+  if (updates.email !== undefined && updates.email !== user.email) {
+    if (data.users.some((u) => u.email === updates.email && u.id !== athleteId)) {
+      return false
     }
-    await saveData(data)
   }
+  if (updates.name !== undefined) user.name = updates.name
+  if (updates.email !== undefined) user.email = updates.email
+  if (updates.phone !== undefined) user.phone = updates.phone || undefined
+  if (updates.password !== undefined) {
+    user.password = updates.password
+    syncAuthUser(user.email, updates.password)
+  }
+  await saveData(data)
+  return true
 }
 
 export async function deleteAthlete(athleteId: string) {
@@ -1237,6 +1268,10 @@ export async function deleteUser(id: string) {
 export function getUserById(id: string): User | undefined {
   const data = getData()
   return data.users.find((u) => u.id === id)
+}
+
+export function getUserByEmail(email: string): User | undefined {
+  return getData().users.find((u) => u.email.toLowerCase() === email.toLowerCase())
 }
 
 export async function updateSponsor(sponsorId: string, updates: { name?: string; email?: string; phone?: string; url?: string }) {

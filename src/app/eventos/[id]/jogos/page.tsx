@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import * as store from "@/lib/store"
 import { getStatusColor, getStatusLabel } from "@/lib/utils"
+import { GradePreview } from "@/components/ui/grade-preview"
 import type { Match, Tournament } from "@/lib/types"
 
 export default function PublicJogosPage() {
@@ -132,51 +133,67 @@ export default function PublicJogosPage() {
       </div>
 
       {view === "grade" ? (
-        <div className="overflow-x-auto">
-          <div className="min-w-[850px]">
-            <div className="grid gap-px bg-gray-200 dark:bg-gray-700 rounded-xl" style={{ gridTemplateColumns: `160px repeat(${rounds.length}, minmax(100px, 1fr))` }}>
-              <div className="bg-gray-200 dark:bg-gray-700 p-3 font-medium text-sm text-gray-700 dark:text-gray-300">Quadra</div>
-              {rounds.map((r) => (
-                <div key={r} className="bg-gray-200 dark:bg-gray-700 p-3 font-medium text-sm text-gray-700 dark:text-gray-300 text-center">
-                  {r}ª Rodada
-                </div>
-              ))}
-              {uniqueCourts.map((court) => (
-                <div key={court} className="contents">
-                  <div className="bg-white dark:bg-gray-800 p-3 text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    {getCourtName(court)}
-                    <span className="text-xs text-gray-400 dark:text-gray-500">({court})</span>
+        selectedCategory ? (
+          ((() => {
+            const groups: string[] = [...new Set(filteredMatches.map((m) => m.group_name || "A"))]
+            return groups.map((g) => (
+              <GradePreview
+                key={g}
+                matches={filteredMatches}
+                courtNames={courtNames}
+                category={selectedCategory}
+                groupName={g}
+                categoryLabel={selectedCategory === "4e5" ? "4e5" : "6e7"}
+              />
+            ))
+          })())
+        ) : (
+          <div className="overflow-x-auto">
+            <div className="min-w-[850px]">
+              <div className="grid gap-px bg-gray-200 dark:bg-gray-700 rounded-xl" style={{ gridTemplateColumns: `160px repeat(${rounds.length}, minmax(100px, 1fr))` }}>
+                <div className="bg-gray-200 dark:bg-gray-700 p-3 font-medium text-sm text-gray-700 dark:text-gray-300">Quadra</div>
+                {rounds.map((r) => (
+                  <div key={r} className="bg-gray-200 dark:bg-gray-700 p-3 font-medium text-sm text-gray-700 dark:text-gray-300 text-center">
+                    {r}ª Rodada
                   </div>
-                  {rounds.map((round) => {
-                    const match = filteredMatches.find(
-                      (m) => m.court === court && m.round === round
-                    )
-                    return (
-                      <div key={`${court}-${round}`} className="bg-white dark:bg-gray-800 p-2 min-h-[80px]">
-                        {match ? (
-                          <div className="h-full rounded-lg border p-2 text-xs space-y-1">
-                            <div className="font-medium text-gray-900 dark:text-white">
-                              {store.getUserName(match.team1_player1_id)} / {store.getUserName(match.team1_player2_id)}
+                ))}
+                {uniqueCourts.map((court) => (
+                  <div key={court} className="contents">
+                    <div className="bg-white dark:bg-gray-800 p-3 text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                      {getCourtName(court)}
+                      <span className="text-xs text-gray-400 dark:text-gray-500">({court})</span>
+                    </div>
+                    {rounds.map((round) => {
+                      const match = filteredMatches.find(
+                        (m) => m.court === court && m.round === round
+                      )
+                      return (
+                        <div key={`${court}-${round}`} className="bg-white dark:bg-gray-800 p-2 min-h-[80px]">
+                          {match ? (
+                            <div className="h-full rounded-lg border p-2 text-xs space-y-1">
+                              <div className="font-medium text-gray-900 dark:text-white">
+                                {store.getUserName(match.team1_player1_id)} / {store.getUserName(match.team1_player2_id)}
+                              </div>
+                              <div className="text-gray-400 dark:text-gray-500">vs</div>
+                              <div className="font-medium text-gray-900 dark:text-white">
+                                {store.getUserName(match.team2_player1_id)} / {store.getUserName(match.team2_player2_id)}
+                              </div>
+                              <div className={`text-center font-bold text-sm mt-1 ${
+                                match.status === "finished" ? "text-green-600 dark:text-green-400" : match.status === "live" ? "text-amber-600 dark:text-amber-400" : "text-gray-300 dark:text-gray-600"
+                              }`}>
+                                {match.status === "pending" ? "--" : `${match.score_team1} x ${match.score_team2}`}
+                              </div>
                             </div>
-                            <div className="text-gray-400 dark:text-gray-500">vs</div>
-                            <div className="font-medium text-gray-900 dark:text-white">
-                              {store.getUserName(match.team2_player1_id)} / {store.getUserName(match.team2_player2_id)}
-                            </div>
-                            <div className={`text-center font-bold text-sm mt-1 ${
-                              match.status === "finished" ? "text-green-600 dark:text-green-400" : match.status === "live" ? "text-amber-600 dark:text-amber-400" : "text-gray-300 dark:text-gray-600"
-                            }`}>
-                              {match.status === "pending" ? "--" : `${match.score_team1} x ${match.score_team2}`}
-                            </div>
-                          </div>
-                        ) : null}
-                      </div>
-                    )
-                  })}
-                </div>
-              ))}
+                          ) : null}
+                        </div>
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        )
       ) : (
         <>
           <div className="flex gap-2 flex-wrap">

@@ -97,7 +97,7 @@ export default function EventoDetalhePage() {
       return
     }
     setMyReg(reg)
-    toast("Inscrição realizada!")
+    toast(reg.is_waiting ? "Inscrição realizada! Você está na lista de espera." : "Inscrição realizada!")
     if (tournament?.registration_fee) {
       await generatePixForRegistration(reg, athleteName)
     }
@@ -168,7 +168,7 @@ export default function EventoDetalhePage() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{tournament.title}</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">{tournament.edition}</p>
           </div>
-          <Button size="sm" variant="secondary" onClick={() => window.location.reload()}>
+          <Button size="sm" variant="secondary" onClick={() => loadData()}>
             Atualizar
           </Button>
         </div>
@@ -267,15 +267,21 @@ export default function EventoDetalhePage() {
                     ⚠️ A inscrição só será confirmada após o pagamento e aprovação do organizador.
                   </p>
                 )}
-                {store.getCategoryAvailability(id).every((a) => a.available === 0) ? (
-                  <p className="text-sm font-bold text-red-600 dark:text-red-400">
-                    Inscrições encerradas — todas as categorias estão lotadas.
-                  </p>
-                ) : (
-                  <Button onClick={handleStartRegistration} size="lg" className="bg-amber-600 hover:bg-amber-700 text-white font-bold" disabled={loading}>
-                    {loading ? "Entrando..." : "Inscrever-se"}
-                  </Button>
-                )}
+                {(() => {
+                  const allFull = store.getCategoryAvailability(id).every((a) => a.available === 0)
+                  return (
+                    <>
+                      {allFull && (
+                        <p className="text-sm font-bold text-red-600 dark:text-red-400">
+                          Todas as categorias estão lotadas — mas você pode entrar na lista de espera.
+                        </p>
+                      )}
+                      <Button onClick={handleStartRegistration} size="lg" className={`text-white font-bold ${allFull ? "bg-green-600 hover:bg-green-700" : "bg-amber-600 hover:bg-amber-700"}`} disabled={loading}>
+                        {loading ? "Entrando..." : allFull ? "Entrar na lista de espera" : "Inscrever-se"}
+                      </Button>
+                    </>
+                  )
+                })()}
               </div>
             </div>
           </Card>
@@ -340,14 +346,14 @@ export default function EventoDetalhePage() {
                   disabled={loading}
                   className={`p-6 rounded-xl border-2 hover:shadow-md transition-all font-bold text-lg disabled:opacity-50 ${
                     full
-                      ? "bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700 text-red-600 dark:text-red-300"
+                      ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700 text-green-700 dark:text-green-300"
                       : "bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/30 dark:to-yellow-900/30 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200"
                   }`}
                 >
                   <div>{getCategoryLabel(cat)}</div>
                   <div className="text-xs mt-1 font-normal">
                     {full
-                      ? "Lotada"
+                      ? `Lista de espera · ${a?.waiting || 0} na fila`
                       : `${a?.available || 0} vaga${(a?.available || 0) > 1 ? "s" : ""} restante${(a?.available || 0) > 1 ? "s" : ""}`
                     }
                   </div>

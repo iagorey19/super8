@@ -4,6 +4,14 @@ _Histórico completo de alterações. Consulte AGENTS.md para as últimas 5._
 
 ---
 
+## 07/07/2026 — Lista de Espera, Correção Financeiro, Feedbacks de Cadastro, Logo Rey Madeiras
+
+- `src/app/eventos/[id]/page.tsx`: Atleta pode se inscrever em lista de espera quando categorias lotadas — botão "Entrar na lista de espera" e categoria mostra "Lista de espera · X na fila"
+- `src/lib/store.ts`: `approveAthlete` só cria receita se `payment_status === "paid"` — corrige receita fantasma no financeiro ao aprovar atleta sem pagamento
+- `src/lib/store.ts`: Nova função `getUserByEmail()` para consulta de usuário por email
+- `src/app/auth/cadastro/page.tsx`: Mensagem de erro mostra nome do atleta quando email já cadastrado ("O email X já está cadastrado para Y")
+- `public/images/logo-rey-madeiras.jpg`: Logo REY MADEIRAS substituída por versão de melhor qualidade
+
 ## 05/07/2026 — Disponibilidade de Vagas, Fila para Admin, Zod Validation, Segregação por Role
 
 - `src/lib/store.ts`: `registerMultipleAthletes()` agora atribui `registration_order`, `is_waiting`, `payment_status` e envia notificações — igual ao fluxo de auto-inscrição

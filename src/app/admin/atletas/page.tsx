@@ -8,6 +8,7 @@ import { Table, Td } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Modal } from "@/components/ui/modal"
 import { Select } from "@/components/ui/select"
+import { useToast } from "@/components/ui/toast"
 import {
   getAthletes,
   getPendingAthletes,
@@ -35,7 +36,7 @@ export default function AthletesPage() {
   const [selectedCategory, setSelectedCategory] = useState("")
   const [selectedGroup, setSelectedGroup] = useState("")
   const [registerPaymentStatus, setRegisterPaymentStatus] = useState<"paid" | "pending">("pending")
-  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
+  const { toast: notify } = useToast()
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editingAthlete, setEditingAthlete] = useState<User | null>(null)
   const [editForm, setEditForm] = useState({ name: "", email: "", phone: "" })
@@ -53,19 +54,14 @@ export default function AthletesPage() {
 
   useEffect(() => { setTournaments(getTournaments()); loadData() }, [])
 
-  function showToast(type: "success" | "error", message: string) {
-    setToast({ type, message })
-    setTimeout(() => setToast(null), 3000)
-  }
-
   async function handleApprove(registrationId: string) {
     setSaving((prev) => new Set(prev).add(`approve-${registrationId}`))
     try {
       await approveAthlete(registrationId)
-      showToast("success", "Atleta aprovado com sucesso!")
+      notify("Atleta aprovado com sucesso!", "success")
       loadData()
     } catch {
-      showToast("error", "Erro ao aprovar atleta")
+      notify("Erro ao aprovar atleta", "error")
     } finally {
       setSaving((prev) => { const next = new Set(prev); next.delete(`approve-${registrationId}`); return next })
     }
@@ -75,10 +71,10 @@ export default function AthletesPage() {
     setSaving((prev) => new Set(prev).add(`reject-${registrationId}`))
     try {
       await rejectAthlete(registrationId)
-      showToast("success", "Atleta rejeitado")
+      notify("Atleta rejeitado", "success")
       loadData()
     } catch {
-      showToast("error", "Erro ao rejeitar atleta")
+      notify("Erro ao rejeitar atleta", "error")
     } finally {
       setSaving((prev) => { const next = new Set(prev); next.delete(`reject-${registrationId}`); return next })
     }
@@ -109,11 +105,11 @@ export default function AthletesPage() {
         undefined,
         registerPaymentStatus
       )
-      showToast("success", "Atleta registrado no torneio com sucesso!")
+      notify("Atleta registrado no torneio com sucesso!", "success")
       setModalOpen(false)
       loadData()
     } catch {
-      showToast("error", "Erro ao registrar atleta no torneio")
+      notify("Erro ao registrar atleta no torneio", "error")
     } finally {
       setSaving((prev) => { const next = new Set(prev); next.delete("register"); return next })
     }
@@ -125,16 +121,6 @@ export default function AthletesPage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Atletas</h1>
         <Button onClick={() => setAddModalOpen(true)}>Adicionar Atleta</Button>
       </div>
-
-      {toast && (
-        <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${
-            toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"
-          }`}
-        >
-          {toast.message}
-        </div>
-      )}
 
         <Card>
           <CardHeader title="Solicitações Pendentes" subtitle="Atletas aguardando aprovação" />
@@ -233,9 +219,9 @@ export default function AthletesPage() {
                           try {
                             await deleteAthlete(a.id)
                             loadData()
-                            showToast("success", "Atleta removido!")
+                            notify("Atleta removido!", "success")
                           } catch {
-                            showToast("error", "Erro ao remover atleta")
+                            notify("Erro ao remover atleta", "error")
                           } finally {
                             setSaving((prev) => { const next = new Set(prev); next.delete(`delete-${a.id}`); return next })
                           }
@@ -282,12 +268,16 @@ export default function AthletesPage() {
                 if (editingAthlete) {
                   setSaving((prev) => new Set(prev).add("edit"))
                   try {
-                    await updateAthlete(editingAthlete.id, editForm)
+                    const ok = await updateAthlete(editingAthlete.id, editForm)
+                    if (!ok) {
+                      notify("Email já está em uso por outro atleta", "error")
+                      return
+                    }
                     setEditModalOpen(false)
                     loadData()
-                    showToast("success", "Atleta atualizado!")
+                    notify("Atleta atualizado!", "success")
                   } catch {
-                    showToast("error", "Erro ao atualizar atleta")
+                    notify("Erro ao atualizar atleta", "error")
                   } finally {
                     setSaving((prev) => { const next = new Set(prev); next.delete("edit"); return next })
                   }
@@ -402,15 +392,15 @@ export default function AthletesPage() {
                 try {
                   const result = await createUser(addForm.name, addForm.email, addForm.password, "athlete", addForm.phone)
                   if (!result) {
-                    showToast("error", "Email já cadastrado")
+                    notify("Email já cadastrado", "error")
                     return
                   }
                   setAddModalOpen(false)
                   setAddForm({ name: "", email: "", password: "", phone: "" })
                   loadData()
-                  showToast("success", "Atleta criado com sucesso!")
+                  notify("Atleta criado com sucesso!", "success")
                 } catch {
-                  showToast("error", "Erro ao criar atleta")
+                  notify("Erro ao criar atleta", "error")
                 } finally {
                   setSaving((prev) => { const next = new Set(prev); next.delete("create"); return next })
                 }

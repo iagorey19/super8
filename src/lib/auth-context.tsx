@@ -9,7 +9,7 @@ interface AuthContextType {
   user: User | null
   loading: boolean
   login: (email: string, password: string) => Promise<User | null>
-  logout: () => void
+  logout: () => Promise<void>
   register: (name: string, email: string, password: string, phone?: string) => Promise<User | null>
 }
 
@@ -22,8 +22,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const session = store.getSession()
-    if (session) setUser(session.user)
-    setLoading(false)
+    if (session) {
+      setUser(session.user)
+      setLoading(false)
+    } else {
+      store.fetchSessionFromCookie().then((s) => {
+        if (s) setUser(s.user)
+        setLoading(false)
+      })
+    }
   }, [])
 
   const login = useCallback(
@@ -38,8 +45,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     []
   )
 
-  const logout = useCallback(() => {
-    store.logout()
+  const logout = useCallback(async () => {
+    await store.logout()
     setUser(null)
     router.push("/")
   }, [router])

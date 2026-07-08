@@ -46,9 +46,53 @@ export async function POST(req: Request) {
     const token = payloadB64 + "." + signToken(payloadB64)
 
     const { password: _, ...safeUser } = user
-    return NextResponse.json({ token, user: safeUser })
+    const response = NextResponse.json({ token, user: safeUser })
+    response.cookies.set("super8-auth-token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      maxAge: 86400,
+      path: "/",
+    })
+    return response
   } catch (e) {
     console.error("POST /api/auth/session error:", e)
     return NextResponse.json({ error: "Erro interno" }, { status: 500 })
   }
+}
+
+export async function GET(req: Request) {
+  try {
+    const { cookies } = await import("next/headers")
+    const cookieStore = await cookies()
+    const tokenCookie = cookieStore.get("super8-auth-token")
+    if (!tokenCookie?.value) {
+      return NextResponse.json({ error: "no_session" }, { status: 401 })
+    }
+
+    const { validateToken } = await import("@/lib/auth-secret")
+    const result = validateToken(tokenCookie.value)
+    if (!result) {
+      return NextResponse.json({ error: "invalid_token" }, { status: 401 })
+    }
+
+    const svc = getServiceClient()
+    const { data: users } = await svc.from("users").select("*").eq("id", result.userId)
+    const user = users?.[0]
+    if (!user) {
+      return NextResponse.json({ error: "user_not_found" }, { status: 401 })
+    }
+
+    const { password: _, ...safeUser } = user
+    return NextResponse.json({ user: safeUser, token: tokenCookie.value })
+  } catch (e) {
+    console.error("GET /api/auth/session error:", e)
+    return NextResponse.json({ error: "Erro interno" }, { status: 500 })
+  }
+}
+
+export async function DELETE(_req: Request) {
+  const response = NextResponse.json({ ok: true })
+  response.cookies.set("super8-auth-token", "", { maxAge: 0, path: "/" })
+  return response
 }

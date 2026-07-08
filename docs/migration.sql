@@ -235,3 +235,7 @@ CREATE INDEX idx_notes_tournament ON notes(tournament_id);
 CREATE INDEX idx_sponsorships_tournament ON sponsorships(tournament_id);
 CREATE INDEX idx_apoiadores_tournament ON apoiadores(tournament_id);
 CREATE INDEX idx_brindes_tournament ON brindes(tournament_id);
+
+-- Unique constraints (added 07/07/2026)
+ALTER TABLE users ADD CONSTRAINT users_email_unique UNIQUE (email);
+ALTER TABLE athlete_registrations ADD CONSTRAINT reg_tournament_athlete_unique UNIQUE (tournament_id, athlete_id);

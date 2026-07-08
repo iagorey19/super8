@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Modal } from "@/components/ui/modal"
 import { Table, Td } from "@/components/ui/table"
+import { useToast } from "@/components/ui/toast"
 import { Badge } from "@/components/ui/badge"
 import {
   getSponsors, getTournaments, createSponsor, createSponsorship, updateSponsor, deleteSponsor,
@@ -87,7 +88,8 @@ function PatrocinadoresTab() {
   const [editingSponsor, setEditingSponsor] = useState<User | null>(null)
   const [editForm, setEditForm] = useState({ name: "", email: "", phone: "", url: "" })
 
-  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
+  const { toast: baseToast } = useToast()
+  const showToast = (type: "success" | "error", message: string) => baseToast(message, type)
 
   function loadData() {
     setSponsors(getSponsors())
@@ -95,11 +97,6 @@ function PatrocinadoresTab() {
   }
 
   useEffect(() => { setTournaments(getTournaments()); loadData() }, [])
-
-  function showToast(type: "success" | "error", message: string) {
-    setToast({ type, message })
-    setTimeout(() => setToast(null), 3000)
-  }
 
   function getSponsorshipsForSponsor(sponsorId: string) {
     return allSponsorships.filter((s) => s.sponsor_id === sponsorId)
@@ -186,12 +183,6 @@ function PatrocinadoresTab() {
 
   return (
     <>
-      {toast && (
-        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
-          {toast.message}
-        </div>
-      )}
-
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">Patrocinadores</h2>
         <Button onClick={() => setNewModalOpen(true)}>Novo Patrocinador</Button>
@@ -354,12 +345,8 @@ function ApoiadoresTab() {
   const [editBrindeId, setEditBrindeId] = useState<string | null>(null)
 
   const [brindeForm, setBrindeForm] = useState<Record<string, { description: string; quantity: string; type: "kit" | "sorteio" }>>({})
-  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
-
-  function showToast(type: "success" | "error", message: string) {
-    setToast({ type, message })
-    setTimeout(() => setToast(null), 3000)
-  }
+  const { toast: baseToast } = useToast()
+  const showToast = (type: "success" | "error", message: string) => baseToast(message, type)
 
   useEffect(() => {
     const all = getTournaments()
@@ -491,11 +478,6 @@ function ApoiadoresTab() {
 
   return (
     <>
-      {toast && (
-        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
-          {toast.message}
-        </div>
-      )}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">Apoiadores</h2>
         <div className="flex items-center gap-3">

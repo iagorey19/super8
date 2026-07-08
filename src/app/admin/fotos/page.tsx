@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Modal } from "@/components/ui/modal"
+import { useToast } from "@/components/ui/toast"
 import * as store from "@/lib/store"
 import { formatDate } from "@/lib/utils"
 import { sanitizeUrl } from "@/lib/validate-url"
@@ -26,13 +27,9 @@ export default function AdminFotos() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set())
-  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
+  const { toast: baseToast } = useToast()
+  const showToast = (type: "success" | "error", message: string) => baseToast(message, type)
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  function showToast(type: "success" | "error", message: string) {
-    setToast({ type, message })
-    setTimeout(() => setToast(null), 3000)
-  }
 
   function loadTournaments() {
     setTournaments(store.getTournaments())
@@ -147,11 +144,6 @@ export default function AdminFotos() {
 
   return (
     <div className="space-y-6">
-      {toast && (
-        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
-          {toast.message}
-        </div>
-      )}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Fotos</h1>
         <div className="w-72">

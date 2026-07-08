@@ -43,9 +43,9 @@ export default function AthleteRanking() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Ranking</h1>
-        <Button size="sm" variant="secondary" onClick={() => window.location.reload()}>
-          Atualizar
-        </Button>
+          <Button size="sm" variant="secondary" onClick={() => refresh()}>
+            Atualizar
+          </Button>
       </div>
 
       <RankingInfo />

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Modal } from "@/components/ui/modal"
+import { useToast } from "@/components/ui/toast"
 import { Table, Td } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { getAllUsers, createUser, updateUser, deleteUser } from "@/lib/store"
@@ -26,7 +27,8 @@ const roleColors: Record<string, string> = {
 
 export default function UsuariosPage() {
   const [users, setUsers] = useState<User[]>([])
-  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
+  const { toast: baseToast } = useToast()
+  const showToast = (type: "success" | "error", message: string) => baseToast(message, type)
 
   const [newModalOpen, setNewModalOpen] = useState(false)
   const [newForm, setNewForm] = useState({ name: "", email: "", password: "", role: "athlete", phone: "" })
@@ -34,6 +36,7 @@ export default function UsuariosPage() {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [editForm, setEditForm] = useState({ name: "", email: "", password: "", phone: "" })
+  const [saving, setSaving] = useState<Set<string>>(new Set())
 
   function loadData() {
     setUsers(getAllUsers())
@@ -41,38 +44,47 @@ export default function UsuariosPage() {
 
   useEffect(() => { loadData() }, [])
 
-  function showToast(type: "success" | "error", message: string) {
-    setToast({ type, message })
-    setTimeout(() => setToast(null), 3000)
-  }
-
   async function handleCreate() {
     if (!newForm.name || !newForm.email || !newForm.password) {
       showToast("error", "Preencha nome, email e senha")
       return
     }
-    const result = await createUser(newForm.name, newForm.email, newForm.password, newForm.role as User["role"], newForm.phone)
-    if (!result) {
-      showToast("error", "Email já cadastrado")
-      return
+    setSaving((prev) => new Set(prev).add("create"))
+    try {
+      const result = await createUser(newForm.name, newForm.email, newForm.password, newForm.role as User["role"], newForm.phone)
+      if (!result) {
+        showToast("error", "Email já cadastrado")
+        return
+      }
+      showToast("success", "Usuário criado com sucesso!")
+      setNewModalOpen(false)
+      setNewForm({ name: "", email: "", password: "", role: "athlete", phone: "" })
+      loadData()
+    } catch {
+      showToast("error", "Erro ao criar usuário")
+    } finally {
+      setSaving((prev) => { const next = new Set(prev); next.delete("create"); return next })
     }
-    showToast("success", "Usuário criado com sucesso!")
-    setNewModalOpen(false)
-    setNewForm({ name: "", email: "", password: "", role: "athlete", phone: "" })
-    loadData()
   }
 
   async function handleEdit() {
     if (!editingUser || !editForm.name || !editForm.email) return
-    await updateUser(editingUser.id, {
-      name: editForm.name,
-      email: editForm.email,
-      password: editForm.password || undefined,
-      phone: editForm.phone,
-    })
-    setEditModalOpen(false)
-    loadData()
-    showToast("success", "Usuário atualizado!")
+    setSaving((prev) => new Set(prev).add("edit"))
+    try {
+      await updateUser(editingUser.id, {
+        name: editForm.name,
+        email: editForm.email,
+        password: editForm.password || undefined,
+        phone: editForm.phone,
+      })
+      setEditModalOpen(false)
+      loadData()
+      showToast("success", "Usuário atualizado!")
+    } catch {
+      showToast("error", "Erro ao atualizar usuário")
+    } finally {
+      setSaving((prev) => { const next = new Set(prev); next.delete("edit"); return next })
+    }
   }
 
   function handleDelete(user: User) {
@@ -88,16 +100,6 @@ export default function UsuariosPage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Usuários</h1>
         <Button onClick={() => setNewModalOpen(true)}>Novo Usuário</Button>
       </div>
-
-      {toast && (
-        <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${
-            toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"
-          }`}
-        >
-          {toast.message}
-        </div>
-      )}
 
       <Card>
         <CardHeader title="Todos os Usuários" subtitle={`${users.length} usuário(s) cadastrado(s)`} />
@@ -179,8 +181,8 @@ export default function UsuariosPage() {
             <Button variant="secondary" className="flex-1" onClick={() => setNewModalOpen(false)}>
               Cancelar
             </Button>
-            <Button className="flex-1" onClick={handleCreate}>
-              Criar
+            <Button className="flex-1" onClick={handleCreate} disabled={saving.has("create")}>
+              {saving.has("create") ? "Criando..." : "Criar"}
             </Button>
           </div>
         </div>
@@ -225,8 +227,8 @@ export default function UsuariosPage() {
             <Button variant="secondary" className="flex-1" onClick={() => setEditModalOpen(false)}>
               Cancelar
             </Button>
-            <Button className="flex-1" onClick={handleEdit} disabled={!editForm.name || !editForm.email}>
-              Salvar
+            <Button className="flex-1" onClick={handleEdit} disabled={!editForm.name || !editForm.email || saving.has("edit")}>
+              {saving.has("edit") ? "Salvando..." : "Salvar"}
             </Button>
           </div>
         </div>

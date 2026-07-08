@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { cookies } from "next/headers"
 import { getServiceClient } from "@/lib/supabase"
 import { seed } from "@/lib/seed"
 import { getClientIp, isRateLimited } from "@/lib/rate-limit"
@@ -107,6 +108,16 @@ export async function GET(req: Request) {
         currentUser = data.users.find((u) => u.id === authUser.userId) || null
       }
     }
+    if (!currentUser) {
+      const cookieStore = await cookies()
+      const tokenCookie = cookieStore.get("super8-auth-token")
+      if (tokenCookie?.value) {
+        const authUser = validateToken(tokenCookie.value)
+        if (authUser) {
+          currentUser = data.users.find((u) => u.id === authUser.userId) || null
+        }
+      }
+    }
     const isAdmin = currentUser?.role === "admin"
     if (!isAdmin) {
       data.users = data.users.map((u) => {
@@ -195,7 +206,7 @@ export async function POST(req: Request) {
     const errors = await syncToSupabase(data, callerRole, authUser.userId, tables)
     if (errors.length > 0) {
       console.error("syncToSupabase errors:", errors)
-      return NextResponse.json({ ok: false, errors: ["Falha ao salvar alguns dados"] }, { status: 500 })
+      return NextResponse.json({ ok: false, errors }, { status: 500 })
     }
     return NextResponse.json({ ok: true })
   } catch (e) {
@@ -252,7 +263,13 @@ async function syncToSupabase(data: AppData, callerRole: Role, callerUserId: str
           if (password) {
             const upsertData = { ...rest, password: bcrypt.hashSync(password, 10) }
             const { error } = await svc.from(table).upsert(upsertData as any, { onConflict: "id", ignoreDuplicates: false })
-            if (error) errors.push(`${table} upsert: ${error.message}`)
+            if (error) {
+              if (error.message?.includes("users_email_unique") || error.message?.includes("duplicate key")) {
+                errors.push("Email já cadastrado por outro usuário")
+              } else {
+                errors.push(`${table} upsert: ${error.message}`)
+              }
+            }
           } else {
             const { error } = await svc.from(table).update(rest as any).eq("id", user.id)
             if (error) errors.push(`${table} update: ${error.message}`)
@@ -261,7 +278,11 @@ async function syncToSupabase(data: AppData, callerRole: Role, callerUserId: str
       } else {
         const { error } = await svc.from(table).upsert(filteredRecords as any, { onConflict: "id", ignoreDuplicates: false })
         if (error) {
-          errors.push(`${table} upsert: ${error.message}`)
+          if (error.message?.includes("reg_tournament_athlete_unique") || error.message?.includes("duplicate key")) {
+            errors.push("Atleta já registrado neste torneio")
+          } else {
+            errors.push(`${table} upsert: ${error.message}`)
+          }
           continue
         }
       }
