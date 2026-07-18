@@ -35,6 +35,44 @@ Supabase project: `ylltshboiejlcbhksrci` (THE SUPER 8, PRODUCTION)
 | GitHub token | GitHub Settings > Developer settings > Personal access tokens |
 | Vercel token | Vercel Dashboard > Settings > Tokens |
 
+## Guia de Conversação — Como Falar Comigo
+
+### Como Pedir Algo
+- **Seja direto**: "Preciso que crie X no arquivo Y" ou "Tem um bug em Z"
+- **Contexto mínimo**: Se for mudança grande, explica o cenário (pra que serve, quem usa)
+- **Print/snapshot**: Se viu algo na tela, inclui o que viu. Me ajuda a achar mais rápido.
+- **Múltiplas tarefas**: Pode listar tudo de uma vez que eu priorizo e executo na ordem
+
+### Como Dar Feedback
+- **"Não era isso"** — Diga o que esperava e eu ajusto. Sem estresse.
+- **"Faltou X"** — Só falar o que falta que eu completo.
+- **"Ficou bom, mas..."** — Perfeito, já sei o que manter e o que mudar.
+- **"Testei e deu erro"** — Include o que viu na tela ou no console.
+
+### Commands Úteis
+| Comando | O que faz |
+|---------|-----------|
+| `/salvar` | Eu atualizo AGENTS.md (Últimas Alterações), faço commit+push, e aviso que pode reiniciar a conversa |
+| `/status` | Mostro resumo do estado atual do projeto |
+| "builda/deploya" | Rodo build + push (deploy automático Vercel) |
+| "testa X" | Abro o site e verifico X no navegador |
+| "me mostra Y" | Leio o arquivo Y e mostro |
+| "explica Z" | Explico como Z funciona |
+
+### Quando a Conversa Fica Longa (~50 trocas)
+- Eu aviso: ⚠️ Conversa longa
+- Você faz `/salvar`
+- Inicia uma conversa nova
+- Eu continuo de onde parou (leio AGENTS.md + HISTORICO.md)
+
+### Meu Estilo de Trabalho
+1. **Planejo primeiro** — explico o plano antes de executar
+2. **Pergunto se ambiguidade** — se não entendi, pergunto
+3. **Token economy** — respostas curtas e diretas
+4. **Build toda alteração** — sempre compilo antes de push
+5. **Atualizo docs** — AGENTS.md + CHANGELOG + skills se necessário
+6. **histórico** — toda sessão registrada em HISTORICO.md
+
 ## Auto-Update
 Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (arquivo + resumo). Manter só últimas 5. Se conversa ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e reiniciar."
 
@@ -59,4 +97,4 @@ Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (
 - `sessionStorage.getItem("super8-session")` → parse → `{ user, token }` (cache, cookie é canônico)
 
 ---
-_Atualizado em: 07/07/2026_
+_Atualizado em: 18/07/2026_
