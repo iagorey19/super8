@@ -18,15 +18,21 @@ export function getSession(): Session | null {
   }
 }
 
-let _sessionFetchPromise: Promise<Session | null> | null = null
+const MAX_RETRIES = 3
+const RETRY_DELAY = 500
 
-export async function fetchSessionFromCookie(): Promise<Session | null> {
+export async function fetchSessionFromCookie(retries = MAX_RETRIES): Promise<Session | null> {
   if (typeof window === "undefined") return null
-  if (_sessionFetchPromise) return _sessionFetchPromise
-  _sessionFetchPromise = (async () => {
+  for (let attempt = 0; attempt < retries; attempt++) {
     try {
       const res = await fetch("/api/auth/session")
-      if (!res.ok) return null
+      if (!res.ok) {
+        if (attempt < retries - 1) {
+          await new Promise((r) => setTimeout(r, RETRY_DELAY))
+          continue
+        }
+        return null
+      }
       const data = await res.json()
       if (data.user) {
         const sess: Session = { user: data.user, token: data.token }
@@ -35,14 +41,14 @@ export async function fetchSessionFromCookie(): Promise<Session | null> {
       }
       return null
     } catch {
+      if (attempt < retries - 1) {
+        await new Promise((r) => setTimeout(r, RETRY_DELAY))
+        continue
+      }
       return null
     }
-  })()
-  try {
-    return await _sessionFetchPromise
-  } finally {
-    _sessionFetchPromise = null
   }
+  return null
 }
 
 function saveSession(session: Session) {

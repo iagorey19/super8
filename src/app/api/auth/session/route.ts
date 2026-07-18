@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     response.cookies.set("super8-auth-token", token, {
       httpOnly: true,
       secure: true,
-      sameSite: "strict",
+      sameSite: "lax",
       maxAge: 86400,
       path: "/",
     })
