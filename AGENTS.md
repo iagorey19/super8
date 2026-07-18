@@ -39,11 +39,13 @@ Supabase project: `ylltshboiejlcbhksrci` (THE SUPER 8, PRODUCTION)
 Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (arquivo + resumo). Manter só últimas 5. Se conversa ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e reiniciar."
 
 ## Últimas Alterações
-- `atleta/page.tsx`: Seção Agradecimentos agora destaca REY MADEIRAS como "🏆 Tábua Oficial The Super 8" (full-width) igual à página pública do evento
-- `components/ui/grade-preview.tsx` + `lib/grade-*.ts`: GradePreview modularizado em grade-types, grade-builder, grade-canvas, grade-exports; WHIST_SCHEDULE deduplicado (importa de chaveamento.ts)
-- `eventos/[id]/jogos/page.tsx`: GradePreview integrado na visualização por categoria (com exportação PNG/PDF/CSV/TXT)
-- `app/api/auth/session/route.ts`: `POST` agora seta cookie httpOnly (24h); novo `GET` valida cookie e retorna user; novo `DELETE` limpa cookie
-- `app/auth/callback/route.ts`: Cookie httpOnly estendido de 300s para 24h
+- `pwa-prompt.tsx`: Instruções iOS Safari corrigidas para 4 passos (3 pontinhos → Compartilhar → Ver mais → Adicionar à Tela Inicial)
+- `atleta/page.tsx`: Seção Agradecimentos destaca REY MADEIRAS como "🏆 Tábua Oficial The Super 8" (full-width)
+- `.opencode/skills/supabase/SKILL.md`: Criado — CLI Supabase, DDL, migrations, RLS, schema overview
+- `.opencode/skills/deploy/SKILL.md`: Criado — deploy workflow, troubleshooting, env vars
+- `docs/DATABASE.md`: Criado — schema completo das 16 tabelas com colunas, tipos, relacionamentos
+- `HISTORICO.md`: Criado — registro de sessões
+- `.project-rules.md`: Expandido com padrões de código (React 19 onChange, React Keys, mobile-first, segurança)
 
 ## Próximos Passos
 1. **Auditoria de segurança completa** - Migrar rate limit para store compartilhado (Upstash Redis)
