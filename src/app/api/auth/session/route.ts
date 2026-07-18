@@ -15,7 +15,7 @@ function signToken(payload: string): string {
 export async function POST(req: Request) {
   try {
     const ip = getClientIp(req)
-    if (isRateLimited(ip, 5, 60_000)) {
+    if (await isRateLimited(ip, 5, 60_000)) {
       return NextResponse.json({ error: "Muitas tentativas. Tente novamente em 1 minuto." }, { status: 429 })
     }
 
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     }
 
     const exp = Date.now() + TOKEN_EXPIRY_MS
-    const payload = JSON.stringify({ userId: user.id, email: user.email, exp })
+    const payload = JSON.stringify({ userId: user.id, exp })
     const payloadB64 = Buffer.from(payload).toString("base64url")
     const token = payloadB64 + "." + signToken(payloadB64)
 
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     response.cookies.set("super8-auth-token", token, {
       httpOnly: true,
       secure: true,
-      sameSite: "lax",
+      sameSite: "strict",
       maxAge: 86400,
       path: "/",
     })

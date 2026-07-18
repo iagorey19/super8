@@ -82,7 +82,7 @@ async function getFullData(): Promise<AppData> {
 export async function GET(req: Request) {
   try {
     const ip = getClientIp(req)
-    if (isRateLimited(ip, 30)) {
+    if (await isRateLimited(ip, 30)) {
       return NextResponse.json({ error: "Muitas requisições. Tente novamente mais tarde." }, { status: 429 })
     }
     const svc = getServiceClient()
@@ -140,7 +140,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const ip = getClientIp(req)
-    if (isRateLimited(ip, 30)) {
+    if (await isRateLimited(ip, 30)) {
       return NextResponse.json({ error: "Muitas requisições. Tente novamente mais tarde." }, { status: 429 })
     }
 

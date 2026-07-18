@@ -4,7 +4,7 @@ import { getClientIp, isRateLimited } from "@/lib/rate-limit"
 
 export async function GET(req: Request) {
   const ip = getClientIp(req)
-  if (isRateLimited(ip, 30, 60_000)) {
+  if (await isRateLimited(ip, 30, 60_000)) {
     return NextResponse.json({ error: "Muitas requisições. Tente novamente mais tarde." }, { status: 429 })
   }
 

@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
-import { getUserByEmail } from "@/lib/store"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { isSafeRedirect } from "@/lib/validate-url"
@@ -55,16 +54,7 @@ export default function CadastroPage() {
       if (result) {
         setSuccess(true)
       } else {
-        const existing = getUserByEmail(email)
-        if (existing) {
-          setError(
-            existing.name !== name
-              ? `O email ${email} já está cadastrado para ${existing.name}. Faça login ou use outro email.`
-              : `Você já possui cadastro com o email ${email}. Faça login.`
-          )
-        } else {
-          setError("Este email já está cadastrado. Faça login.")
-        }
+        setError("Erro ao cadastrar. Verifique sua conexão e tente novamente. Se o problema persistir, entre em contato pelo WhatsApp.")
       }
     } catch {
       setError("Erro ao cadastrar. Verifique sua conexão e tente novamente.")

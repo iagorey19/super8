@@ -6,7 +6,7 @@ import { validateToken } from "@/lib/auth-secret"
 export async function POST(req: Request) {
   try {
     const ip = getClientIp(req)
-    if (isRateLimited(ip, 10, 60_000)) {
+    if (await isRateLimited(ip, 10, 60_000)) {
       return NextResponse.json({ error: "Muitas requisições. Tente novamente em 1 minuto." }, { status: 429 })
     }
 

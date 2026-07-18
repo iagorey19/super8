@@ -102,12 +102,8 @@ export async function persist(): Promise<void> {
     })
     if (!res.ok) {
       if (res.status === 401) {
-        console.warn("Sessão expirada — alterações não salvas no servidor. Faça login novamente.")
-        if (typeof window !== "undefined") {
-          sessionStorage.removeItem("super8-session")
-          window.location.href = "/auth/login"
-        }
-        return
+        console.error("Persist 401 — sessão inválida ou expirada. Dados não salvos.")
+        throw new Error("Sessão expirada — faça login novamente")
       }
       const body = await res.text()
       throw new Error(`Persist HTTP ${res.status}: ${body}`)
