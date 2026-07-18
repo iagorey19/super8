@@ -263,10 +263,10 @@ export default function SortearBrindes() {
           )}
 
           {winner && !isAnimating && (
-            <div className="text-center bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl border-2 border-amber-300 p-8 space-y-3">
+            <div className="text-center bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/40 dark:to-yellow-900/40 rounded-2xl border-2 border-amber-300 dark:border-amber-700 p-8 space-y-3">
               <div className="text-5xl">🎉</div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">VENCEDOR</h2>
-              <div className="text-4xl font-black text-amber-600 dark:text-amber-400">
+              <div className="text-4xl font-black text-amber-600 dark:text-amber-300">
                 {winner.name}
               </div>
               {prize.trim() && (
