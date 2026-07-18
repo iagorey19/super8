@@ -160,22 +160,22 @@ export default function SortearBrindes() {
 
         const slowSteps = 10
         let slow = 0
-        const slowInterval = setInterval(() => {
-          const randomName = names[Math.floor(Math.random() * names.length)]
-          setScrollingName(randomName)
-          slow++
+            const slowInterval = setInterval(async () => {
+              const randomName = names[Math.floor(Math.random() * names.length)]
+              setScrollingName(randomName)
+              slow++
 
-          if (slow >= slowSteps) {
-            clearInterval(slowInterval)
-            const winnerIdx = Math.floor(Math.random() * participants.length)
-            const drawn = participants[winnerIdx]
-            setWinner(drawn)
-            setScrollingName("")
-            setIsAnimating(false)
-            store.recordRaffle(selectedTournamentId, prizeName, drawn.name)
-            setRecords(store.getRaffleRecords(selectedTournamentId))
-          }
-        }, 150)
+              if (slow >= slowSteps) {
+                clearInterval(slowInterval)
+                const winnerIdx = Math.floor(Math.random() * participants.length)
+                const drawn = participants[winnerIdx]
+                setWinner(drawn)
+                setScrollingName("")
+                setIsAnimating(false)
+                await store.recordRaffle(selectedTournamentId, prizeName, drawn.name)
+                setRecords(store.getRaffleRecords(selectedTournamentId))
+              }
+            }, 150)
       }
     }, 100)
   }
@@ -317,8 +317,8 @@ export default function SortearBrindes() {
           </div>
           <Button
             disabled={!manualWinnerId || !manualPrize.trim() || !selectedTournamentId}
-            onClick={() => {
-              store.recordRaffle(selectedTournamentId, manualPrize.trim(), manualWinnerId)
+            onClick={async () => {
+              await store.recordRaffle(selectedTournamentId, manualPrize.trim(), manualWinnerId)
               setRecords(store.getRaffleRecords(selectedTournamentId))
               setManualWinnerId("")
               setManualPrize("")
@@ -435,9 +435,9 @@ export default function SortearBrindes() {
                     </button>
                     <button
                       className="text-xs text-red-600 dark:text-red-400 hover:underline"
-                      onClick={() => {
+                      onClick={async () => {
                         if (window.confirm(`Remover sorteio de ${record.winner_name}?`)) {
-                          store.removeRaffleRecord(record.id)
+                          await store.removeRaffleRecord(record.id)
                           setRecords(store.getRaffleRecords(selectedTournamentId))
                         }
                       }}
@@ -454,9 +454,9 @@ export default function SortearBrindes() {
 
       {records.length > 0 && selectedTournamentId && (
         <div className="text-center">
-          <Button variant="danger" size="sm" onClick={() => {
+          <Button variant="danger" size="sm" onClick={async () => {
             if (window.confirm("Tem certeza? Isso vai limpar todo o histórico de sorteios deste torneio.")) {
-              store.resetRaffleRecords(selectedTournamentId)
+              await store.resetRaffleRecords(selectedTournamentId)
               setRecords([])
             }
           }}>
@@ -487,9 +487,9 @@ export default function SortearBrindes() {
             </Button>
             <Button
               disabled={!editWinnerName.trim() || !editPrizeName.trim()}
-              onClick={() => {
+              onClick={async () => {
                 if (editingRecordId) {
-                  store.updateRaffleRecord(editingRecordId, {
+                  await store.updateRaffleRecord(editingRecordId, {
                     winner_name: editWinnerName.trim(),
                     brinde_description: editPrizeName.trim(),
                   })

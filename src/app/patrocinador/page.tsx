@@ -43,9 +43,9 @@ export default function SponsorDashboard() {
     return sponsorships.find((s) => s.tournament_id === tournamentId)?.amount || 0
   }
 
-  function handleSaveProfile() {
+  async function handleSaveProfile() {
     if (profileForm.name && profileForm.email && user) {
-      store.updateSponsor(user.id, profileForm)
+      await store.updateSponsor(user.id, profileForm)
       setProfileModal(false)
       notify("Perfil atualizado!", "success")
     }

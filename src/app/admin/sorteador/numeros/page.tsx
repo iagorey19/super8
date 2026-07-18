@@ -289,9 +289,9 @@ export default function SortearNumeros() {
           <Button
             variant="danger"
             size="sm"
-            onClick={() => {
+            onClick={async () => {
               if (window.confirm("Tem certeza? Isso vai limpar todos os números sorteados.")) {
-                store.resetNumberDraw(selectedTournament, hasMultipleCategories && selectedCategory ? selectedCategory : undefined, selectedGroup || undefined)
+                await store.resetNumberDraw(selectedTournament, hasMultipleCategories && selectedCategory ? selectedCategory : undefined, selectedGroup || undefined)
                 loadAthletes()
                 setHasDrawn(false)
               }

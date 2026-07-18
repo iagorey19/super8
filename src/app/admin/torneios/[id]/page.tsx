@@ -82,9 +82,9 @@ export default function TournamentDetail() {
 
   async function handleSaveCourtNames() {
     setSavingCourts(true)
-    courtNameInputs.forEach((name, idx) => {
-      store.updateCourtName(id, idx, name)
-    })
+    for (let idx = 0; idx < courtNameInputs.length; idx++) {
+      await store.updateCourtName(id, idx, courtNameInputs[idx])
+    }
     setTournament((prev) => {
       if (!prev) return prev
       const names = store.getCourtNames(id)
@@ -141,7 +141,7 @@ export default function TournamentDetail() {
     for (const key of groups) {
       const [cat, grp] = key.split("-")
       try {
-        store.startTournament(id, cat, grp)
+        await store.startTournament(id, cat, grp)
       } catch (e: any) {
         alert(`Erro ao iniciar ${cat} Grupo ${grp}: ${e.message}`)
       }
@@ -166,7 +166,7 @@ export default function TournamentDetail() {
                   onClick={async () => {
                     if (window.confirm(`Excluir "${tournament.title}" e todos os dados relacionados?`)) {
                       setDeleting(true)
-                      store.deleteTournament(tournament.id)
+                      await store.deleteTournament(tournament.id)
                       setDeleting(false)
                       router.push("/admin/torneios")
                     }
@@ -230,7 +230,7 @@ export default function TournamentDetail() {
                 const typed = window.prompt(`Digite "RESETAR" para confirmar:\n\nIsso vai apagar todas as partidas, resultados e números sorteados, e voltar o torneio para "upcoming".`)
                 if (typed === "RESETAR") {
                   setResetting(true)
-                  store.resetTournament(id)
+                  await store.resetTournament(id)
                   setResetting(false)
                   load()
                 }
@@ -241,7 +241,7 @@ export default function TournamentDetail() {
                 <Button variant="secondary" size="sm" disabled={recalculating} onClick={async () => {
                   if (window.confirm("Recalcular resultados deste torneio com o novo critério de desempate?")) {
                     setRecalculating(true)
-                    store.recalculateTournamentResults(id)
+                    await store.recalculateTournamentResults(id)
                     setRecalculating(false)
                     alert("Resultados recalculados!")
                     load()
@@ -345,7 +345,7 @@ export default function TournamentDetail() {
                               onClick={async () => {
                                 setStartingCat(`${cat}-${grp}`)
                                 try {
-                                  store.startTournament(id, cat, grp)
+                                  await store.startTournament(id, cat, grp)
                                   load()
                                 } catch (e: any) {
                                   alert(e.message)
@@ -405,7 +405,7 @@ export default function TournamentDetail() {
                                       <Button size="sm" variant="success" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={actionRegId.has(r.id)} onClick={async () => {
                                         if (actionRegId.has(r.id)) return
                                         setActionRegId((prev) => new Set(prev).add(r.id))
-                                        store.approveAthlete(r.id)
+                                        await store.approveAthlete(r.id)
                                         flashSuccess(r.id)
                                         toast("Atleta aprovado!")
                                         setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
@@ -416,7 +416,7 @@ export default function TournamentDetail() {
                                       <Button size="sm" variant="secondary" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={actionRegId.has(r.id)} onClick={async () => {
                                         if (actionRegId.has(r.id)) return
                                         setActionRegId((prev) => new Set(prev).add(r.id))
-                                        store.rejectAthlete(r.id)
+                                        await store.rejectAthlete(r.id)
                                         flashSuccess(r.id)
                                         toast("Atleta rejeitado!")
                                         setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
@@ -432,7 +432,7 @@ export default function TournamentDetail() {
                                         <Button size="sm" variant="success" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={actionRegId.has(r.id)} onClick={async () => {
                                           if (actionRegId.has(r.id)) return
                                           setActionRegId((prev) => new Set(prev).add(r.id))
-                                          store.updateRegistrationPayment(r.id, "paid")
+                                          await store.updateRegistrationPayment(r.id, "paid")
                                           flashSuccess(r.id)
                                           toast("Pagamento confirmado!")
                                           setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
@@ -445,7 +445,7 @@ export default function TournamentDetail() {
                                         <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm text-red-600 dark:text-red-400" disabled={actionRegId.has(r.id)} onClick={async () => {
                                           if (actionRegId.has(r.id)) return
                                           setActionRegId((prev) => new Set(prev).add(r.id))
-                                          store.updateRegistrationPayment(r.id, "pending")
+                                          await store.updateRegistrationPayment(r.id, "pending")
                                           flashSuccess(r.id)
                                           toast("Pagamento estornado!")
                                           setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
@@ -458,7 +458,7 @@ export default function TournamentDetail() {
                                         <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm text-red-600 dark:text-red-400" disabled={actionRegId.has(r.id)} onClick={async () => {
                                           if (actionRegId.has(r.id)) return
                                           setActionRegId((prev) => new Set(prev).add(r.id))
-                                          store.toggleAttendance(tournament.id, r.athlete_id)
+                                          await store.toggleAttendance(tournament.id, r.athlete_id)
                                           flashSuccess(r.id)
                                           toast("Check-in removido!")
                                           setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
@@ -470,7 +470,7 @@ export default function TournamentDetail() {
                                         <Button size="sm" variant="secondary" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={actionRegId.has(r.id)} onClick={async () => {
                                           if (actionRegId.has(r.id)) return
                                           setActionRegId((prev) => new Set(prev).add(r.id))
-                                          store.toggleAttendance(tournament.id, r.athlete_id)
+                                          await store.toggleAttendance(tournament.id, r.athlete_id)
                                           flashSuccess(r.id)
                                           toast("Check-in confirmado!")
                                           setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
@@ -485,7 +485,7 @@ export default function TournamentDetail() {
                                     <Button size="sm" variant="ghost" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={actionRegId.has(r.id)} onClick={async () => {
                                       if (actionRegId.has(r.id)) return
                                       setActionRegId((prev) => new Set(prev).add(r.id))
-                                      store.createNotification(r.athlete_id, "geral", "Confirme sua presença!", `O torneio ${tournament.title} está chegando! Confirme sua presença no sistema.`)
+                                      await store.createNotification(r.athlete_id, "geral", "Confirme sua presença!", `O torneio ${tournament.title} está chegando! Confirme sua presença no sistema.`)
                                       setActionRegId((prev) => { const next = new Set(prev); next.delete(r.id); return next })
                                       toast(`Lembrete enviado para ${r.name}!`)
                                     }}>
@@ -637,7 +637,7 @@ export default function TournamentDetail() {
             <Button
               onClick={async () => {
                 setSavingEdit(true)
-                store.updateTournament(tournament.id, {
+                await store.updateTournament(tournament.id, {
                   title: editForm.title,
                   edition: editForm.edition,
                   date: editForm.date,

@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       store.fetchSessionFromCookie().then((s) => {
         if (s) setUser(s.user)
         setLoading(false)
-      })
+      }).catch(() => setLoading(false))
     }
   }, [])
 

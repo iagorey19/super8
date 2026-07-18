@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
-import { Button } from "./ui/button"
 import { getUnreadCount } from "@/lib/store"
 import { useEffect, useState } from "react"
 import { ThemeToggle } from "./theme-toggle"

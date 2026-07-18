@@ -258,7 +258,7 @@ export async function updateMatchScore(matchId: string, team: 1 | 2): Promise<Ma
 
   if (match.score_team1 === maxScore || match.score_team2 === maxScore) {
     match.status = "finished"
-    checkTournamentCompletion(data, match.tournament_id, match.category || "4e5", match.group_name || "A")
+    await checkTournamentCompletion(data, match.tournament_id, match.category || "4e5", match.group_name || "A")
   }
 
   await saveData(data)
@@ -352,9 +352,6 @@ export async function regenerateWhistFromRound(tournamentId: string, fromRound: 
 
     const tournament = data.tournaments.find((t) => t.id === tournamentId)
     if (!tournament) continue
-
-    const catIndex = (tournament.categories || ["4e5"]).indexOf(cat)
-    const courtOffset = catIndex * 2
 
     const sortedRegs = data.athlete_registrations
       .filter((r) => r.tournament_id === tournamentId && r.category === cat &&
@@ -684,10 +681,10 @@ export async function registerAthleteInTournament(
   const tournamentName = tournament?.title || "Torneio"
 
   if (isWaiting) {
-    createNotification(athleteId, "geral", "Lista de Espera",
+    await createNotification(athleteId, "geral", "Lista de Espera",
       `Você está na lista de espera do ${tournamentName} (${cat}). Posição: ${existingCount + 1}ª.`)
   } else {
-    createNotification(athleteId, "geral", paymentStatus === "paid" ? "Inscrição Confirmada" : "Inscrição Realizada",
+    await createNotification(athleteId, "geral", paymentStatus === "paid" ? "Inscrição Confirmada" : "Inscrição Realizada",
       paymentStatus === "paid"
         ? `Sua inscrição no ${tournamentName} (${cat}) foi confirmada! Posição: ${existingCount + 1}ª de 8.`
         : `Sua inscrição no ${tournamentName} (${cat}) foi registrada! Posição: ${existingCount + 1}ª de 8.`)
@@ -695,7 +692,7 @@ export async function registerAthleteInTournament(
 
   const admins = data.users.filter((u) => u.role === "admin")
   for (const admin of admins) {
-    createNotification(admin.id, "geral", "Nova Inscrição",
+    await createNotification(admin.id, "geral", "Nova Inscrição",
       `${athleteName} se inscreveu no ${tournamentName} (${cat})${paymentStatus === "paid" ? " — PAGO" : ""} — ${isWaiting ? "Lista de Espera" : `Posição ${existingCount + 1}`}`)
   }
 
@@ -750,10 +747,10 @@ export async function registerMultipleAthletes(
     const tournamentName = tournament?.title || "Torneio"
 
     if (isWaiting) {
-      createNotification(athleteId, "geral", "Lista de Espera",
+      await createNotification(athleteId, "geral", "Lista de Espera",
         `Você está na lista de espera do ${tournamentName} (${cat}). Posição: ${order}ª.`)
     } else {
-      createNotification(athleteId, "geral", paymentStatus === "paid" ? "Inscrição Confirmada" : "Inscrição Realizada",
+      await createNotification(athleteId, "geral", paymentStatus === "paid" ? "Inscrição Confirmada" : "Inscrição Realizada",
         paymentStatus === "paid"
           ? `Sua inscrição no ${tournamentName} (${cat}) foi confirmada! Posição: ${order}ª de 8.`
           : `Sua inscrição no ${tournamentName} (${cat}) foi registrada! Posição: ${order}ª de 8.`)
@@ -761,7 +758,7 @@ export async function registerMultipleAthletes(
 
     const admins = data.users.filter((u) => u.role === "admin")
     for (const admin of admins) {
-      createNotification(admin.id, "geral", "Nova Inscrição",
+      await createNotification(admin.id, "geral", "Nova Inscrição",
         `${athleteName} se inscreveu no ${tournamentName} (${cat})${paymentStatus === "paid" ? " — PAGO" : ""} — ${isWaiting ? "Lista de Espera" : `Posição ${order}`}`)
     }
   }

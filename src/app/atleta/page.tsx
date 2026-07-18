@@ -171,7 +171,7 @@ export default function AthleteDashboard() {
                       disabled={confirmingPresence}
                       onClick={async () => {
                         setConfirmingPresence(true)
-                        store.toggleAttendance(tournament.id, user.id)
+                        await store.toggleAttendance(tournament.id, user.id)
                         const reg = store.getAthleteRegistration(tournament.id, user.id)
                         setRegistration(reg)
                         setConfirmingPresence(false)

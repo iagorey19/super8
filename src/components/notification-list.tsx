@@ -42,32 +42,32 @@ export function NotificationList({ userId, canSend }: { userId: string; canSend?
 
   useEffect(() => { load() }, [userId])
 
-  function handleMarkRead(id: string) {
-    store.markNotificationRead(id)
+  async function handleMarkRead(id: string) {
+    await store.markNotificationRead(id)
     load()
   }
 
-  function handleMarkAllRead() {
-    store.markAllNotificationsRead(userId)
+  async function handleMarkAllRead() {
+    await store.markAllNotificationsRead(userId)
     load()
   }
 
-  function handleDelete(id: string) {
-    store.deleteNotification(id)
+  async function handleDelete(id: string) {
+    await store.deleteNotification(id)
     load()
   }
 
-  function handleDeleteAll() {
-    store.deleteAllNotifications(userId)
+  async function handleDeleteAll() {
+    await store.deleteAllNotifications(userId)
     load()
   }
 
-  function handleSend() {
+  async function handleSend() {
     if (!sendForm.title || !sendForm.message) return
     setSending(true)
     const athletes = store.getAthletes()
     for (const a of athletes) {
-      store.createNotification(a.id, sendForm.type as any, sendForm.title, sendForm.message)
+      await store.createNotification(a.id, sendForm.type as any, sendForm.title, sendForm.message)
     }
     setSending(false)
     setSendModal(false)

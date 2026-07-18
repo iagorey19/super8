@@ -5,7 +5,7 @@ import { DataLoader } from "@/components/data-loader"
 import { PWAPrompt } from "@/components/pwa-prompt"
 import "./globals.css"
 
-const siteUrl = "https://super8-three.vercel.app"
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://super8-three.vercel.app"
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

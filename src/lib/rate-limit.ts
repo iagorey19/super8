@@ -49,7 +49,7 @@ export async function isRateLimited(ip: string, max: number = 30, windowMs: numb
     if (updateError) console.error("rate-limit update error:", updateError)
     return false
   } catch (e) {
-    console.error("rate-limit error:", e)
-    return false
+    console.error("rate-limit error — failing secure:", e)
+    return true
   }
 }

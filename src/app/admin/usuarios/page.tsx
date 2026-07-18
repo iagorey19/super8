@@ -87,9 +87,9 @@ export default function UsuariosPage() {
     }
   }
 
-  function handleDelete(user: User) {
+  async function handleDelete(user: User) {
     if (!window.confirm(`Remover usuário "${user.name}" (${roleLabels[user.role]}) permanentemente?`)) return
-    deleteUser(user.id)
+    await deleteUser(user.id)
     loadData()
     showToast("success", "Usuário removido!")
   }

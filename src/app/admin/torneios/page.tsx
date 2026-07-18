@@ -41,13 +41,13 @@ export default function AdminTorneios() {
     if (user) load()
   }, [user, loading, router])
 
-  function handleCreate() {
+  async function handleCreate() {
     if (!form.title || !form.edition || !form.date || !form.location) return
     const cats = form.categories.length > 0 ? form.categories : ["4e5"]
     const fee = form.registrationFee ? Number(form.registrationFee) : undefined
     setSaving(true)
     if (editingId) {
-      store.updateTournament(editingId, {
+      await store.updateTournament(editingId, {
         title: form.title,
         edition: form.edition,
         date: form.date,
@@ -57,7 +57,7 @@ export default function AdminTorneios() {
         max_score: form.maxScore ? Number(form.maxScore) : undefined,
       })
     } else {
-      store.createTournament(form.title, form.edition, form.date, form.location, user!.id, cats, fee, form.maxScore ? Number(form.maxScore) : undefined)
+      await store.createTournament(form.title, form.edition, form.date, form.location, user!.id, cats, fee, form.maxScore ? Number(form.maxScore) : undefined)
     }
     setSaving(false)
     setModalOpen(false)
@@ -83,7 +83,7 @@ export default function AdminTorneios() {
     setStarting((prev) => new Set(prev).add(id))
     for (const cat of cats) {
       try {
-        store.startTournament(id, cat)
+        await store.startTournament(id, cat)
       } catch (e: any) {
         alert(`Erro ao iniciar ${cat}: ${e.message}`)
       }
@@ -174,7 +174,7 @@ export default function AdminTorneios() {
                       onClick={async () => {
                         if (window.confirm(`Excluir "${t.title}" e todos os dados relacionados?`)) {
                           setDeleting((prev) => new Set(prev).add(t.id))
-                          store.deleteTournament(t.id)
+                          await store.deleteTournament(t.id)
                           setDeleting((prev) => { const next = new Set(prev); next.delete(t.id); return next })
                           load()
                         }
