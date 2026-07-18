@@ -546,7 +546,7 @@ export default function EventoDetalhePage() {
           <CardHeader title="🎁 Vencedores dos Sorteios" />
           <div className="space-y-2">
             {raffleRecords.map((r) => (
-              <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-green-50 border border-green-200">
+              <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700">
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">{r.winner_name}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">{r.brinde_description}</p>
