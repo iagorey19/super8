@@ -220,9 +220,6 @@ export async function finalizeTournament(tournamentId: string) {
       const matches = data.matches.filter((m) => m.tournament_id === tournamentId && m.category === cat && (m.group_name || "A") === grp)
       if (matches.length === 0) return
 
-      const allFinished = matches.every((m) => m.status === "finished")
-      if (allFinished) return
-
       const sortedRegs = data.athlete_registrations
         .filter((r) => r.tournament_id === tournamentId && r.category === cat && (r.group_name || "A") === grp && r.status === "approved")
         .sort((a, b) => (a.draw_number || 999) - (b.draw_number || 999))
@@ -519,28 +516,41 @@ export function getRankings(tournamentId: string, category?: string, groupName?:
 export function getLiveRankings(tournamentId: string, category?: string, groupName?: string): (TournamentResult & { name: string })[] {
   const data = getData()
   const cat = category || "4e5"
-  const grp = groupName || "A"
 
-  const matches = data.matches.filter((m) => m.tournament_id === tournamentId && m.category === cat && m.group_name === grp)
+  const groups = [...new Set(
+    data.athlete_registrations
+      .filter((r) => r.tournament_id === tournamentId && r.category === cat && r.status === "approved")
+      .map((r) => r.group_name || "A")
+  )]
 
-  const sortedRegs = data.athlete_registrations
-    .filter((r) => r.tournament_id === tournamentId && r.category === cat &&
-      (r.group_name === grp || (!r.group_name && grp === "A")) && r.status === "approved")
-    .sort((a, b) => (a.draw_number || 999) - (b.draw_number || 999))
-  const athleteIds = sortedRegs.map((r) => r.athlete_id)
+  const groupsToProcess = groupName ? groups.filter((g) => g === groupName) : groups
 
-  const athleteNames: Record<string, string> = {}
-  athleteIds.forEach((id) => {
-    const user = data.users.find((u) => u.id === id)
-    if (user) athleteNames[id] = user.name
-  })
+  let allResults: (TournamentResult & { name: string })[] = []
 
-  const results = calculateTournamentResults(athleteIds, matches, athleteNames, cat, grp)
+  for (const grp of groupsToProcess) {
+    const matches = data.matches.filter((m) => m.tournament_id === tournamentId && m.category === cat && (m.group_name || "A") === grp)
 
-  return results.map((r) => ({
-    ...r, id: `live-${r.athlete_id}`, tournament_id: tournamentId,
-    name: athleteNames[r.athlete_id] || "Desconhecido",
-  }))
+    const sortedRegs = data.athlete_registrations
+      .filter((r) => r.tournament_id === tournamentId && r.category === cat &&
+        (r.group_name || "A") === grp && r.status === "approved")
+      .sort((a, b) => (a.draw_number || 999) - (b.draw_number || 999))
+    const athleteIds = sortedRegs.map((r) => r.athlete_id)
+
+    const athleteNames: Record<string, string> = {}
+    athleteIds.forEach((id) => {
+      const user = data.users.find((u) => u.id === id)
+      if (user) athleteNames[id] = user.name
+    })
+
+    const results = calculateTournamentResults(athleteIds, matches, athleteNames, cat, grp)
+
+    allResults = allResults.concat(results.map((r) => ({
+      ...r, id: `live-${r.athlete_id}`, tournament_id: tournamentId,
+      name: athleteNames[r.athlete_id] || "Desconhecido",
+    })))
+  }
+
+  return allResults.sort((a, b) => b.points - a.points || b.total_games - a.total_games)
 }
 
 export function computeAnnualRanking(category?: string, year?: number) {
