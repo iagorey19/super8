@@ -26,7 +26,7 @@ export default function AthleteFotos() {
 
   useEffect(() => {
     loadPhotos()
-    const interval = setInterval(loadPhotos, 5000)
+    const interval = setInterval(loadPhotos, 30000)
     return () => clearInterval(interval)
   }, [])
 

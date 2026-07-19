@@ -53,7 +53,14 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR" className="h-full">
+    <html lang="pt-BR" className="h-full" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem("super8-theme-v2")==='"dark"'||(!localStorage.getItem("super8-theme-v2")&&window.matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.classList.add("dark")}catch(e){}`,
+          }}
+        />
+      </head>
       <body className="min-h-full antialiased bg-gray-50 dark:bg-gray-950">
         <ErrorLogger />
         <DataLoader>

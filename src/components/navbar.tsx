@@ -33,8 +33,9 @@ export function Navbar({ variant = "authenticated" }: { variant?: "authenticated
     if (user) {
       setUnread(getUnreadCount(user.id))
       const interval = setInterval(() => {
-        setUnread(getUnreadCount(user!.id))
-      }, 5000)
+        const next = getUnreadCount(user!.id)
+        setUnread((prev) => (prev === next ? prev : next))
+      }, 30000)
       return () => clearInterval(interval)
     }
   }, [user])

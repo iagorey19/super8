@@ -44,7 +44,7 @@ export async function isRateLimited(ip: string, max: number = 30, windowMs: numb
         .upsert({ ip, count: 1, window_start: windowStartISO }, { onConflict: "ip" })
       if (upsertError) {
         console.error("rate-limit upsert error:", upsertError)
-        return true
+        return false
       }
       return false
     }
@@ -57,11 +57,11 @@ export async function isRateLimited(ip: string, max: number = 30, windowMs: numb
       .eq("ip", ip)
     if (updateError) {
       console.error("rate-limit update error:", updateError)
-      return true
+      return false
     }
     return false
   } catch (e) {
-    console.error("rate-limit error — failing secure:", e)
-    return true
+    console.error("rate-limit error — failing open:", e)
+    return false
   }
 }
