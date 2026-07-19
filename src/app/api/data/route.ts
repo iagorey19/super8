@@ -292,6 +292,16 @@ async function syncToSupabase(data: AppData, callerRole: Role, callerUserId: str
           }
           continue
         }
+
+        if (table === "tournaments") {
+          for (const rec of filteredRecords as any[]) {
+            if (rec.registrations_closed === true) {
+              const sql = `UPDATE tournaments SET registrations_closed = true WHERE id = '${rec.id.replace(/'/g, "''")}'`
+              const { error: rcErr } = await (svc as any).rpc("exec_sql", { query: sql })
+              if (rcErr) errors.push(`tournaments registrations_closed update: ${rcErr.message}`)
+            }
+          }
+        }
       }
     }
 

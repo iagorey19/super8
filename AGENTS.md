@@ -77,6 +77,13 @@ Supabase project: `ylltshboiejlcbhksrci` (THE SUPER 8, PRODUCTION)
 Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (arquivo + resumo). Manter só últimas 5. Se conversa ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e reiniciar."
 
 ## Últimas Alterações
+- `sw.js`: Skip POST intercept, add clients.claim(), use request.clone() — fix login 503 + flicker
+- `theme-context.tsx` + `layout.tsx`: Inline script sets dark class before paint — fix theme flash
+- `navbar.tsx`: Polling 5s→30s, skip re-render if count unchanged — fix sticky bar flicker
+- `rate-limit.ts`: Fail open on DB errors (return false) — fix login blocked by transient errors
+- `atleta/*.tsx`: Polling 5s→30s (dashboard, ranking, jogos, fotos) — reduce re-render flicker
+- `register/route.ts`: sameSite strict→lax — fix iOS cookie drop
+- `supabase/migrations/20260719010000_add_registrations_closed.sql`: Added registrations_closed column to tournaments table
 - `AUDITORIA_BUGS.txt`: Estado final — 45/52 fixados (87%), 3 não fixados, 2 mitigados, 2 falsos positivos
 - `tournaments.ts`: `computeAnnualRanking` refatorado O(n²→n) com Maps
 - `auth.ts`: `registerAthlete` retorna `{user}|{error}` em vez de `User|null`
