@@ -36,8 +36,13 @@ export async function saveData(data: AppData) {
     }
   }
 
-  await db.persist()
-  lastPersistedSnapshot = currentSnapshot
+  try {
+    await db.persist()
+    lastPersistedSnapshot = currentSnapshot
+  } catch (e) {
+    console.error("saveData persist failed:", e)
+    throw e
+  }
 }
 
 export function getConfig() {

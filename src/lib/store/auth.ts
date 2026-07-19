@@ -67,11 +67,16 @@ export async function login(email: string, password: string): Promise<User | nul
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     })
-    if (!res.ok) return null
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: "Erro ao fazer login" }))
+      console.error("login failed:", res.status, err)
+      return null
+    }
     const data = await res.json()
     saveSession({ user: data.user, token: data.token })
     return data.user
-  } catch {
+  } catch (e) {
+    console.error("login: network error", e)
     return null
   }
 }
@@ -83,6 +88,8 @@ export async function logout() {
       await fetch("/api/auth/session", { method: "DELETE" })
     } catch { /* ignore */ }
   }
+  const db = await import("../db")
+  db.clearDirty()
 }
 
 export async function registerAthlete(
@@ -90,7 +97,7 @@ export async function registerAthlete(
   email: string,
   password: string,
   phone?: string
-): Promise<User | null> {
+): Promise<{ user: User } | { error: string }> {
   try {
     const res = await fetch("/api/auth/register", {
       method: "POST",
@@ -99,15 +106,13 @@ export async function registerAthlete(
     })
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: "Erro ao cadastrar" }))
-      console.error("registerAthlete failed:", res.status, err)
-      return null
+      return { error: err.error || `Erro ${res.status}` }
     }
     const data = await res.json()
     saveSession({ user: data.user, token: data.token })
     await refreshFromServer()
-    return data.user
+    return { user: data.user }
   } catch (e) {
-    console.error("registerAthlete: network error", e)
-    return null
+    return { error: "Erro de conexão. Verifique sua internet e tente novamente." }
   }
 }

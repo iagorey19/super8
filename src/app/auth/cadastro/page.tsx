@@ -51,13 +51,13 @@ export default function CadastroPage() {
     setSubmitting(true)
     try {
       const result = await register(name, email, password, phone || undefined)
-      if (result) {
+      if ("user" in result) {
         setSuccess(true)
       } else {
-        setError("Erro ao cadastrar. Verifique sua conexão e tente novamente. Se o problema persistir, entre em contato pelo WhatsApp.")
+        setError(result.error)
       }
-    } catch {
-      setError("Erro ao cadastrar. Verifique sua conexão e tente novamente.")
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao cadastrar. Tente novamente.")
     } finally {
       setSubmitting(false)
     }

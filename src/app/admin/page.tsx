@@ -33,7 +33,7 @@ export default function AdminDashboard() {
         setMatches(store.getTournamentMatches(t.id))
       }
       setAthleteCount(store.getAthletes().length)
-      setSummary(store.getFinancialSummary())
+      setSummary(store.getFinancialSummary(t?.id))
     }
   }, [user, loading, router])
 

@@ -10,7 +10,7 @@ interface AuthContextType {
   loading: boolean
   login: (email: string, password: string) => Promise<User | null>
   logout: () => Promise<void>
-  register: (name: string, email: string, password: string, phone?: string) => Promise<User | null>
+  register: (name: string, email: string, password: string, phone?: string) => Promise<{ user: User } | { error: string }>
 }
 
 const AuthContext = createContext<AuthContextType>(null!)
@@ -29,7 +29,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       store.fetchSessionFromCookie().then((s) => {
         if (s) setUser(s.user)
         setLoading(false)
-      }).catch(() => setLoading(false))
+      }).catch((e) => {
+        console.error("fetchSessionFromCookie failed:", e)
+        setUser(null)
+        setLoading(false)
+      })
     }
   }, [])
 
@@ -53,8 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = useCallback(
     async (name: string, email: string, password: string, phone?: string) => {
-      const newUser = await store.registerAthlete(name, email, password, phone)
-      return newUser
+      return await store.registerAthlete(name, email, password, phone)
     },
     []
   )

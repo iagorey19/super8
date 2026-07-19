@@ -63,7 +63,7 @@ export default function ResetPasswordPage() {
       if (authUser?.email) {
         const svc = getServiceClient()
         const hashed = await import("bcryptjs").then(m => m.hashSync(password, 10))
-        await svc.from("users").update({ password: hashed }).eq("email", authUser.email)
+        await (svc.from("users") as any).update({ password: hashed }).eq("email", authUser.email)
       }
 
       router.push("/auth/login?reset=ok")

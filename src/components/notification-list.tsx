@@ -65,7 +65,8 @@ export function NotificationList({ userId, canSend }: { userId: string; canSend?
   async function handleSend() {
     if (!sendForm.title || !sendForm.message) return
     setSending(true)
-    const athletes = store.getAthletes()
+    let athletes: any[]
+    try { athletes = store.getAthletes() } catch { athletes = [] }
     for (const a of athletes) {
       await store.createNotification(a.id, sendForm.type as any, sendForm.title, sendForm.message)
     }

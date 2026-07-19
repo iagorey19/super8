@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import crypto from "crypto"
+import { cookies } from "next/headers"
 import { getServiceClient } from "@/lib/supabase"
 import { getClientIp, isRateLimited } from "@/lib/rate-limit"
 import { validateToken } from "@/lib/auth-secret"
@@ -9,9 +10,17 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024
 
 async function validateSession(req: Request): Promise<boolean> {
   const auth = req.headers.get("authorization")
-  if (!auth?.startsWith("Bearer ")) return false
-  const result = validateToken(auth.slice(7))
-  return result !== null
+  if (auth?.startsWith("Bearer ")) {
+    const result = validateToken(auth.slice(7))
+    if (result) return true
+  }
+  const cookieStore = await cookies()
+  const tokenCookie = cookieStore.get("super8-auth-token")
+  if (tokenCookie?.value) {
+    const result = validateToken(tokenCookie.value)
+    if (result) return true
+  }
+  return false
 }
 
 export async function POST(req: Request) {
@@ -35,8 +44,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Tipo de arquivo não permitido. Use JPG, PNG, GIF, WEBP ou MP4." }, { status: 400 })
     }
 
-    if (type === "fileSize" || (req.headers.get("content-length") && parseInt(req.headers.get("content-length")!) > MAX_FILE_SIZE)) {
-      // Size check via metadata — actual enforcement at signed URL level
+    const contentLength = req.headers.get("content-length")
+    if (contentLength && parseInt(contentLength) > MAX_FILE_SIZE) {
+      return NextResponse.json({ error: "Arquivo muito grande. Máximo: 10MB." }, { status: 413 })
     }
 
     const fileName = `${crypto.randomUUID()}.${ext}`

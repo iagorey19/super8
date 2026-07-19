@@ -268,9 +268,9 @@ export default function AthletesPage() {
                 if (editingAthlete) {
                   setSaving((prev) => new Set(prev).add("edit"))
                   try {
-                    const ok = await updateAthlete(editingAthlete.id, editForm)
-                    if (!ok) {
-                      notify("Email já está em uso por outro atleta", "error")
+                    const error = await updateAthlete(editingAthlete.id, editForm)
+                    if (error) {
+                      notify(error, "error")
                       return
                     }
                     setEditModalOpen(false)

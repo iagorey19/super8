@@ -76,10 +76,8 @@ export async function deleteSponsorship(sponsorshipId: string) {
   const sponsorship = data.sponsorships.find((s) => s.id === sponsorshipId)
   data.sponsorships = data.sponsorships.filter((s) => s.id !== sponsorshipId)
   if (sponsorship) {
-    const sponsor = data.users.find((u) => u.id === sponsorship.sponsor_id)
-    const descMatch = `Patrocínio ${sponsor?.name || "Desconhecido"}`
     data.revenues = data.revenues.filter(
-      (r) => !(r.tournament_id === sponsorship.tournament_id && r.description === descMatch && r.amount === sponsorship.amount)
+      (r) => !(r.tournament_id === sponsorship.tournament_id && r.source === "patrocinio" && r.amount === sponsorship.amount && r.created_at === sponsorship.created_at)
     )
   }
   await saveData(data)

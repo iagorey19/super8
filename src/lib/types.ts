@@ -53,6 +53,7 @@ export interface Tournament {
   registration_fee?: number
   max_score?: number
   court_names?: string[]
+  registrations_closed?: boolean
   created_at: string
   created_by: string
 }

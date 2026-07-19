@@ -23,7 +23,7 @@ export default function AthleteDashboard() {
   const [myCategory, setMyCategory] = useState<string>("")
   const [annualRankPos, setAnnualRankPos] = useState<number | null>(null)
   const [profileModal, setProfileModal] = useState(false)
-  const [profileForm, setProfileForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "" })
+  const [profileForm, setProfileForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "", currentPassword: "" })
   const [showPassword, setShowPassword] = useState(false)
   const { toast: notify } = useToast()
   const [raffleRecords, setRaffleRecords] = useState<RaffleRecord[]>([])
@@ -34,7 +34,7 @@ export default function AthleteDashboard() {
 
   const loadData = useCallback(async () => {
     if (!user) return
-    try { await store.refreshFromServer() } catch {}
+    try { await store.refreshFromServer() } catch (e) { console.error("refreshFromServer failed:", e) }
     const t = store.getCurrentTournament()
     setTournament(t)
     if (t && user) {
@@ -81,14 +81,14 @@ export default function AthleteDashboard() {
     }
     setSavingProfile(true)
     try {
-      const ok = await store.updateAthlete(user.id, {
+      const error = await store.updateAthlete(user.id, {
         name: profileForm.name,
         email: profileForm.email,
         phone: profileForm.phone,
-        ...(profileForm.password ? { password: profileForm.password } : {}),
+        ...(profileForm.password ? { password: profileForm.password, currentPassword: profileForm.currentPassword } : {}),
       })
-      if (!ok) {
-        notify("Este email já está em uso por outro atleta", "error")
+      if (error) {
+        notify(error, "error")
         setSavingProfile(false)
         return
       }
@@ -114,7 +114,7 @@ export default function AthleteDashboard() {
             Atualizar
           </Button>
           <Button size="sm" variant="ghost" onClick={() => {
-            setProfileForm({ name: user.name, email: user.email, phone: user.phone || "", password: "", confirmPassword: "" })
+            setProfileForm({ name: user.name, email: user.email, phone: user.phone || "", password: "", confirmPassword: "", currentPassword: "" })
             setShowPassword(false)
             setProfileModal(true)
           }}>
@@ -409,6 +409,15 @@ export default function AthleteDashboard() {
             onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
           />
           <hr className="border-gray-200 dark:border-gray-700" />
+          {profileForm.password && (
+            <Input
+              label="Senha Atual"
+              type="password"
+              placeholder="Sua senha atual"
+              value={profileForm.currentPassword || ""}
+              onChange={(e) => setProfileForm({ ...profileForm, currentPassword: e.target.value })}
+            />
+          )}
           <div className="relative">
             <Input
               label="Nova Senha"
@@ -426,13 +435,15 @@ export default function AthleteDashboard() {
               {showPassword ? "🙈" : "👁️"}
             </button>
           </div>
-          <Input
-            label="Confirmar Senha"
-            type={showPassword ? "text" : "password"}
-            placeholder="Repita a nova senha"
-            value={profileForm.confirmPassword}
-            onChange={(e) => setProfileForm({ ...profileForm, confirmPassword: e.target.value })}
-          />
+          {profileForm.password && (
+            <Input
+              label="Confirmar Senha"
+              type={showPassword ? "text" : "password"}
+              placeholder="Repita a nova senha"
+              value={profileForm.confirmPassword}
+              onChange={(e) => setProfileForm({ ...profileForm, confirmPassword: e.target.value })}
+            />
+          )}
           <div className="flex gap-3 pt-2">
             <Button variant="secondary" className="flex-1" onClick={() => setProfileModal(false)}>
               Cancelar

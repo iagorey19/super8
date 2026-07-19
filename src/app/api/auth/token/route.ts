@@ -16,6 +16,5 @@ export async function GET(req: Request) {
   }
 
   const response = NextResponse.json({ token: token.value })
-  response.cookies.set("super8-auth-token", "", { maxAge: 0, path: "/" })
   return response
 }

@@ -118,7 +118,7 @@ export default function SortearBrindes() {
           if (slow >= slowSteps) {
             clearInterval(slowInterval)
 
-            const result = await store.raffleBrinde(selectedTournamentId)
+            const result = await store.raffleBrinde(selectedTournamentId, brindeId)
             if (!result) {
               alert("Nenhum brinde disponível para sorteio.")
               setIsAnimating(false)
@@ -128,6 +128,7 @@ export default function SortearBrindes() {
 
             const found = participants.find((p) => p.name === result.winner.name)
             setWinner(found || { id: result.winner.id, name: result.winner.name })
+            setParticipants((prev) => prev.filter((p) => p.id !== result.winner.id))
 
             setScrollingName("")
             setIsAnimating(false)
@@ -140,13 +141,16 @@ export default function SortearBrindes() {
   }
 
   function handleDraw() {
-    if (participants.length === 0) return
+    const previousWinnerIds = new Set(records.map((r) => r.winner_id))
+    const eligible = participants.filter((p) => !previousWinnerIds.has(p.id))
+    const pool = eligible.length > 0 ? eligible : participants
+    if (pool.length === 0) return
     const prizeName = prize.trim() || "Brinde"
 
     setIsAnimating(true)
     setWinner(null)
 
-    const names = participants.map((p) => p.name)
+    const names = pool.map((p) => p.name)
     let step = 0
     const totalSteps = 20
 
@@ -167,11 +171,12 @@ export default function SortearBrindes() {
 
               if (slow >= slowSteps) {
                 clearInterval(slowInterval)
-                const winnerIdx = Math.floor(Math.random() * participants.length)
-                const drawn = participants[winnerIdx]
+                const winnerIdx = Math.floor(Math.random() * pool.length)
+                const drawn = pool[winnerIdx]
                 setWinner(drawn)
                 setScrollingName("")
                 setIsAnimating(false)
+                setParticipants((prev) => prev.filter((p) => p.id !== drawn.id))
                 await store.recordRaffle(selectedTournamentId, prizeName, drawn.name)
                 setRecords(store.getRaffleRecords(selectedTournamentId))
               }

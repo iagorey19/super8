@@ -7,7 +7,7 @@ export {
 export {
   getTournaments, getTournamentById, getCurrentTournament,
   createTournament, updateTournament, deleteTournament, resetTournament,
-  openRegistrations, startTournament, finalizeTournament,
+  openRegistrations, closeRegistrations, startTournament, finalizeTournament,
   getCourtNames, updateCourtName,
   getTournamentMatches, getTournamentPairings,
   updateMatchScore, decrementMatchScore, swapMatchTeams,

@@ -32,16 +32,27 @@ export async function POST(req: Request) {
 
     const svc = getServiceClient()
 
-    const { data: existing } = await svc.from("users").select("id").eq("email", email).maybeSingle()
+    const { data: existing } = await svc.from("users").select("id").eq("email", email).maybeSingle() as unknown as { data: { id: string } | null }
     if (existing) {
       return NextResponse.json({ error: "Este email já está cadastrado", code: "email_exists" }, { status: 409 })
     }
 
     const id = crypto.randomUUID()
     const now = new Date().toISOString()
-    const hashedPassword = bcrypt.hashSync(password, 10)
 
-    const { error: insertError } = await svc.from("users").insert({
+    const { error: authError } = await svc.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+    })
+    if (authError && !authError.message?.includes("already been registered")) {
+      console.error("POST /api/auth/register auth create error:", authError)
+      return NextResponse.json({ error: "Erro ao criar autenticação" }, { status: 500 })
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    const { error: insertError } = await (svc.from("users") as any).insert({
       id,
       email,
       password: hashedPassword,
@@ -54,19 +65,6 @@ export async function POST(req: Request) {
     if (insertError) {
       console.error("POST /api/auth/register insert error:", insertError)
       return NextResponse.json({ error: "Erro ao criar cadastro" }, { status: 500 })
-    }
-
-    try {
-      const { error: authError } = await svc.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-      })
-      if (authError && !authError.message?.includes("already been registered")) {
-        console.error("POST /api/auth/register auth create error:", authError)
-      }
-    } catch (e) {
-      console.error("POST /api/auth/register auth create exception:", e)
     }
 
     const exp = Date.now() + TOKEN_EXPIRY_MS

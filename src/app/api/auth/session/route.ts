@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server"
+import { cookies } from "next/headers"
 import { getServiceClient } from "@/lib/supabase"
 import { getClientIp, isRateLimited } from "@/lib/rate-limit"
-import { getAuthSecret } from "@/lib/auth-secret"
+import { getAuthSecret, validateToken } from "@/lib/auth-secret"
 import crypto from "crypto"
 import bcrypt from "bcryptjs"
 
@@ -28,14 +29,14 @@ export async function POST(req: Request) {
     }
 
     const svc = getServiceClient()
-    const { data: users, error } = await svc.from("users").select("*").eq("email", email)
+    const { data: users, error } = await svc.from("users").select("*").eq("email", email) as unknown as { data: any[] | null; error: any }
 
     if (error) {
       console.error("Session auth error:", error)
       return NextResponse.json({ error: "Erro interno" }, { status: 500 })
     }
 
-    const user = users?.[0]
+    const user = users?.[0] as { id: string; email: string; password: string; name: string; role: string } | undefined
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return NextResponse.json({ error: "Email ou senha inválidos" }, { status: 401 })
     }
@@ -63,22 +64,20 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    const { cookies } = await import("next/headers")
     const cookieStore = await cookies()
     const tokenCookie = cookieStore.get("super8-auth-token")
     if (!tokenCookie?.value) {
       return NextResponse.json({ error: "no_session" }, { status: 401 })
     }
 
-    const { validateToken } = await import("@/lib/auth-secret")
     const result = validateToken(tokenCookie.value)
     if (!result) {
       return NextResponse.json({ error: "invalid_token" }, { status: 401 })
     }
 
     const svc = getServiceClient()
-    const { data: users } = await svc.from("users").select("*").eq("id", result.userId)
-    const user = users?.[0]
+    const { data: users } = await svc.from("users").select("*").eq("id", result.userId) as unknown as { data: any[] | null }
+    const user = users?.[0] as Record<string, unknown> | undefined
     if (!user) {
       return NextResponse.json({ error: "user_not_found" }, { status: 401 })
     }
@@ -91,7 +90,11 @@ export async function GET(req: Request) {
   }
 }
 
-export async function DELETE(_req: Request) {
+export async function DELETE(req: Request) {
+  const ip = getClientIp(req)
+  if (await isRateLimited(ip, 30, 60_000)) {
+    return NextResponse.json({ error: "Muitas requisições. Tente novamente mais tarde." }, { status: 429 })
+  }
   const response = NextResponse.json({ ok: true })
   response.cookies.set("super8-auth-token", "", { maxAge: 0, path: "/" })
   return response

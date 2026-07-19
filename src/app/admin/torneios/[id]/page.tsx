@@ -29,6 +29,7 @@ export default function TournamentDetail() {
   const [matches, setMatches] = useState<any[]>([])
   const [startingCat, setStartingCat] = useState<string | null>(null)
   const [openingRegs, setOpeningRegs] = useState(false)
+  const [closingRegs, setClosingRegs] = useState(false)
  
   const [editModal, setEditModal] = useState(false)
   const [editForm, setEditForm] = useState({ title: "", edition: "", date: "", location: "", categories: ["4e5"] as string[], registrationFee: "", maxScore: "" })
@@ -219,7 +220,21 @@ export default function TournamentDetail() {
               {openingRegs ? "Abrindo..." : "Abrir Inscrições"}
             </Button>
           )}
-          {tournament.status === "registering" && (
+          {tournament.status === "registering" && !tournament.registrations_closed && (
+            <Button className="w-full sm:w-auto" variant="danger" disabled={closingRegs} onClick={async () => {
+              if (!window.confirm("Encerrar inscrições? Atletas na fila de espera serão promovidos se houver vagas.")) return
+              setClosingRegs(true)
+              const result = await store.closeRegistrations(tournament.id)
+              setClosingRegs(false)
+              load()
+              if (result.promoted > 0) {
+                alert(`${result.promoted} atleta(s) promovido(s) da lista de espera!`)
+              }
+            }}>
+              {closingRegs ? "Encerrando..." : "Encerrar Inscrições"}
+            </Button>
+          )}
+          {tournament.status === "registering" && tournament.registrations_closed && (
             <Button className="w-full sm:w-auto" onClick={handleStartAll} disabled={startingCat === "all"}>
               {startingCat === "all" ? "Iniciando..." : "Iniciar Torneio"}
             </Button>
@@ -307,7 +322,7 @@ export default function TournamentDetail() {
               title={cat === "4e5" ? "Categoria 4e5" : "Categoria 6e7"}
               subtitle={`${catRegs.length} inscritos`}
               action={
-                (tournament.status === "upcoming" || tournament.status === "registering") && (
+                (tournament.status === "upcoming" || (tournament.status === "registering" && !tournament.registrations_closed)) && (
                   <Button
                     size="sm"
                     variant="secondary"
@@ -335,7 +350,7 @@ export default function TournamentDetail() {
                   <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-800/50">
                     <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Grupo {grp}</span>
                     <div className="flex items-center gap-3">
-                      {tournament.status === "registering" && (
+                      {tournament.status === "registering" && tournament.registrations_closed && (
                         <>
                           <span className="text-sm text-gray-500 dark:text-gray-400">{grpApproved}/8</span>
                           {grpApproved === 8 && (

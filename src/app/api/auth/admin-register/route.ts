@@ -19,7 +19,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "admin_required" }, { status: 401 })
     }
     const svc = getServiceClient()
-    const { data: requester } = await svc.from("users").select("role").eq("id", authUser.userId).single()
+    const requesterRes = await svc.from("users").select("role").eq("id", authUser.userId).single()
+    const requester = requesterRes.data as { role: string } | null
     if (!requester || requester.role !== "admin") {
       return NextResponse.json({ error: "admin_required" }, { status: 401 })
     }

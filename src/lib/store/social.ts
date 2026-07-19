@@ -85,17 +85,31 @@ export function rafflePrize(participants: string[], excludeIds: string[] = []): 
   return { winner, winnerName: user?.name || winner }
 }
 
-export async function raffleBrinde(tournamentId: string): Promise<{ brinde: Brinde; winner: { id: string; name: string } } | null> {
+export async function raffleBrinde(tournamentId: string, brindeId?: string): Promise<{ brinde: Brinde; winner: { id: string; name: string } } | null> {
   const data = getData()
-  const sorteioBrindes = data.brindes.filter((b) => b.tournament_id === tournamentId && b.type === "sorteio")
-  if (sorteioBrindes.length === 0) return null
 
-  const brinde = sorteioBrindes[Math.floor(Math.random() * sorteioBrindes.length)]
+  let brinde: Brinde | undefined
+  if (brindeId) {
+    brinde = data.brindes.find((b) => b.id === brindeId && b.tournament_id === tournamentId && b.type === "sorteio")
+  } else {
+    const sorteioBrindes = data.brindes.filter((b) => b.tournament_id === tournamentId && b.type === "sorteio")
+    if (sorteioBrindes.length === 0) return null
+    brinde = sorteioBrindes[Math.floor(Math.random() * sorteioBrindes.length)]
+  }
+  if (!brinde) return null
 
   const approvedAthletes = data.athlete_registrations.filter((r) => r.tournament_id === tournamentId && r.status === "approved")
   if (approvedAthletes.length === 0) return null
 
-  const winner = approvedAthletes[Math.floor(Math.random() * approvedAthletes.length)]
+  const previousWinners = new Set((data.raffle_records || []).map((r) => r.winner_id))
+  const eligible = approvedAthletes.filter((r) => !previousWinners.has(r.athlete_id))
+
+  let winner
+  if (eligible.length > 0) {
+    winner = eligible[Math.floor(Math.random() * eligible.length)]
+  } else {
+    winner = approvedAthletes[Math.floor(Math.random() * approvedAthletes.length)]
+  }
   const user = data.users.find((u) => u.id === winner.athlete_id)
   const winnerName = user?.name || "Desconhecido"
 

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { getTournamentById, getTournamentMatches, getUserName, getCourtNames, updateCourtName } from "@/lib/store"
+import { getTournamentById, getTournamentMatches, getUserName, getCourtNames, updateMatchCourt, saveData, getData } from "@/lib/store"
 import { getStatusColor, getStatusLabel } from "@/lib/utils"
 import { exportTournamentSpreadsheet } from "@/lib/export-spreadsheet"
 import type { Match, Tournament } from "@/lib/types"
@@ -62,6 +62,8 @@ export default function JogosPage() {
     if (matchData) {
       matchData.court = court
       matchData.round = round
+      updateMatchCourt(matchId, court)
+      saveData(getData())
     }
     setMatches([...allMatches])
   }

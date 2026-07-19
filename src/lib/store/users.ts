@@ -72,23 +72,34 @@ export async function updateUser(id: string, updates: { name?: string; email?: s
 export async function deleteUser(id: string) {
   const data = getData()
   data.users = data.users.filter((u) => u.id !== id)
+  data.athlete_registrations = data.athlete_registrations.filter((r) => r.athlete_id !== id)
+  data.pairings = data.pairings.filter((p) => ![p.player1_id, p.player2_id, p.player3_id, p.player4_id].includes(id))
+  data.matches = data.matches.filter((m) => ![m.team1_player1_id, m.team1_player2_id, m.team2_player1_id, m.team2_player2_id].includes(id))
+  data.tournament_results = data.tournament_results.filter((r) => r.athlete_id !== id)
+  data.annual_rankings = data.annual_rankings.filter((r) => r.athlete_id !== id)
   data.notifications = data.notifications.filter((n) => n.user_id !== id)
+  data.sponsorships = data.sponsorships.filter((s) => s.sponsor_id !== id)
   await saveData(data)
 }
 
-export async function updateAthlete(athleteId: string, updates: { name?: string; email?: string; phone?: string; password?: string }): Promise<boolean> {
+export async function updateAthlete(athleteId: string, updates: { name?: string; email?: string; phone?: string; password?: string; currentPassword?: string }): Promise<string | null> {
   const data = getData()
   const user = data.users.find((u) => u.id === athleteId && u.role === "athlete")
-  if (!user) return false
+  if (!user) return "Atleta não encontrado"
   if (updates.email !== undefined && updates.email !== user.email) {
-    if (data.users.some((u) => u.email === updates.email && u.id !== athleteId)) return false
+    if (data.users.some((u) => u.email === updates.email && u.id !== athleteId)) return "Email já cadastrado"
+  }
+  if (updates.password) {
+    if (!updates.currentPassword) return "Senha atual é obrigatória para alterar a senha"
+    const bcrypt = await import("bcryptjs")
+    if (!bcrypt.compareSync(updates.currentPassword, user.password)) return "Senha atual incorreta"
   }
   if (updates.name !== undefined) user.name = updates.name
   if (updates.email !== undefined) user.email = updates.email
   if (updates.phone !== undefined) user.phone = updates.phone || undefined
   if (updates.password !== undefined) user.password = updates.password
   await saveData(data)
-  return true
+  return null
 }
 
 export async function deleteAthlete(athleteId: string) {
@@ -151,15 +162,19 @@ export function getAthleteStats(athleteId: string) {
   const results = data.tournament_results.filter((r) => r.athlete_id === athleteId)
   const bestPosition = results.length > 0 ? Math.min(...results.map((r) => r.position)) : null
 
-  const scoresByTournament = results.map((r) => {
-    const t = data.tournaments.find((tour) => tour.id === r.tournament_id)
-    return { tournamentTitle: t ? `${t.title} ${t.edition}` : "Desconhecido", points: r.points, position: r.position }
-  })
+  const scoresByTournament: { tournamentTitle: string; points: number; position: number }[] = []
+  const resultTournamentIds = new Set(results.map((r) => r.tournament_id))
 
   for (const tid of tournamentIdSet) {
-    if (!new Set(results.map((r) => r.tournament_id)).has(tid)) {
-      const t = data.tournaments.find((tour) => tour.id === tid)
-      if (t) scoresByTournament.push({ tournamentTitle: `${t.title} ${t.edition}`, points: 0, position: 0 })
+    const t = data.tournaments.find((tour) => tour.id === tid)
+    if (!t) continue
+    const existing = results.filter((r) => r.tournament_id === tid)
+    if (existing.length > 0) {
+      existing.forEach((r) => {
+        scoresByTournament.push({ tournamentTitle: `${t.title} ${t.edition}`, points: r.points, position: r.position })
+      })
+    } else {
+      scoresByTournament.push({ tournamentTitle: `${t.title} ${t.edition}`, points: 0, position: 0 })
     }
   }
 

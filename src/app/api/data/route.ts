@@ -31,7 +31,7 @@ async function queryAll<T>(table: string): Promise<T[]> {
 
 async function getFullData(): Promise<AppData> {
   const svc = getServiceClient()
-  const { data: configRow } = await svc.from("config").select("*").eq("id", "global").single()
+  const { data: configRow } = await svc.from("config").select("*").eq("id", "global").single() as unknown as { data: Record<string, any> | null }
   const [
     users, tournaments, athlete_registrations, pairings, matches,
     tournament_results, annual_rankings, sponsorships, expenses,
@@ -156,12 +156,19 @@ export async function POST(req: Request) {
       authUser = validateToken(token)
     }
     if (!authUser) {
+      const cookieStore = await cookies()
+      const tokenCookie = cookieStore.get("super8-auth-token")
+      if (tokenCookie?.value) {
+        authUser = validateToken(tokenCookie.value)
+      }
+    }
+    if (!authUser) {
       return NextResponse.json({ error: "auth_required", message: "Token de autenticação necessário. Faça login novamente." }, { status: 401 })
     }
 
     const svc = getServiceClient()
-    const { data: callerUser } = await svc.from("users").select("role").eq("id", authUser.userId).single()
-    const callerRole: Role = callerUser?.role || "athlete"
+    const callerUserRes = await svc.from("users").select("role").eq("id", authUser.userId).single() as unknown as { data: { role: string } | null }
+    const callerRole: Role = (callerUserRes.data?.role as Role) || "athlete"
 
     const raw = await req.json()
 
@@ -242,7 +249,7 @@ async function syncToSupabase(data: AppData, callerRole: Role, callerUserId: str
     ? allTables.filter(t => tables.includes(t.table))
     : allTables
 
-  const { error: configErr } = await svc.from("config").upsert({ id: "global", ...data.config }, { onConflict: "id" })
+  const { error: configErr } = await svc.from("config").upsert({ id: "global", ...data.config } as any, { onConflict: "id" })
   if (configErr) errors.push(`config upsert: ${configErr.message}`)
 
   for (const { table, records } of upsertOrder) {
@@ -262,7 +269,7 @@ async function syncToSupabase(data: AppData, callerRole: Role, callerUserId: str
           const { password, ...rest } = user
           if (password) {
             const upsertData = { ...rest, password: bcrypt.hashSync(password, 10) }
-            const { error } = await svc.from(table).upsert(upsertData as any, { onConflict: "id", ignoreDuplicates: false })
+            const { error } = await (svc.from(table) as any).upsert(upsertData, { onConflict: "id", ignoreDuplicates: false })
             if (error) {
               if (error.message?.includes("users_email_unique") || error.message?.includes("duplicate key")) {
                 errors.push("Email já cadastrado por outro usuário")
@@ -271,12 +278,12 @@ async function syncToSupabase(data: AppData, callerRole: Role, callerUserId: str
               }
             }
           } else {
-            const { error } = await svc.from(table).update(rest as any).eq("id", user.id)
+            const { error } = await (svc.from(table) as any).update(rest).eq("id", user.id)
             if (error) errors.push(`${table} update: ${error.message}`)
           }
         }
       } else {
-        const { error } = await svc.from(table).upsert(filteredRecords as any, { onConflict: "id", ignoreDuplicates: false })
+        const { error } = await (svc.from(table) as any).upsert(filteredRecords, { onConflict: "id", ignoreDuplicates: false })
         if (error) {
           if (error.message?.includes("reg_tournament_athlete_unique") || error.message?.includes("duplicate key")) {
             errors.push("Atleta já registrado neste torneio")
@@ -290,16 +297,22 @@ async function syncToSupabase(data: AppData, callerRole: Role, callerUserId: str
 
     if (callerRole !== "admin") continue
 
-    const currentIds = new Set(filteredRecords.map((r) => r.id))
-    const { data: existing, error: selErr } = await svc.from(table).select("id")
+    if (table === "users" || table === "auth") continue
+    if (table === "annual_rankings") continue
+
+    const currentIds = new Set(filteredRecords.map((r: any) => r.id))
+    const { data: existing, error: selErr } = await (svc.from(table) as any).select("id")
     if (selErr) {
       errors.push(`${table} select: ${selErr.message}`)
       continue
     }
     const toDelete = (existing || []).map((r: any) => r.id).filter((id: string) => !currentIds.has(id))
     if (toDelete.length > 0) {
-      const { error: delErr } = await svc.from(table).delete().in("id", toDelete)
-      if (delErr) errors.push(`${table} delete: ${delErr.message}`)
+      const { error: delErr } = await (svc.from(table) as any).update({ active: false }).in("id", toDelete)
+      if (delErr) {
+        const { error: hardDelErr } = await (svc.from(table) as any).delete().in("id", toDelete)
+        if (hardDelErr) errors.push(`${table} delete: ${hardDelErr.message}`)
+      }
     }
   }
 

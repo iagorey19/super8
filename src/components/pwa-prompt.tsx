@@ -37,7 +37,7 @@ export function PWAPrompt() {
     }
     window.addEventListener("beforeinstallprompt", handler)
     return () => window.removeEventListener("beforeinstallprompt", handler)
-  }, [pathname, standalone, ios])
+  }, [standalone, ios])
 
   function handleInstall() {
     if (!deferredPrompt) return

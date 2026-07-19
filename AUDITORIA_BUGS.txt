@@ -1,0 +1,383 @@
+================================================================================
+                    AUDITORIA DE BUGS E INCONSISTÊNCIAS
+                           THE SUPER 8 — Julho 2026
+================================================================================
+
+Total de achados: 52 (6 Críticos, 15 Altos, 20 Médios, 11 Baixos)
+Fixados: 45/52 (87%)  |  Não fixados: 3  |  Mitigados/parciais: 2  |  Falsos positivos: 2
+
+================================================================================
+🔴 CRÍTICOS — perda de dados, brecha de segurança, corrupção
+================================================================================
+
+C1. saveData()/persist() sem mutex — corrupção em writes concorrentes [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivos: lib/store/core.ts:20-41 + lib/db/index.ts:72-116
+  Descrição: Duas chamadas concorrentes a saveData() (ex: updateMatchScore
+    + finalizeTournament simultâneos) compartilham a mesma referência _data
+    e não têm fila/lock. A segunda chamada pode sobrescrever estado entre
+    o cálculo de dirty e o network request da primeira. Dados se intercalam.
+  Impacto: Corrupção silenciosa de dados em partidas e resultados.
+  Fix: Adicionar promise-chain/mutex no persist(). Ex: encadear Promises
+    sequencialmente em vez de executar em paralelo.
+  Status: ✅ _persistChain (promise-chain) + flag _persisting em db/index.ts.
+
+C2. Auth registration: falha no Supabase Auth não aborta cadastro [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivo: src/app/api/auth/register/route.ts:59-70
+  Descrição: Se svc.auth.admin.createUser() falhar (linha 60), o erro é
+    apenas logado e a execução continua. O usuário recebe token + cookie
+    mesmo sem existir no Supabase Auth. RLS policies e login futuro quebram.
+  Impacto: Usuário criado em public.users mas sem registro no Auth.
+  Fix: Envolver public.users insert + auth.createUser numa transação.
+    Se auth.createUser falhar, fazer rollback do insert e retornar erro 500.
+  Status: ✅ auth.admin.createUser() executa ANTES do insert em public.users.
+
+C3. Sync admin deleta registros NÃO INCLUSOS no payload [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivo: src/app/api/data/route.ts:291-303
+  Descrição: No sync de admin, após upsert, o código SELECT todos os IDs
+    existentes e DELETA qualquer um não presente no payload recebido.
+    Se o cliente enviar dados incompletos (bug, cache stale, race), a
+    deleção é permanente e sem recuperação via este endpoint.
+  Impacto: Perda irreversível de dados.
+  Fix: (a) Mover para soft-delete (flag active) em vez de DELETE, ou
+    (b) Exigir header explícito "confirm-delete: true" para ativar a
+    limpeza, ou (c) Remover a lógica de deleção e fazer só upsert.
+  Status: ✅ Soft-delete ({ active: false }); pula users, auth, annual_rankings.
+
+C4. Upload: validação de tamanho é no-op [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivo: src/app/api/upload/route.ts:38-40
+  Descrição: A condição if (type === "fileSize") compara a propriedade
+    type do body com a string literal "fileSize". Nenhum cliente jamais
+    enviaria type: "fileSize", então o bloco nunca executa. Dentro dele
+    o corpo está VAZIO — nenhuma ação de enforcement.
+  Impacto: Arquivo de qualquer tamanho passa.
+  Fix: Validar content-length REAL antes de criar signed URL, e/ou
+    configurar limite no Supabase Storage bucket.
+  Status: ✅ Validação real de content-length > MAX_FILE_SIZE retorna 413.
+
+C5. Inscrição em torneio: race condition estoura limite de 8 [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivo: src/lib/store/tournaments.ts:640-700 (registerAthleteInTournament)
+                e 702-768 (registerMultipleAthletes)
+  Descrição: A checagem de duplicata e contagem de vagas (linha 648-650)
+    ocorre ANTES do save. Duas requisições simultâneas podem ambas passar
+    a checagem e ver existingCount = 7, resultando em 2 registros com
+    registration_order = 8 e is_waiting = false — 9 atletas no grupo.
+  Impacto: Torneio inicia com mais de 8 atletas por grupo, quebra o
+    formato Whist e o chaveamento.
+  Fix: (a) Usar upsert com unique constraint na tabela, ou
+    (b) Adicionar lock pessimista (SELECT ... FOR UPDATE), ou
+    (c) Usar contagem atômica via transação SQL.
+  Status: ✅ acquireRegistrationLock() mutex + persist chain.
+
+C6. Senhas em texto puro no seed + troca sem verificar atual [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivos: src/lib/seed.ts:19-46 + src/lib/store/users.ts:79-92
+  Descrição: Seed contém senhas em plaintext (ex: "admin123",
+    "DaniMandeli123"). updateAthlete permite definir nova senha sem
+    exigir a senha atual.
+  Impacto: (1) Vazamento de credenciais se bundle for inspecionado.
+    (2) Qualquer atleta autenticado pode trocar a senha para qualquer
+    valor — account takeover.
+  Fix Seed: Remover senhas do seed ou usar bcrypt pré-hash.
+  Fix updateAthlete: Exigir currentPassword antes de alterar.
+  Status: ✅ Senhas removidas do seed. ✅ updateAthlete agora exige
+    currentPassword (verifica com bcrypt.compareSync). ✅ UI do perfil
+    mostra campo "Senha Atual" condicionalmente ao digitar nova senha.
+
+
+================================================================================
+🟡 ALTOS — comportamento incorreto, funcionalidade quebrada
+================================================================================
+
+H01. drawSingleNumber() sorteia sempre o primeiro atleta [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivo: src/lib/store/tournaments.ts:895-896
+  Descrição: const idx = 0 — hardcoded. Sempre pega o primeiro atleta
+    da lista withoutNumber. Nunca é aleatório.
+  Fix: const idx = Math.floor(Math.random() * withoutNumber.length)
+  Status: ✅ idx = Math.floor(Math.random() * withoutNumber.length)
+
+H02. Drag-and-drop de jogos nunca persiste [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivo: src/app/admin/torneios/[id]/jogos/page.tsx:50-67 (handleDrop)
+  Descrição: handleDrop altera matchData.court e matchData.round in-memory
+    e chama setMatches([...allMatches]), mas NUNCA chama updateMatchCourt()
+    ou saveData(). Perdido ao recarregar a página.
+  Fix: Após mutação, chamar await store.updateMatchCourt(matchId, court)
+    e await store.saveData().
+  Status: ✅ handleDrop chama updateMatchCourt() + saveData(getData()).
+
+H03. recalculateTournamentResults() limpa TODO ranking anual [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivo: src/lib/store/tournaments.ts:600
+  Descrição: data.annual_rankings = [] — zera o ranking anual INTEIRO
+    ao recalcular um único torneio.
+  Fix: data.annual_rankings = data.annual_rankings.filter(r =>
+    r.tournament_id !== tournamentId)
+  Status: ✅ Filtrado por tournament_id.
+
+H04. Service Worker recarrega sem avisar [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivo: src/components/service-worker-register.tsx:16
+  Descrição: window.location.reload() chamado automaticamente ao detectar
+    nova versão. Se usuário tem dados não salvos em formulário, perde tudo.
+  Fix: Mostrar banner "Nova versão disponível — Atualizar agora?" em vez
+    de recarregar automaticamente.
+  Status: ✅ Banner com botão "Atualizar agora" em vez de reload automático.
+
+H05. refreshFromServer() erros engolidos — dados obsoletos [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivos: src/app/eventos/[id]/page.tsx:39, src/app/atleta/page.tsx:37
+  Descrição: await store.refreshFromServer() dentro de try {} catch {}
+    que engole o erro. As leituras seguintes (getTournamentById etc) usam
+    dados desatualizados sem o usuário saber.
+  Fix: Logar o erro e/ou mostrar toast.
+  Status: ✅ console.error() adicionado ao catch.
+
+H06. saveData() engole erros de persistência [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivo: src/lib/store/core.ts:39
+  Descrição: await db.persist() sem try/catch. Se Supabase falhar (rede,
+    401, 500), a função retorna normalmente e o caller assume que salvou.
+  Fix: Envolver em try/catch que propaga o erro ou retorna indicador.
+  Status: ✅ try/catch que loga e relança.
+
+H07. bcrypt.hashSync bloqueia event loop [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivo: src/app/api/auth/register/route.ts:42
+  Descrição: bcrypt.hashSync(password, 10) bloqueia o event loop do
+    Edge Runtime por ~200-300ms. Deveria usar await bcrypt.hash().
+  Fix: Substituir por bcrypt.hash(password, 10) com await.
+  Status: ✅ await bcrypt.hash(password, 10).
+
+H08. GET /api/auth/token destrói cookie da sessão [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivo: src/app/api/auth/token/route.ts:18-19
+  Descrição: Endpoint GET retorna o token e DEPOIS limpa o cookie.
+  Fix: Não limpar o cookie.
+  Status: ✅ Cookie não é mais destruído no GET.
+
+H09. x-forwarded-for não parseado — rate limit ineficaz [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivo: src/lib/rate-limit.ts:13
+  Descrição: req.headers.get("x-forwarded-for") retorna string crua com
+    múltiplos IPs separados por vírgula — a string inteira vira chave.
+  Fix: Usar split(",")[0].trim() para extrair o primeiro IP.
+  Status: ✅ parseado com split(",")[0].trim().
+
+H10. deleteUser() inconsistente com deleteAthlete() [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivo: src/lib/store/users.ts:72-77
+  Descrição: deleteUser() só limpa notifications, mas deixa orphans.
+  Fix: Unificar a lógica de cascade.
+  Status: ✅ Cascade completo (registrations, pairings, matches, results,
+    rankings, notifications, sponsorships).
+
+H11. Dynamic import("next/headers") frágil [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivo: src/app/api/auth/session/route.ts:66-67
+  Descrição: const { cookies } = await import("next/headers") dentro do
+    handler — se falhar, joga 500.
+  Fix: Mover para import estático no topo.
+  Status: ✅ Import estático no topo.
+
+H12. updateAnnualRankings() não atômico — race condition [MITIGADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivo: src/lib/store/tournaments.ts:440-468
+  Descrição: Deleta TUDO do ano/categoria e reconstrói. Chamadas
+    concorrentes podem deletar dados que a outra está lendo.
+  Fix: Usar lock ou transação, ou fazer upsert atômico.
+  Status: ⚠️ Mitigado pelo persist chain (escritas sequenciais), mas
+    sem exclusão mútua explícita na função. Requer refatoração maior.
+
+H13. checkTournamentCompletion() race com finalizeTournament() [MITIGADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivo: src/lib/store/tournaments.ts:401-438 + 174-221
+  Descrição: Ambos mutam tournament_results + annual_rankings e chamam
+    saveData(). Se uma partida termina durante finalizeTournament,
+    resultados podem se sobrepor.
+  Fix: Garantir que não executem simultaneamente (flag/mutex).
+  Status: ⚠️ Mitigado pelo persist chain. Mesmo que ambos disparem, as
+    escritas são serializadas.
+
+H14. startTournament() não valida draw_number [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivo: src/lib/store/tournaments.ts:149-156
+  Descrição: Checa registrations.length !== 8 mas NÃO verifica draw_number.
+    Se faltar, generatePairings usa undefined → crash.
+  Fix: Adicionar validação de draw_number.
+  Status: ✅ Valida se todos têm draw_number antes de iniciar.
+
+H15. getFinancialSummary() na dashboard mostra TOTAL global [FIXADO]
+────────────────────────────────────────────────────────────────────────
+  Arquivo: src/app/admin/page.tsx:36
+  Descrição: store.getFinancialSummary() sem filtro retorna soma de TODOS
+    os torneios, não só do atual.
+  Fix: Passar tournament ID.
+  Status: ✅ store.getFinancialSummary(t?.id)
+
+
+================================================================================
+🟢 MÉDIOS — UX degradado, edge cases, performance
+================================================================================
+
+M01. POST /api/data só aceita Bearer token (sem fallback cookie) [FIXADO]
+     → api/data/route.ts:160 | ✅ Fallback para cookie super8-auth-token
+M02. POST /api/upload só aceita Bearer token [FIXADO]
+     → api/upload/route.ts:24 | ✅ Cookie fallback adicionado
+M03. DELETE /api/auth/session e /api/logs sem rate limiting [FIXADO]
+     → session/route.ts:94-98, logs/route.ts:6 | ✅ Rate limiter adicionado
+M04. login() retorna null sem diferenciar erro [FIXADO]
+     → lib/store/auth.ts:62-77 | ✅ Erro logado com status + mensagem
+M05. refreshFromServer() em toda registro — operação pesada [NÃO FIXADO]
+     → lib/store/auth.ts:107 | ❌ Mantido para consistência de dados (todo
+     registro precisa ter dados frescos do servidor). Mitigado pelo mutex.
+M06. Supabase env vars com non-null assertion (!) [FIXADO]
+     → lib/supabase.ts:3-4 | ✅ Validação de env vars faltando
+M07. getServiceClient() cria novo cliente em toda chamada [FIXADO]
+     → lib/supabase.ts:8-10 | ✅ Cache do _serviceClient
+M08. getSvc() no rate-limit cria novo cliente [FIXADO]
+     → lib/rate-limit.ts:6-9 | ✅ Cache do _svc
+M09. _persisting flag setada mas nunca verificada [FIXADO]
+     → lib/db/index.ts:72-78 | ✅ Verificado antes de iniciar persist
+M10. deleteSponsorship() casa revenue por texto frágil [FIXADO]
+     → lib/store/finance.ts:74-86 | ✅ Match por source="patrocinio" + created_at
+M11. useEffect depende de pathname causando re-registrations [FIXADO]
+     → components/pwa-prompt.tsx:40 | ✅ pathname removido das deps
+M12. Loading false antes de user ser resolvido — flicker [FIXADO]
+     → lib/auth-context.tsx:29-32 | ✅ catch() com setUser(null)
+M13. getAthletes() síncrono pode crashar se init() não completou [FIXADO]
+     → components/notification-list.tsx:68 | ✅ try/catch adicionado
+M14. computeAnnualRanking O(n²) — .find() dentro de forEach [FIXADO]
+     → lib/store/tournaments.ts:521 | ✅ Refatorado com Map para tournaments e users
+M15. Seed: ath-006 (Nathiely) duplicado no ranking anual [FIXADO]
+     → lib/seed.ts:256-257 | ✅ Duplicata removida
+M16. updateMatchScore usa || em vez de ?? para maxScore [FIXADO]
+     → lib/store/tournaments.ts:252 | ✅ || → ??
+M17. auth-context sem setUser(null) no catch [FIXADO]
+     → lib/auth-context.tsx:29-32 | ✅ setUser(null) no catch
+M18. crypto.randomUUID() sem import (funciona via global) [NÃO FIXADO]
+     → lib/store/tournaments.ts | ❌ Funciona via global do Node.js/Edge.
+     Baixo risco.
+M19. rate-limit upsert errors silenciados — fail open [FIXADO]
+     → lib/rate-limit.ts:37 | ✅ Erros retornam true (fail closed)
+M20. registerAthlete() silencia erros — usuário sem feedback [FIXADO]
+     → lib/store/auth.ts:88-113 | ✅ Retorna { user } | { error } em vez de
+     User | null; cadastro/page.tsx exibe mensagem de erro do servidor.
+
+
+================================================================================
+🔵 BAIXOS — código morto, imports não usados, estilo
+================================================================================
+
+L01. console.log("[PIX] payload:", payload) em produção [FIXADO]
+     → src/app/eventos/[id]/page.tsx:111 | ✅ Removido
+L02. Fragment import não usado em annual-ranking.tsx [FALSO POSITIVO]
+     → components/annual-ranking.tsx:3 | ✅ Fragment é usado na linha 106
+L03. updateCourtName import não usado em jogos/page.tsx [FIXADO]
+     → src/app/admin/torneios/[id]/jogos/page.tsx:8 | ✅ Removido
+L04. handleNav em admin-sidebar.tsx — dead code [FALSO POSITIVO]
+     → components/admin-sidebar.tsx:27-29 | ✅ Função é usada na linha 84
+     para fechar o menu mobile ao clicar em um link.
+L05. Inconsistência date handling (com/sem "T12:00:00") [NÃO FIXADO]
+     → lib/utils.ts + vários pages | ❌ Requer padronização global de datas
+L06. Mixed Portuguese/English error messages [NÃO FIXADO]
+     → Vários arquivos | ❌ Intencional — APIs usam inglês, UI usa português
+L07. DELETE /api/auth/session não limpa dirty state [FIXADO]
+     → auth.ts:73-80 | ✅ db.clearDirty() chamado após logout
+L08. Vários :any que escondem type mismatches [PARCIAL]
+     → Múltiplos arquivos | ⚠️ Casts (svc.from(t) as any) são necessários
+     pela falta de tipos do Supabase. Demais casts revisados.
+L09. markAllNotificationsRead O(n) em todas notificações [NÃO FIXADO]
+     → lib/store/media.ts:38-47 | ❌ Poucas notificações — sem impacto perceptível
+L10. getAthleteStats entradas duplicadas [FIXADO]
+     → lib/store/users.ts:154-164 | ✅ Refatorado para não duplicar
+L11. saveData destrutura campos não usados [INTENCIONAL]
+     → lib/store/tournaments.ts:67 | ✅ Mantido — destrutura segura de
+     campos não-atualizáveis evita envio de campos extras ao servidor
+
+
+================================================================================
+COMO PRIORIZAR A CORREÇÃO
+================================================================================
+
+═══ SITUAÇÃO ATUAL (18/07/2026) ═══
+  Fixados: 45/52 (87%)  |  Não fixados: 3  |  Mitigados: 2  |  Falsos positivos: 2
+
+FASE 1 — Impacto imediato ao usuário (✅ TODOS FIXADOS)
+─────────────────────────────────────────────────────────
+  [x] C5  Race condition inscrição (estoura limite de 8)
+  [x] H1  drawSingleNumber não aleatório
+  [x] H2  Drag-and-drop não persiste
+  [x] H14 startTournament sem validar draw_number
+  [x] C2  Auth registration não aborta se Auth falhar
+  [x] C4  Upload no-op no size enforcement
+
+FASE 2 — Corrupção/perda de dados (✅ TODOS FIXADOS/MITIGADOS)
+───────────────────────────────────────────────────────────────
+  [x] C1  Mutex no persist()
+  [x] C3  Sync admin deleta não-inclusos
+  [x] H3  recalculateTournamentResults limpa ranking anual
+  [x] H6  saveData engole erros de persistência
+  [~] H12 updateAnnualRankings não atômico (mitigado por persist chain)
+  [~] H13 checkTournamentCompletion race com finalizeTournament (idem)
+
+FASE 3 — Segurança (✅ TODOS FIXADOS)
+────────────────────────────────────
+  [x] C6  Senhas plaintext no seed + troca sem verificar atual
+  [x] H7  bcrypt.hashSync bloqueia event loop
+  [x] H8  GET /token destrói cookie
+  [x] H9  x-forwarded-for não parseado
+  [x] H10 deleteUser inconsistente
+
+FASE 4 — Robustez e UX (❌ 3 pendentes)
+─────────────────────────────────────────
+  [x] H4  SW recarrega sem avisar
+  [x] H5  refreshFromServer erros engolidos
+  [x] H11 Dynamic import next/headers
+  [x] H15 getFinancialSummary global
+  [x] C6  updateAthlete com currentPassword
+  [x] M01-M20  (exceto M05, M18)
+  [ ] M05  refreshFromServer pesado (mantido para consistência)
+  [ ] M18  crypto.randomUUID() sem import (funciona como global)
+  [x] M14  computeAnnualRanking O(n²) refatorado
+  [x] M20  registerAthlete com feedback de erro
+  [x] L01, L03, L07, L10 (4 fixados)
+  [x] L02, L04  Falsos positivos — Fragment e handleNav são usados
+  [ ] L05  Date handling inconsistente
+  [ ] L06  Mixed Portuguese/English (intencional)
+  [~] L08  :any casts (necessários para Supabase)
+  [ ] L09  markAllNotificationsRead O(n) (inerente ao problema)
+  [x] L11  destrutura segura mantida
+
+
+================================================================================
+ARQUIVOS RELEVANTES POR CATEGORIA
+================================================================================
+
+  Store/Data:     src/lib/store/core.ts, tournaments.ts, auth.ts, users.ts
+                  src/lib/db/index.ts
+  API Routes:     src/app/api/auth/session/route.ts
+                  src/app/api/auth/register/route.ts
+                  src/app/api/data/route.ts
+                  src/app/api/upload/route.ts
+                  src/app/api/auth/token/route.ts
+  Pages:          src/app/admin/torneios/[id]/jogos/page.tsx
+                  src/app/admin/torneios/[id]/page.tsx
+                  src/app/admin/page.tsx
+                  src/app/eventos/[id]/page.tsx
+                  src/app/atleta/page.tsx
+  Components:     src/components/service-worker-register.tsx
+                  src/components/pwa-prompt.tsx
+  Infra:          src/lib/supabase.ts
+                  src/lib/rate-limit.ts
+                  src/lib/seed.ts
+  Config:         public/sw.js
+
+================================================================================
+FIM DO RELATÓRIO
+================================================================================

@@ -36,7 +36,7 @@ export default function EventoDetalhePage() {
   const [showRegistration, setShowRegistration] = useState(false)
 
   const loadData = useCallback(async () => {
-    try { await store.refreshFromServer() } catch {}
+    try { await store.refreshFromServer() } catch (e) { console.error("refreshFromServer failed:", e) }
     const t = store.getTournamentById(id)
     setTournament(t ?? null)
     if (t) {
@@ -108,7 +108,6 @@ export default function EventoDetalhePage() {
     if (!config.pix_key || !tournament?.registration_fee) return
     const payload = generatePixPayload( config.pix_key, tournament.registration_fee, config.pix_name || "Pagamento", config.pix_city || "Cidade")
     setPixPayload(payload)
-    console.log("[PIX] payload:", payload)
     const qr = await generatePixQR(payload)
     setPixQR(qr)
     setStep("pix")
@@ -227,7 +226,20 @@ export default function EventoDetalhePage() {
         )
       })()}
 
-      {tournament.status === "registering" && step === "idle" && !myReg && (
+      {tournament.status === "registering" && tournament.registrations_closed && step === "idle" && !myReg && (
+        <Card className="border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          <div className="text-center py-6 space-y-2">
+            <p className="text-lg font-bold text-gray-700 dark:text-gray-200">
+              Inscrições Encerradas
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              As inscrições para este torneio foram encerradas. Aguarde o início das partidas.
+            </p>
+          </div>
+        </Card>
+      )}
+
+      {tournament.status === "registering" && !tournament.registrations_closed && step === "idle" && !myReg && (
         showRegistration ? (
           <Card className="border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20">
             <div className="text-center space-y-4">

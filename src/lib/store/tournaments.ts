@@ -134,6 +134,38 @@ export async function openRegistrations(tournamentId: string) {
   await saveData(data)
 }
 
+export async function closeRegistrations(tournamentId: string): Promise<{ promoted: number }> {
+  const data = getData()
+  const tournament = data.tournaments.find((t) => t.id === tournamentId)
+  if (!tournament || tournament.status !== "registering") return { promoted: 0 }
+
+  tournament.registrations_closed = true
+
+  let promoted = 0
+  for (const cat of tournament.categories) {
+    const approved = data.athlete_registrations.filter(
+      (r) => r.tournament_id === tournamentId && r.category === cat && !r.is_waiting && r.status === "approved"
+    )
+    const waiting = data.athlete_registrations.filter(
+      (r) => r.tournament_id === tournamentId && r.category === cat && r.is_waiting && r.status === "approved"
+    ).sort((a, b) => (a.registration_order || 999) - (b.registration_order || 999))
+
+    for (const w of waiting) {
+      if (approved.length >= 8) break
+      w.is_waiting = false
+      w.registration_order = approved.length + 1
+      approved.push(w)
+      promoted++
+
+      await createNotification(w.athlete_id, "geral", "Inscrição Promovida",
+        `Sua inscrição no ${tournament.title} (${cat}) foi confirmada! Você saiu da lista de espera.`)
+    }
+  }
+
+  await saveData(data)
+  return { promoted }
+}
+
 export async function startTournament(tournamentId: string, category?: string, groupName?: string) {
   const data = getData()
   const tournament = data.tournaments.find((t) => t.id === tournamentId)
@@ -152,7 +184,11 @@ export async function startTournament(tournamentId: string, category?: string, g
   )
 
   if (registrations.length !== 8) {
-    throw new Error(`É necessário 8 atletas aprovados e com números sorteados. Atuais: ${registrations.length}`)
+    throw new Error(`É necessário 8 atletas aprovados. Atuais: ${registrations.length}`)
+  }
+
+  if (registrations.some((r) => r.draw_number == null)) {
+    throw new Error("Todos os atletas precisam ter número sorteado antes de iniciar")
   }
 
   const sorted = [...registrations].sort((a, b) => (a.draw_number || 999) - (b.draw_number || 999))
@@ -249,7 +285,7 @@ export async function updateMatchScore(matchId: string, team: 1 | 2): Promise<Ma
   if (!match) return null
 
   const tournament = data.tournaments.find((t) => t.id === match.tournament_id)
-  const maxScore = tournament?.max_score || 5
+  const maxScore = tournament?.max_score ?? 5
 
   match.status = "live"
 
@@ -271,7 +307,7 @@ export async function decrementMatchScore(matchId: string, team: 1 | 2): Promise
   if (!match) return null
 
   const tournament = data.tournaments.find((t) => t.id === match.tournament_id)
-  const maxScore = tournament?.max_score || 5
+  const maxScore = tournament?.max_score ?? 5
 
   if (team === 1) {
     if (match.score_team1 <= 0) return null
@@ -512,13 +548,16 @@ export function computeAnnualRanking(category?: string, year?: number) {
   const y = year || new Date().getFullYear()
   const cat = category || "4e5"
 
+  const tournamentsMap = new Map(data.tournaments.map((t) => [t.id, t]))
+  const usersMap = new Map(data.users.map((u) => [u.id, u.name]))
+
   const athleteTotals: Record<string, {
     points: number; games: number; tournaments: Set<string>; wins: number
     details: { tournament_id: string; title: string; date: string; edition: string; position: number; points: number; total_games: number }[]
   }> = {}
 
   data.tournament_results.filter((r) => r.category === cat).forEach((r) => {
-    const t = data.tournaments.find((t) => t.id === r.tournament_id)
+    const t = tournamentsMap.get(r.tournament_id)
     if (!t || new Date(t.date).getFullYear() !== y) return
     if (!athleteTotals[r.athlete_id]) {
       athleteTotals[r.athlete_id] = { points: 0, games: 0, tournaments: new Set(), wins: 0, details: [] }
@@ -543,10 +582,9 @@ export function computeAnnualRanking(category?: string, year?: number) {
     }))
     .sort((a, b) => b.total_points - a.total_points || b.total_games - a.total_games)
 
-  return rankings.map((r, idx) => {
-    const user = data.users.find((u) => u.id === r.athlete_id)
-    return { ...r, position: idx + 1, name: user?.name || "Desconhecido" }
-  })
+  return rankings.map((r, idx) => ({
+    ...r, position: idx + 1, name: usersMap.get(r.athlete_id) || "Desconhecido"
+  }))
 }
 
 export function getAnnualRanking(category?: string, year?: number) {
@@ -597,7 +635,8 @@ export async function recalculateTournamentResults(tournamentId: string) {
     })
   })
 
-  data.annual_rankings = []
+  const categories = [...new Set(data.tournament_results.filter((r) => r.tournament_id === tournamentId).map((r) => r.category))]
+  categories.forEach((cat) => updateAnnualRankings(data, cat))
   await saveData(data)
 }
 
@@ -637,14 +676,35 @@ export function getRegisteredAthletes(tournamentId: string, category?: string, g
   })
 }
 
+let _registrationLock = Promise.resolve()
+let _registrationLockResolve: (() => void) | null = null
+
+async function acquireRegistrationLock(): Promise<() => void> {
+  while (true) {
+    if (_registrationLockResolve === null) {
+      const promise = new Promise<void>((resolve) => { _registrationLockResolve = resolve })
+      _registrationLock = _registrationLock.then(() => promise)
+      return () => {
+        const r = _registrationLockResolve
+        _registrationLockResolve = null
+        r?.()
+      }
+    }
+    await _registrationLock
+  }
+}
+
 export async function registerAthleteInTournament(
   tournamentId: string, athleteId: string, category?: string,
   groupName?: string, paymentStatus?: "paid" | "pending"
 ): Promise<AthleteRegistration | null> {
+  const release = await acquireRegistrationLock()
+  try {
   const data = getData()
   const tournament = data.tournaments.find((t) => t.id === tournamentId)
   const cat = category || tournament?.categories[0] || "4e5"
   if (!tournament?.categories.includes(cat)) return null
+  if (tournament.registrations_closed) return null
   if (data.athlete_registrations.some((r) => r.tournament_id === tournamentId && r.athlete_id === athleteId)) return null
 
   const existingCount = data.athlete_registrations.filter(
@@ -697,12 +757,17 @@ export async function registerAthleteInTournament(
   }
 
   return reg
+  } finally {
+    release()
+  }
 }
 
 export async function registerMultipleAthletes(
   tournamentId: string, athleteIds: string[], category?: string,
   groupName?: string, paymentStatus?: "paid" | "pending"
 ): Promise<AthleteRegistration[]> {
+  const release = await acquireRegistrationLock()
+  try {
   const data = getData()
   const tournament = data.tournaments.find((t) => t.id === tournamentId)
   const cat = category || tournament?.categories[0] || "4e5"
@@ -765,6 +830,9 @@ export async function registerMultipleAthletes(
 
   if (created.length > 0) await saveData(data)
   return created
+  } finally {
+    release()
+  }
 }
 
 export async function updateRegistrationPayment(registrationId: string, paymentStatus: "paid" | "pending" | "cancelled"): Promise<AthleteRegistration | null> {
@@ -892,7 +960,7 @@ export async function drawSingleNumber(tournamentId: string, category?: string, 
   const usedNumbers = new Set(withNumber.map((r) => r.draw_number))
   const availableNumbers = [1, 2, 3, 4, 5, 6, 7, 8].filter((n) => !usedNumbers.has(n))
 
-  const idx = 0
+  const idx = Math.floor(Math.random() * withoutNumber.length)
   const chosen = withoutNumber[idx]
   const num = availableNumbers[Math.floor(Math.random() * availableNumbers.length)]
 

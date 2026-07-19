@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
+import { getClientIp, isRateLimited } from "@/lib/rate-limit"
 
 const MAX_BODY_SIZE = 10_000
 const VALID_LEVELS = new Set(["LOG", "WARN", "ERROR"])
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req)
+    if (await isRateLimited(ip, 60, 60_000)) {
+      return NextResponse.json({ error: "Muitas requisições. Tente novamente mais tarde." }, { status: 429 })
+    }
     const body = await req.json()
     const entries: { timestamp: string; level: string; message: string; stack?: string; url?: string }[] = body.entries || []
 

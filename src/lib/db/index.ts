@@ -5,6 +5,7 @@ let _ready = false
 let _initPromise: Promise<void> | null = null
 let _dirtyTables = new Set<string>()
 let _persisting = false
+let _persistChain: Promise<void> = Promise.resolve()
 
 export function isReady() {
   return _ready
@@ -75,22 +76,30 @@ export async function persist(): Promise<void> {
   const tables = getDirtyTables()
   if (tables.length === 0) return
 
+  if (_persisting) {
+    await _persistChain
+    return
+  }
+
   _persisting = true
-  try {
+  _persistChain = _persistChain.then(async () => {
+    const currentTables = getDirtyTables()
+    if (currentTables.length === 0) return
+
     const headers: Record<string, string> = { "Content-Type": "application/json" }
     const token = getSessionToken()
     if (token) headers["Authorization"] = `Bearer ${token}`
 
     const payload: Record<string, unknown> = {
-      tables,
+      tables: currentTables,
       data: {
-        seed_version: _data.seed_version,
-        config: _data.config,
+        seed_version: _data!.seed_version,
+        config: _data!.config,
       },
     }
 
-    for (const table of tables) {
-      if (table in _data) {
+    for (const table of currentTables) {
+      if (table in _data!) {
         (payload.data as any)[table] = (_data as any)[table]
       }
     }
@@ -110,6 +119,10 @@ export async function persist(): Promise<void> {
     }
 
     _dirtyTables.clear()
+  })
+
+  try {
+    await _persistChain
   } finally {
     _persisting = false
   }

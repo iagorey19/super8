@@ -33,9 +33,9 @@ export async function GET(request: Request) {
   }
 
   const svc = getServiceClient()
-  const { data: existing } = await svc.from("users").select("*").eq("email", authUser.email)
+  const { data: existing } = await svc.from("users").select("*").eq("email", authUser.email) as unknown as { data: any[] | null }
 
-  let appUser = existing?.[0]
+  let appUser = existing?.[0] as Record<string, any> | undefined
   if (!appUser) {
     const newUser = {
       id: authUser.id,
@@ -46,7 +46,7 @@ export async function GET(request: Request) {
       avatar: authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || null,
       created_at: new Date().toISOString(),
     }
-    const { error: insertError } = await svc.from("users").insert(newUser)
+    const { error: insertError } = await (svc.from("users") as any).insert(newUser)
     if (insertError) {
       console.error("Callback user insert error:", insertError)
       return NextResponse.redirect(`${origin}/auth/login?error=create_user_failed`)

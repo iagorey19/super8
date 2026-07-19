@@ -77,6 +77,14 @@ Supabase project: `ylltshboiejlcbhksrci` (THE SUPER 8, PRODUCTION)
 Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (arquivo + resumo). Manter só últimas 5. Se conversa ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e reiniciar."
 
 ## Últimas Alterações
+- `AUDITORIA_BUGS.txt`: Estado final — 45/52 fixados (87%), 3 não fixados, 2 mitigados, 2 falsos positivos
+- `tournaments.ts`: `computeAnnualRanking` refatorado O(n²→n) com Maps
+- `auth.ts`: `registerAthlete` retorna `{user}|{error}` em vez de `User|null`
+- `cadastro/page.tsx`: Exibe mensagem de erro real do servidor
+- `users.ts`: `updateAthlete` exige `currentPassword` (bcrypt.compareSync)
+- `atleta/page.tsx`: Campo "Senha Atual" no modal de perfil (condicional)
+- `admin/atletas/page.tsx`: Adaptado ao novo retorno de `updateAthlete`
+- `auth-context.tsx`: Tipo `register` atualizado para novo retorno
 - `pwa-prompt.tsx`: Instruções iOS Safari corrigidas para 4 passos (3 pontinhos → Compartilhar → Ver mais → Adicionar à Tela Inicial)
 - `atleta/page.tsx`: Seção Agradecimentos destaca REY MADEIRAS como "🏆 Tábua Oficial The Super 8" (full-width)
 - `.opencode/skills/supabase/SKILL.md`: Criado — CLI Supabase, DDL, migrations, RLS, schema overview
@@ -86,7 +94,8 @@ Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (
 - `.project-rules.md`: Expandido com padrões de código (React 19 onChange, React Keys, mobile-first, segurança)
 
 ## Próximos Passos
-1. **Auditoria de segurança completa** - Migrar rate limit para store compartilhado (Upstash Redis)
+1. **Date handling** — Padronizar formato de datas (L05)
+2. **Auditoria de segurança completa** — Migrar rate limit para store compartilhado (Upstash Redis)
 
 ## Autenticação
 - **Login**: `POST /api/auth/session` → busca user em `public.users`, `bcrypt.compare()`, retorna HMAC token + user + seta cookie httpOnly (24h)
