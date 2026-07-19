@@ -13,7 +13,7 @@ import { Modal } from "@/components/ui/modal"
 import { Table, Td } from "@/components/ui/table"
 import { useToast } from "@/components/ui/toast"
 import * as store from "@/lib/store"
-import { formatDate, getStatusColor, getStatusLabel } from "@/lib/utils"
+import { formatDate, getStatusColor, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
 import type { Tournament, User } from "@/lib/types"
 
 const ALL_CATEGORIES = ["4e5", "6e7"]
@@ -198,8 +198,8 @@ export default function TournamentDetail() {
           }
         />
         <div className="flex flex-wrap items-center gap-3 mb-4">
-          <Badge className={getStatusColor(tournament.status)}>
-            {getStatusLabel(tournament.status)}
+          <Badge className={getTournamentStatusColor(tournament.status, tournament.registrations_closed)}>
+            {getTournamentStatusLabel(tournament.status, tournament.registrations_closed)}
           </Badge>
           <span className="text-sm text-gray-500 dark:text-gray-400">{formatDate(tournament.date)}</span>
           {tournament.location && (

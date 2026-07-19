@@ -11,7 +11,7 @@ import { Modal } from "@/components/ui/modal"
 import * as store from "@/lib/store"
 import { sanitizeUrl } from "@/lib/validate-url"
 import { useToast } from "@/components/ui/toast"
-import { formatDate, getStatusColor, getStatusLabel } from "@/lib/utils"
+import { formatDate, getStatusColor, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
 import type { Tournament, AthleteRegistration, RaffleRecord } from "@/lib/types"
 
 export default function AthleteDashboard() {
@@ -127,8 +127,8 @@ export default function AthleteDashboard() {
         <Card>
           <CardHeader title={tournament.title} subtitle={tournament.edition} />
           <div className="flex flex-wrap items-center gap-3">
-            <Badge className={getStatusColor(tournament.status)}>
-              {getStatusLabel(tournament.status)}
+            <Badge className={getTournamentStatusColor(tournament.status, tournament.registrations_closed)}>
+              {getTournamentStatusLabel(tournament.status, tournament.registrations_closed)}
             </Badge>
             <span className="text-sm text-gray-500 dark:text-gray-400">{formatDate(tournament.date)}</span>
             {myCategory && (
@@ -222,14 +222,14 @@ export default function AthleteDashboard() {
               <Card key={t.id}>
                 <CardHeader title={t.title} subtitle={t.edition} />
                 <div className="flex flex-wrap items-center gap-3">
-                  <Badge className={getStatusColor(t.status)}>
-                    {getStatusLabel(t.status)}
+                  <Badge className={getTournamentStatusColor(t.status, t.registrations_closed)}>
+                    {getTournamentStatusLabel(t.status, t.registrations_closed)}
                   </Badge>
                   <span className="text-sm text-gray-500 dark:text-gray-400">{formatDate(t.date)}</span>
                 </div>
                 <div className="mt-4 p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 text-center space-y-3">
                   <p className="text-lg font-bold text-amber-800 dark:text-amber-200">
-                    Inscrições abertas! 🎾
+                    {t.registrations_closed ? "Inscrições encerradas 🚫" : "Inscrições abertas! 🎾"}
                   </p>
                   {t.registration_fee && (
                     <p className="text-sm text-amber-700 dark:text-amber-300">
@@ -250,8 +250,8 @@ export default function AthleteDashboard() {
                   <Card key={t.id}>
                     <CardHeader title={t.title} subtitle={t.edition} />
                     <div className="flex flex-wrap items-center gap-3">
-                      <Badge className={getStatusColor(t.status)}>
-                        {getStatusLabel(t.status)}
+                      <Badge className={getTournamentStatusColor(t.status, t.registrations_closed)}>
+                        {getTournamentStatusLabel(t.status, t.registrations_closed)}
                       </Badge>
                       <span className="text-sm text-gray-500 dark:text-gray-400">{formatDate(t.date)}</span>
                     </div>

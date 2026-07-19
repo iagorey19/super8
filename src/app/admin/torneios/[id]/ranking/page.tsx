@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Table, Td } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { getRankings, getLiveRankings, getTournamentById, getUserName, getApoiadores, getSponsorships, getRaffleRecords } from "@/lib/store"
-import { formatCurrency, getStatusLabel } from "@/lib/utils"
+import { formatCurrency, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
 import type { Tournament, TournamentResult, RaffleRecord } from "@/lib/types"
 import { RankingInfo } from "@/components/ui/ranking-info"
 
@@ -76,8 +76,8 @@ export default function TournamentRankingPage() {
           {tournament?.title || "Carregando..."}
         </h1>
         {tournament && (
-          <Badge className={tournament.status === "ongoing" ? "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 animate-pulse" : ""}>
-            {getStatusLabel(tournament.status)}
+          <Badge className={tournament.status === "ongoing" ? "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 animate-pulse" : getTournamentStatusColor(tournament.status, tournament.registrations_closed)}>
+            {getTournamentStatusLabel(tournament.status, tournament.registrations_closed)}
           </Badge>
         )}
         <div className="ml-auto flex gap-2">

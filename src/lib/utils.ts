@@ -63,6 +63,16 @@ export function getStatusLabel(status: string): string {
   return labels[status] || status
 }
 
+export function getTournamentStatusLabel(status: string, registrationsClosed?: boolean): string {
+  if (status === "registering" && registrationsClosed) return "Inscrições Encerradas"
+  return getStatusLabel(status)
+}
+
+export function getTournamentStatusColor(status: string, registrationsClosed?: boolean): string {
+  if (status === "registering" && registrationsClosed) return "bg-red-100 text-red-800"
+  return getStatusColor(status)
+}
+
 export function getCategoryLabel(cat: string): string {
   const labels: Record<string, string> = {
     "4e5": "4ª e 5ª Categoria",

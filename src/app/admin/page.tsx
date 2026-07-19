@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, Td } from "@/components/ui/table"
 import * as store from "@/lib/store"
-import { formatCurrency, formatDate, getStatusColor, getStatusLabel } from "@/lib/utils"
+import { formatCurrency, formatDate, getStatusColor, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
 import type { Tournament, Match } from "@/lib/types"
 
 export default function AdminDashboard() {
@@ -65,8 +65,8 @@ export default function AdminDashboard() {
             subtitle={tournament.edition && `Edição ${tournament.edition}`}
           />
           <div className="flex flex-wrap items-center gap-3">
-            <Badge className={getStatusColor(tournament.status)}>
-              {getStatusLabel(tournament.status)}
+            <Badge className={getTournamentStatusColor(tournament.status, tournament.registrations_closed)}>
+              {getTournamentStatusLabel(tournament.status, tournament.registrations_closed)}
             </Badge>
             <span className="text-sm text-gray-500 dark:text-gray-400">{formatDate(tournament.date)}</span>
             {tournament.location && (

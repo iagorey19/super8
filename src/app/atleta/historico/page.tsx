@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import * as store from "@/lib/store"
-import { formatDate, getStatusColor, getStatusLabel } from "@/lib/utils"
+import { formatDate, getStatusColor, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
 import type { Tournament } from "@/lib/types"
 
 export default function AthleteHistory() {
@@ -54,8 +54,8 @@ export default function AthleteHistory() {
             <Card key={tour.id}>
               <CardHeader title={tour.title} subtitle={tour.edition} />
               <div className="flex flex-wrap items-center gap-3 mb-3">
-                <Badge className={getStatusColor(tour.status)}>
-                  {getStatusLabel(tour.status)}
+                <Badge className={getTournamentStatusColor(tour.status, tour.registrations_closed)}>
+                  {getTournamentStatusLabel(tour.status, tour.registrations_closed)}
                 </Badge>
                 <span className="text-sm text-gray-500 dark:text-gray-400">{formatDate(tour.date)}</span>
                 {myResult?.category && (

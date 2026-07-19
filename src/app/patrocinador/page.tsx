@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Modal } from "@/components/ui/modal"
 import * as store from "@/lib/store"
 import { useToast } from "@/components/ui/toast"
-import { formatCurrency, formatDate, getStatusColor, getStatusLabel } from "@/lib/utils"
+import { formatCurrency, formatDate, getStatusColor, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
 import type { Tournament, Sponsorship } from "@/lib/types"
 
 export default function SponsorDashboard() {
@@ -75,8 +75,8 @@ export default function SponsorDashboard() {
           <Card key={tour.id}>
             <CardHeader title={tour.title} subtitle={tour.edition} />
             <div className="flex flex-wrap items-center gap-3 mb-3">
-              <Badge className={getStatusColor(tour.status)}>
-                {getStatusLabel(tour.status)}
+              <Badge className={getTournamentStatusColor(tour.status, tour.registrations_closed)}>
+                {getTournamentStatusLabel(tour.status, tour.registrations_closed)}
               </Badge>
               <span className="text-sm text-gray-500 dark:text-gray-400">{formatDate(tour.date)}</span>
             </div>

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import * as store from "@/lib/store"
-import { getStatusColor, getStatusLabel, getCategoryLabel } from "@/lib/utils"
+import { getStatusColor, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor, getCategoryLabel } from "@/lib/utils"
 import type { Tournament } from "@/lib/types"
 
 export default function EventosPage() {
@@ -35,8 +35,8 @@ export default function EventosPage() {
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t.title}</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{t.edition}</p>
                 </div>
-                <Badge className={getStatusColor(t.status)}>
-                  {getStatusLabel(t.status)}
+                <Badge className={getTournamentStatusColor(t.status, t.registrations_closed)}>
+                  {getTournamentStatusLabel(t.status, t.registrations_closed)}
                 </Badge>
               </div>
               <div className="flex flex-wrap gap-2 mt-3">

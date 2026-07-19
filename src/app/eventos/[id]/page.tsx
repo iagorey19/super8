@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/toast"
 import * as store from "@/lib/store"
 import { sanitizeUrl } from "@/lib/validate-url"
-import { getStatusColor, getStatusLabel, getCategoryLabel, formatDateWithWeekday } from "@/lib/utils"
+import { getStatusColor, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor, getCategoryLabel, formatDateWithWeekday } from "@/lib/utils"
 import { generatePixPayload, generatePixQR, formatCurrency, generateWhatsAppLink } from "@/lib/pix"
 import type { Tournament, RaffleRecord, AthleteRegistration } from "@/lib/types"
 
@@ -174,8 +174,8 @@ export default function EventoDetalhePage() {
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Badge className={getStatusColor(tournament.status)}>
-          {getStatusLabel(tournament.status)}
+        <Badge className={getTournamentStatusColor(tournament.status, tournament.registrations_closed)}>
+          {getTournamentStatusLabel(tournament.status, tournament.registrations_closed)}
         </Badge>
         {tournament.categories?.map((cat) => (
           <Badge key={cat} className="bg-purple-100 text-purple-800">
