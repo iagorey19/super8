@@ -294,7 +294,7 @@ export default function PlacarPage() {
                     </select>
                   ) : (
                     <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      {match.court}
+                      {getCourtNames(id)[parseInt(match.court) - 1] || `Quadra ${match.court}`}
                     </span>
                   )}
                   {match.category && (
