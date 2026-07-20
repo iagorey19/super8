@@ -62,7 +62,7 @@ export default function TournamentRankingPage() {
     loadRankings()
     loadAgradecimentos()
     if (tournament?.status === "ongoing") {
-      const interval = setInterval(loadRankings, 5000)
+      const interval = setInterval(loadRankings, 15000)
       return () => clearInterval(interval)
     }
   }, [tournamentId, tournament?.status, selectedCategory])

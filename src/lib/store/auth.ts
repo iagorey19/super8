@@ -74,6 +74,7 @@ export async function login(email: string, password: string): Promise<User | nul
     }
     const data = await res.json()
     saveSession({ user: data.user, token: data.token })
+    await refreshFromServer()
     return data.user
   } catch (e) {
     console.error("login: network error", e)

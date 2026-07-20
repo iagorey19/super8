@@ -67,7 +67,7 @@ export default function PlacarPage() {
   }, [loadData])
 
   useEffect(() => {
-    const interval = setInterval(loadData, 3000)
+    const interval = setInterval(loadData, 10000)
     return () => clearInterval(interval)
   }, [loadData])
 
