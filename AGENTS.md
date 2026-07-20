@@ -77,6 +77,14 @@ Supabase project: `ylltshboiejlcbhksrci` (THE SUPER 8, PRODUCTION)
 Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (arquivo + resumo). Manter só últimas 5. Se conversa ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e reiniciar."
 
 ## Últimas Alterações
+- `sw.js`: Separado clients.claim() do cache cleanup — fix barra de status do telefone piscando
+- `eventos/[id]`, `ranking`, `jogos`: Polling 5s → 30s — reduz re-renders em mobile
+- `admin/placar`: Polling 3s → 10s
+- `admin/ranking`: Polling 5s → 15s
+- `auth.ts login()`: Adicionado refreshFromServer() após login — fix emails "oculto@super8.app" para admin
+- `toast.tsx`: ID incrementa (não Date.now()), clearTimeout no anterior, max 1 toast visível — fix empilhamento
+- `cleanup-opencode.ps1` + `.py` + `.bat`: Scripts de limpeza do banco SQLite do opencode (1.3GB → 21MB)
+- Task Scheduler: "Limpeza opencode" agendado todo domingo às 3h
 - `types.ts`: Adicionados tipos `ApoiadorWithBrindes`, `SponsorshipWithDetails`, `RegistrationWithName`, `TournamentResultWithName`, `AnnualRankingWithDetails`
 - `src/` (30+ arquivos): Removidos TODOS os 115 usos de `any` do projeto — tipos específicos em todos os componentes, stores, API routes e páginas
 - `AGENTS.md`: Regra "não usar `any`" documentada
@@ -105,6 +113,7 @@ Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (
 
 ## Regras de Código
 - **NÃO usar `any`** — Nunca usar `any`, `any[]`, `as any` em nenhum arquivo TypeScript. Usar tipos específicos, `unknown`, `Record<string, unknown>`, ou tipos de `src/lib/types.ts`. Supabase queries: usar `as unknown as { ... }` com tipos reais.
+- **Limpeza do opencode** — Ao final de conversas longas (~50+ trocas), antes de `/salvar`, rodar `python ~\.local\share\opencode\cleanup_opencode.py` ou `.\cleanup-opencode.ps1` para limpar historico antigo do banco SQLite. Isso mantém o opencode rapido. O banco fica em `~\.local\share\opencode\opencode.db`.
 
 ## Próximos Passos
 1. **Date handling** — Padronizar formato de datas (L05)
