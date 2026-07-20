@@ -83,7 +83,7 @@ export async function deleteSponsorship(sponsorshipId: string) {
   await saveData(data)
 }
 
-export function getSponsorships(tournamentId?: string): (Sponsorship & { sponsor_name: string })[] {
+export function getSponsorships(tournamentId?: string): (Sponsorship & { sponsor_name: string; sponsor_url?: string })[] {
   const data = getData()
   let result = data.sponsorships
   if (tournamentId) result = result.filter((s) => s.tournament_id === tournamentId)

@@ -33,7 +33,7 @@ export function exportTournamentSpreadsheet(tournamentId: string) {
     "Placar A", "Placar B", "Vit A", "Vit B",
   ]
 
-  const data: any[][] = [header]
+  const data: (string | number)[][] = [header]
 
   for (const m of sorted) {
     const courtLabel = courtNames[Number(m.court) - 1] || `Quadra ${m.court}`
@@ -81,7 +81,7 @@ export function exportTournamentSpreadsheet(tournamentId: string) {
   const players = Array.from(playerMap.values())
 
   const classifHeader = ["Nome", "Jogos", "Vitórias", "Games Pró", "Games Contra", "Saldo", "Posição"]
-  const classifData: any[][] = [classifHeader]
+  const classifData: (string | number)[][] = [classifHeader]
   for (const p of players) classifData.push([p.name])
 
   const ws2 = XLSX.utils.aoa_to_sheet(classifData)

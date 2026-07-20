@@ -23,7 +23,7 @@ import {
   getAthleteStats,
 } from "@/lib/store"
 import { getStatusLabel } from "@/lib/utils"
-import type { User } from "@/lib/types"
+import type { User, Tournament } from "@/lib/types"
 
 const CATEGORIES = ["4e5", "6e7"]
 
@@ -40,11 +40,11 @@ export default function AthletesPage() {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editingAthlete, setEditingAthlete] = useState<User | null>(null)
   const [editForm, setEditForm] = useState({ name: "", email: "", phone: "" })
-  const [tournaments, setTournaments] = useState<any[]>([])
+  const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [addForm, setAddForm] = useState({ name: "", email: "", password: "", phone: "" })
   const [statsModalOpen, setStatsModalOpen] = useState(false)
-  const [statsData, setStatsData] = useState<any>(null)
+  const [statsData, setStatsData] = useState<{ totalMatches: number; wins: number; losses: number; winRate: number; avgScore: number; bestPosition: number | null; tournamentsPlayed: number; scoresByTournament: { tournamentTitle: string; points: number; position: number }[] } | null>(null)
   const [saving, setSaving] = useState<Set<string>>(new Set())
 
   function loadData() {

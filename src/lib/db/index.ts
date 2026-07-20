@@ -100,7 +100,7 @@ export async function persist(): Promise<void> {
 
     for (const table of currentTables) {
       if (table in _data!) {
-        (payload.data as any)[table] = (_data as any)[table]
+        (payload.data as Record<string, unknown>)[table] = (_data as Record<string, unknown>)[table]
       }
     }
 

@@ -1,9 +1,10 @@
 import { WHIST_SCHEDULE } from "./chaveamento"
 import { getUserName } from "./store"
 import type { GridCell, GradeData } from "./grade-types"
+import type { Match } from "./types"
 
 export function buildGridFromMatches(
-  matches: any[],
+  matches: Match[],
   category: string,
   groupName: string,
   courtNames: string[]

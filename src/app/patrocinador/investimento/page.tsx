@@ -7,14 +7,15 @@ import { Select } from "@/components/ui/select"
 import * as store from "@/lib/store"
 import { formatCurrency, getCategoryLabel, getCategoryIcon, getRevenueSourceLabel, getRevenueSourceIcon } from "@/lib/utils"
 import type { Tournament } from "@/lib/types"
+import type { Expense, Revenue } from "@/lib/types"
 
 export default function SponsorInvestment() {
   const { user } = useAuth()
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [selectedTournamentId, setSelectedTournamentId] = useState("")
   const [summary, setSummary] = useState({ totalExpenses: 0, totalRevenues: 0, balance: 0 })
-  const [expensesByCategory, setExpensesByCategory] = useState<Record<string, { total: number; items: any[] }>>({})
-  const [revenuesBySource, setRevenuesBySource] = useState<Record<string, { total: number; items: any[] }>>({})
+  const [expensesByCategory, setExpensesByCategory] = useState<Record<string, { total: number; items: Expense[] }>>({})
+  const [revenuesBySource, setRevenuesBySource] = useState<Record<string, { total: number; items: Revenue[] }>>({})
   const [expandedRevenueSources, setExpandedRevenueSources] = useState<Set<string>>(new Set())
   const [mySponsorshipAmount, setMySponsorshipAmount] = useState(0)
   const [athleteCount, setAthleteCount] = useState(0)

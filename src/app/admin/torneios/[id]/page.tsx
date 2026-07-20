@@ -14,7 +14,7 @@ import { Table, Td } from "@/components/ui/table"
 import { useToast } from "@/components/ui/toast"
 import * as store from "@/lib/store"
 import { formatDate, getStatusColor, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
-import type { Tournament, User } from "@/lib/types"
+import type { Tournament, User, Match, RegistrationWithName } from "@/lib/types"
 
 const ALL_CATEGORIES = ["4e5", "6e7"]
 
@@ -25,8 +25,8 @@ export default function TournamentDetail() {
   const id = params.id as string
 
   const [tournament, setTournament] = useState<Tournament | undefined>()
-  const [registrations, setRegistrations] = useState<any[]>([])
-  const [matches, setMatches] = useState<any[]>([])
+  const [registrations, setRegistrations] = useState<RegistrationWithName[]>([])
+  const [matches, setMatches] = useState<Match[]>([])
   const [startingCat, setStartingCat] = useState<string | null>(null)
   const [openingRegs, setOpeningRegs] = useState(false)
   const [closingRegs, setClosingRegs] = useState(false)
@@ -48,7 +48,7 @@ export default function TournamentDetail() {
   const [savingCourts, setSavingCourts] = useState(false)
   const [savingEdit, setSavingEdit] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const [allAthletes, setAllAthletes] = useState<any[]>([])
+  const [allAthletes, setAllAthletes] = useState<User[]>([])
   const availability = tournament ? store.getCategoryAvailability(tournament.id) : []
   useEffect(() => {
     try { setAllAthletes(store.getAthletes().filter((a) => !registrations.some((r) => r.athlete_id === a.id))) } catch { setAllAthletes([]) }
@@ -143,8 +143,8 @@ export default function TournamentDetail() {
       const [cat, grp] = key.split("-")
       try {
         await store.startTournament(id, cat, grp)
-      } catch (e: any) {
-        alert(`Erro ao iniciar ${cat} Grupo ${grp}: ${e.message}`)
+      } catch (e: unknown) {
+        alert(`Erro ao iniciar ${cat} Grupo ${grp}: ${e instanceof Error ? e.message : String(e)}`)
       }
     }
     load()
@@ -362,8 +362,8 @@ export default function TournamentDetail() {
                                 try {
                                   await store.startTournament(id, cat, grp)
                                   load()
-                                } catch (e: any) {
-                                  alert(e.message)
+                                } catch (e: unknown) {
+                                  alert(e instanceof Error ? e.message : String(e))
                                 } finally {
                                   setStartingCat(null)
                                 }

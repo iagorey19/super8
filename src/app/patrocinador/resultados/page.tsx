@@ -10,7 +10,7 @@ import { Table, Td } from "@/components/ui/table"
 import * as store from "@/lib/store"
 import { formatCurrency, formatDate, getStatusColor, getStatusLabel } from "@/lib/utils"
 import { sanitizeUrl } from "@/lib/validate-url"
-import type { Tournament, Photo, TournamentResult, Match, Apoiador, Brinde, RaffleRecord } from "@/lib/types"
+import type { Tournament, Photo, TournamentResult, Match, Apoiador, Brinde, RaffleRecord, SponsorshipWithDetails } from "@/lib/types"
 
 export default function SponsorResults() {
   const { user } = useAuth()
@@ -21,7 +21,7 @@ export default function SponsorResults() {
   const [rankings, setRankings] = useState<(TournamentResult & { name: string })[]>([])
   const [matches, setMatches] = useState<Match[]>([])
   const [apoiadores, setApoiadores] = useState<(Apoiador & { brindes: Brinde[] })[]>([])
-  const [sponsorships, setSponsorships] = useState<any[]>([])
+  const [sponsorships, setSponsorships] = useState<SponsorshipWithDetails[]>([])
   const [currentTournament, setCurrentTournament] = useState<Tournament | null>(null)
   const [raffleRecords, setRaffleRecords] = useState<RaffleRecord[]>([])
 

@@ -84,8 +84,8 @@ export default function AdminTorneios() {
     for (const cat of cats) {
       try {
         await store.startTournament(id, cat)
-      } catch (e: any) {
-        alert(`Erro ao iniciar ${cat}: ${e.message}`)
+      } catch (e: unknown) {
+        alert(`Erro ao iniciar ${cat}: ${e instanceof Error ? e.message : String(e)}`)
       }
     }
     setStarting((prev) => { const next = new Set(prev); next.delete(id); return next })

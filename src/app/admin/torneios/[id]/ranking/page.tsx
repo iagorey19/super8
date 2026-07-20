@@ -8,7 +8,7 @@ import { Table, Td } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { getRankings, getLiveRankings, getTournamentById, getUserName, getApoiadores, getSponsorships, getRaffleRecords } from "@/lib/store"
 import { formatCurrency, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
-import type { Tournament, TournamentResult, RaffleRecord } from "@/lib/types"
+import type { Tournament, TournamentResult, RaffleRecord, Sponsorship, ApoiadorWithBrindes, Brinde, SponsorshipWithDetails } from "@/lib/types"
 import { RankingInfo } from "@/components/ui/ranking-info"
 
 const positionStyle = (pos: number) => {
@@ -26,8 +26,8 @@ export default function TournamentRankingPage() {
   const [tournament, setTournament] = useState<Tournament | undefined>()
   const [selectedCategory, setSelectedCategory] = useState<string>("")
 
-  const [apoiadores, setApoiadores] = useState<any[]>([])
-  const [sponsorships, setSponsorships] = useState<any[]>([])
+  const [apoiadores, setApoiadores] = useState<ApoiadorWithBrindes[]>([])
+  const [sponsorships, setSponsorships] = useState<SponsorshipWithDetails[]>([])
   const [raffleRecords, setRaffleRecords] = useState<RaffleRecord[]>([])
   const categories = tournament?.categories || ["4e5"]
 
@@ -185,7 +185,7 @@ export default function TournamentRankingPage() {
                 <span>🏆</span> Patrocinador(es)
               </h3>
               <div className="space-y-2">
-                {sponsorships.map((s: any) => (
+                {sponsorships.map((s: Sponsorship & { sponsor_name: string }) => (
                   <div key={s.id} className="flex items-center justify-between p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200">
                     <span className="font-medium text-gray-900 dark:text-white">{s.sponsor_name}</span>
                     <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">{formatCurrency(s.amount)}</span>
@@ -201,12 +201,12 @@ export default function TournamentRankingPage() {
                 <span>🙌</span> Apoiadores
               </h3>
               <div className="space-y-2">
-                {apoiadores.map((a: any) => (
+                {apoiadores.map((a: ApoiadorWithBrindes) => (
                   <div key={a.id} className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200">
                     <p className="font-medium text-gray-900 dark:text-white">{a.name}</p>
                     {a.brindes.length > 0 && (
                       <div className="mt-1 flex flex-wrap gap-1">
-                        {a.brindes.map((b: any) => (
+                        {a.brindes.map((b: Brinde) => (
                           <span key={b.id} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
                             {b.description}
                             {b.type === "kit" && ` (${b.quantity}x kit)`}

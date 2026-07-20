@@ -5,6 +5,7 @@ import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, Td } from "@/components/ui/table"
 import { getAnnualRanking } from "@/lib/store"
+import type { AnnualRankingWithDetails } from "@/lib/types"
 import { exportToCSV } from "@/lib/utils"
 
 const CATEGORIES = ["4e5", "6e7"]
@@ -23,7 +24,7 @@ function medal(pos: number) {
 
 export function AnnualRanking() {
   const [selectedCategory, setSelectedCategory] = useState("4e5")
-  const [ranking, setRanking] = useState<any[]>([])
+  const [ranking, setRanking] = useState<AnnualRankingWithDetails[]>([])
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   function loadRanking() {
@@ -161,8 +162,8 @@ export function AnnualRanking() {
                             </thead>
                             <tbody>
                               {[...r.tournaments]
-                                .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                                .map((t: any) => {
+                                .sort((a: { date: string }, b: { date: string }) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                                .map((t: AnnualRankingWithDetails["tournaments"][number]) => {
                                   const m = medal(t.position)
                                   return (
                                     <tr key={t.tournament_id} className="border-b border-gray-100 dark:border-gray-700/50 last:border-0">

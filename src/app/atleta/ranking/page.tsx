@@ -8,13 +8,14 @@ import { Card, CardHeader } from "@/components/ui/card"
 import { Table, Td } from "@/components/ui/table"
 import * as store from "@/lib/store"
 import { RankingInfo } from "@/components/ui/ranking-info"
+import type { TournamentResult, AnnualRankingWithDetails } from "@/lib/types"
 
 const CATEGORIES = ["4e5", "6e7"]
 
 export default function AthleteRanking() {
   const { user } = useAuth()
-  const [liveRanking, setLiveRanking] = useState<(any)[]>([])
-  const [annualRanking, setAnnualRanking] = useState<(any)[]>([])
+  const [liveRanking, setLiveRanking] = useState<(TournamentResult & { name: string })[]>([])
+  const [annualRanking, setAnnualRanking] = useState<AnnualRankingWithDetails[]>([])
   const [tournamentTitle, setTournamentTitle] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("4e5")
 

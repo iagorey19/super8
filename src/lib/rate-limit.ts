@@ -33,14 +33,14 @@ export async function isRateLimited(ip: string, max: number = 30, windowMs: numb
     const windowStartISO = new Date(windowStart).toISOString()
 
     const { data: existing } = await (svc
-      .from("rate_limits") as any)
+      .from("rate_limits") as unknown as { select: (s: string) => { eq: (col: string, val: string) => { single: () => Promise<{ data: Record<string, unknown> | null; error: unknown }> } } })
       .select("count, window_start")
       .eq("ip", ip)
       .single()
 
-    if (!existing || new Date(existing.window_start).getTime() < windowStart) {
+    if (!existing || new Date(existing.window_start as string).getTime() < windowStart) {
       const { error: upsertError } = await (svc
-        .from("rate_limits") as any)
+        .from("rate_limits") as unknown as { upsert: (row: Record<string, unknown>, opts: { onConflict: string }) => Promise<{ error: unknown }> })
         .upsert({ ip, count: 1, window_start: windowStartISO }, { onConflict: "ip" })
       if (upsertError) {
         console.error("rate-limit upsert error:", upsertError)
@@ -49,11 +49,11 @@ export async function isRateLimited(ip: string, max: number = 30, windowMs: numb
       return false
     }
 
-    if (existing.count >= max) return true
+    if ((existing.count as number) >= max) return true
 
     const { error: updateError } = await (svc
-      .from("rate_limits") as any)
-      .update({ count: existing.count + 1 })
+      .from("rate_limits") as unknown as { update: (row: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<{ error: unknown }> } })
+      .update({ count: (existing.count as number) + 1 })
       .eq("ip", ip)
     if (updateError) {
       console.error("rate-limit update error:", updateError)

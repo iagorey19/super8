@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select } from "@/components/ui/select"
 import { Modal } from "@/components/ui/modal"
 import * as store from "@/lib/store"
-import type { RaffleRecord } from "@/lib/types"
+import type { RaffleRecord, ApoiadorWithBrindes, Brinde, Tournament } from "@/lib/types"
 
 interface Participant {
   id: string
@@ -30,10 +30,10 @@ export default function SortearBrindes() {
   const [records, setRecords] = useState<RaffleRecord[]>([])
   const scrollRef = useRef<ReturnType<typeof setInterval>>(null)
 
-  const [tournaments, setTournaments] = useState<any[]>([])
+  const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [selectedTournamentId, setSelectedTournamentId] = useState("")
-  const [sorteioBrindes, setSorteioBrindes] = useState<any[]>([])
-  const [apoiadores, setApoiadores] = useState<any[]>([])
+  const [sorteioBrindes, setSorteioBrindes] = useState<Brinde[]>([])
+  const [apoiadores, setApoiadores] = useState<ApoiadorWithBrindes[]>([])
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null)
   const [editWinnerName, setEditWinnerName] = useState("")
@@ -343,8 +343,8 @@ export default function SortearBrindes() {
           />
           <div className="flex flex-wrap gap-2">
             {sorteioBrindes.map((b) => {
-              const apoiador = apoiadores.find((a: any) =>
-                a.brindes.some((br: any) => br.id === b.id)
+              const apoiador = apoiadores.find((a: ApoiadorWithBrindes) =>
+                a.brindes.some((br: Brinde) => br.id === b.id)
               )
               return (
                 <div key={b.id} className="bg-green-50 dark:bg-green-900/20 border border-green-200 rounded-lg p-3 flex items-center gap-3">

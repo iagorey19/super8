@@ -211,7 +211,20 @@ export interface Note {
   updated_at: string
 }
 
-export interface AppData {
+export type ApoiadorWithBrindes = Apoiador & { brindes: Brinde[] }
+export type SponsorshipWithDetails = Sponsorship & { sponsor_name: string; sponsor_url?: string }
+export type RegistrationWithName = AthleteRegistration & { name: string; email: string }
+export type TournamentResultWithName = TournamentResult & { name: string }
+export type AnnualRankingWithDetails = AnnualRanking & {
+  position: number
+  name: string
+  tournaments: {
+    tournament_id: string; title: string; date: string; edition: string
+    position: number; points: number; total_games: number
+  }[]
+}
+
+export type AppData = {
   seed_version: number
   config: AppConfig
   users: User[]

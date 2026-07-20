@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button"
 import { buildGridFromMatches, buildGridFromRegistrations, cellFor } from "@/lib/grade-builder"
 import { copyGradeText, exportGradePNG, exportGradeCSV, exportGradePDF, exportGradeTXT } from "@/lib/grade-exports"
 import type { GradeData } from "@/lib/grade-types"
+import type { Match } from "@/lib/types"
 
 interface GradePreviewProps {
   registrations?: { athlete_id: string; draw_number: number; name: string }[]
-  matches?: any[]
+  matches?: Match[]
   courtNames: string[]
   category: string
   groupName: string

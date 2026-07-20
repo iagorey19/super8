@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     if (createError) {
       if (createError.message?.includes("already been registered") || createError.message?.includes("already exists")) {
         const { data: { users: authUsers } } = await svc.auth.admin.listUsers()
-        const existing = authUsers?.find((u: any) => u.email === email)
+        const existing = authUsers?.find((u: { email?: string }) => u.email === email)
         if (existing) {
           const { error: updateError } = await svc.auth.admin.updateUserById(existing.id, { password })
           if (updateError) {
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ ok: true })
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("admin-register error:", e)
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }

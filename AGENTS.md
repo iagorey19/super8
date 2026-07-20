@@ -77,6 +77,9 @@ Supabase project: `ylltshboiejlcbhksrci` (THE SUPER 8, PRODUCTION)
 Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (arquivo + resumo). Manter só últimas 5. Se conversa ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e reiniciar."
 
 ## Últimas Alterações
+- `types.ts`: Adicionados tipos `ApoiadorWithBrindes`, `SponsorshipWithDetails`, `RegistrationWithName`, `TournamentResultWithName`, `AnnualRankingWithDetails`
+- `src/` (30+ arquivos): Removidos TODOS os 115 usos de `any` do projeto — tipos específicos em todos os componentes, stores, API routes e páginas
+- `AGENTS.md`: Regra "não usar `any`" documentada
 - `sw.js`: Skip POST intercept, add clients.claim(), use request.clone() — fix login 503 + flicker
 - `theme-context.tsx` + `layout.tsx`: Inline script sets dark class before paint — fix theme flash
 - `navbar.tsx`: Polling 5s→30s, skip re-render if count unchanged — fix sticky bar flicker
@@ -99,6 +102,9 @@ Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (
 - `docs/DATABASE.md`: Criado — schema completo das 16 tabelas com colunas, tipos, relacionamentos
 - `HISTORICO.md`: Criado — registro de sessões
 - `.project-rules.md`: Expandido com padrões de código (React 19 onChange, React Keys, mobile-first, segurança)
+
+## Regras de Código
+- **NÃO usar `any`** — Nunca usar `any`, `any[]`, `as any` em nenhum arquivo TypeScript. Usar tipos específicos, `unknown`, `Record<string, unknown>`, ou tipos de `src/lib/types.ts`. Supabase queries: usar `as unknown as { ... }` com tipos reais.
 
 ## Próximos Passos
 1. **Date handling** — Padronizar formato de datas (L05)

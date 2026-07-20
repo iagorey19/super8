@@ -5,6 +5,7 @@ import type {
 import { generatePairings, calculateTournamentResults, WHIST_SCHEDULE } from "../chaveamento"
 import { getData, saveData } from "./core"
 import { createNotification } from "./media"
+import { getUserName } from "./users"
 
 export async function deleteTournament(tournamentId: string) {
   const data = getData()
@@ -501,7 +502,7 @@ function updateAnnualRankings(data: AppData, category: string) {
   data.annual_rankings.push(...newRankings)
 }
 
-export function getRankings(tournamentId: string, category?: string, groupName?: string): TournamentResult[] {
+export function getRankings(tournamentId: string, category?: string, groupName?: string): (TournamentResult & { name: string })[] {
   const data = getData()
   return data.tournament_results
     .filter((r) => {
@@ -511,6 +512,7 @@ export function getRankings(tournamentId: string, category?: string, groupName?:
       return true
     })
     .sort((a, b) => a.position - b.position)
+    .map((r) => ({ ...r, name: getUserName(r.athlete_id) }))
 }
 
 export function getLiveRankings(tournamentId: string, category?: string, groupName?: string): (TournamentResult & { name: string })[] {

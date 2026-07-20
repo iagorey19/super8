@@ -11,7 +11,7 @@ import * as store from "@/lib/store"
 import { sanitizeUrl } from "@/lib/validate-url"
 import { getStatusColor, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor, getCategoryLabel, formatDateWithWeekday } from "@/lib/utils"
 import { generatePixPayload, generatePixQR, formatCurrency, generateWhatsAppLink } from "@/lib/pix"
-import type { Tournament, RaffleRecord, AthleteRegistration } from "@/lib/types"
+import type { Tournament, RaffleRecord, AthleteRegistration, TournamentResultWithName, Sponsorship, ApoiadorWithBrindes, Brinde, RegistrationWithName } from "@/lib/types"
 
 export default function EventoDetalhePage() {
   const params = useParams()
@@ -19,10 +19,10 @@ export default function EventoDetalhePage() {
   const id = params.id as string
   const [tournament, setTournament] = useState<Tournament | null>(null)
   const [raffleRecords, setRaffleRecords] = useState<RaffleRecord[]>([])
-  const [registrations, setRegistrations] = useState<any[]>([])
-  const [sponsors, setSponsors] = useState<any[]>([])
-  const [apoiadores, setApoiadores] = useState<any[]>([])
-  const [session, setSession] = useState<{ user: any } | null>(null)
+  const [registrations, setRegistrations] = useState<RegistrationWithName[]>([])
+  const [sponsors, setSponsors] = useState<(Sponsorship & { sponsor_name: string; sponsor_url?: string })[]>([])
+  const [apoiadores, setApoiadores] = useState<ApoiadorWithBrindes[]>([])
+  const [session, setSession] = useState<{ user: { id: string; name: string; role: string } } | null>(null)
   const [myReg, setMyReg] = useState<AthleteRegistration | null>(null)
   const [step, setStep] = useState<"idle" | "category" | "pix" | "done">("idle")
   const [selectedCategory, setSelectedCategory] = useState("")
@@ -192,7 +192,7 @@ export default function EventoDetalhePage() {
 
       {tournament.status === "completed" && (() => {
         const champions = tournament.categories.flatMap((cat) =>
-          store.getRankings(id, cat).filter((r: any) => r.position === 1)
+          store.getRankings(id, cat).filter((r: TournamentResultWithName) => r.position === 1)
         )
         if (champions.length === 0) return null
         return (
@@ -202,7 +202,7 @@ export default function EventoDetalhePage() {
                 <span className="text-2xl">🏆</span> Campeã{champions.length > 1 ? "s" : ""}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {champions.map((champ: any) => (
+                {champions.map((champ: TournamentResultWithName) => (
                   <div key={champ.athlete_id} className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-yellow-200 dark:border-yellow-700 shadow-sm">
                     <p className="text-lg font-bold text-gray-900 dark:text-white">
                       {store.getUserName(champ.athlete_id)}
@@ -496,7 +496,7 @@ export default function EventoDetalhePage() {
                   <span className="text-lg">🏆</span> Patrocinadores
                 </p>
                 <div className="flex flex-wrap gap-3">
-                  {sponsors.map((s: any) => (
+                  {sponsors.map((s: Sponsorship & { sponsor_name: string; sponsor_url?: string }) => (
                     <div key={s.id} className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/30 dark:to-yellow-900/30 border-2 border-amber-300 dark:border-amber-700 rounded-xl px-5 py-4 shadow-sm flex items-center gap-3 min-w-[200px]">
                       <span className="text-2xl">{s.tier === "gold" ? "🥇" : s.tier === "silver" ? "🥈" : "🥉"}</span>
                       <div>
@@ -518,8 +518,8 @@ export default function EventoDetalhePage() {
                 <div className="flex flex-wrap gap-2">
                   {(() => {
                     const masterName = "REY MADEIRAS"
-                    const master = apoiadores.find((a: any) => a.name?.trim().toUpperCase() === masterName)
-                    const others = apoiadores.filter((a: any) => a.name?.trim().toUpperCase() !== masterName)
+                    const master = apoiadores.find((a: ApoiadorWithBrindes) => a.name?.trim().toUpperCase() === masterName)
+                    const others = apoiadores.filter((a: ApoiadorWithBrindes) => a.name?.trim().toUpperCase() !== masterName)
                     return (
                       <>
                         <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 text-sm w-full">
@@ -529,16 +529,16 @@ export default function EventoDetalhePage() {
                           <span className="font-medium text-gray-900 dark:text-white">REY MADEIRAS</span>
                           {master?.brindes && master.brindes.length > 0 && (
                             <span className="text-gray-600 dark:text-gray-300 ml-1">
-                              - {master.brindes.map((b: any) => `${b.description} (${b.type === "kit" ? "Kit" : "Sorteio"})`).join(", ")}
+                              - {master.brindes.map((b: Brinde) => `${b.description} (${b.type === "kit" ? "Kit" : "Sorteio"})`).join(", ")}
                             </span>
                           )}
                         </div>
-                        {others.map((a: any) => (
+                        {others.map((a: ApoiadorWithBrindes) => (
                           <div key={a.id} className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 text-sm">
                             <span className="font-medium text-gray-900 dark:text-white">{a.name}</span>
                             {a.brindes?.length > 0 && (
                               <span className="text-gray-600 dark:text-gray-300 ml-1">
-                                - {a.brindes.map((b: any) => `${b.description} (${b.type === "kit" ? "Kit" : "Sorteio"})`).join(", ")}
+                                - {a.brindes.map((b: Brinde) => `${b.description} (${b.type === "kit" ? "Kit" : "Sorteio"})`).join(", ")}
                               </span>
                             )}
                           </div>
@@ -578,10 +578,10 @@ export default function EventoDetalhePage() {
             <div className="text-left">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">🎟️ Inscritos</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {registrations.filter((r: any) => !r.is_waiting).length} inscritos
-                {registrations.filter((r: any) => r.is_waiting).length > 0 && (
+                {registrations.filter((r: RegistrationWithName) => !r.is_waiting).length} inscritos
+                {registrations.filter((r: RegistrationWithName) => r.is_waiting).length > 0 && (
                   <span className="text-amber-600 dark:text-amber-400 ml-1">
-                    · {registrations.filter((r: any) => r.is_waiting).length} na lista de espera
+                    · {registrations.filter((r: RegistrationWithName) => r.is_waiting).length} na lista de espera
                   </span>
                 )}
               </p>
@@ -591,7 +591,7 @@ export default function EventoDetalhePage() {
           {showInscritos && (
             <div className="px-4 pb-4 space-y-4">
               {(() => {
-                const groups = new Map<string, any[]>()
+                const groups = new Map<string, RegistrationWithName[]>()
                 for (const r of registrations) {
                   const key = `${r.category}-${r.group_name || "A"}`
                   if (!groups.has(key)) groups.set(key, [])
@@ -599,14 +599,14 @@ export default function EventoDetalhePage() {
                 }
                 return [...groups.entries()].map(([key, regs]) => {
                   const [cat, grp] = key.split("-")
-                  const sorted = [...regs].sort((a: any, b: any) => (a.registration_order || 999) - (b.registration_order || 999))
+                  const sorted = [...regs].sort((a: RegistrationWithName, b: RegistrationWithName) => (a.registration_order || 999) - (b.registration_order || 999))
                   return (
                     <div key={key}>
                       <h4 className="text-sm font-bold text-gray-600 dark:text-gray-400 tracking-wider mb-2">
                         {getCategoryLabel(cat)} — Grupo {grp}
                       </h4>
                       <div className="space-y-1">
-                        {sorted.map((r: any, idx: number) => (
+                        {sorted.map((r: RegistrationWithName, idx: number) => (
                           <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                             <div className="flex items-center gap-3">
                               <span className="text-xs font-bold text-gray-400 w-6 text-right">{idx + 1}</span>

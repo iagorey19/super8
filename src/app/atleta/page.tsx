@@ -12,7 +12,7 @@ import * as store from "@/lib/store"
 import { sanitizeUrl } from "@/lib/validate-url"
 import { useToast } from "@/components/ui/toast"
 import { formatDate, getStatusColor, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
-import type { Tournament, AthleteRegistration, RaffleRecord } from "@/lib/types"
+import type { Tournament, AthleteRegistration, RaffleRecord, SponsorshipWithDetails, ApoiadorWithBrindes, Brinde } from "@/lib/types"
 
 export default function AthleteDashboard() {
   const { user, loading } = useAuth()
@@ -27,8 +27,8 @@ export default function AthleteDashboard() {
   const [showPassword, setShowPassword] = useState(false)
   const { toast: notify } = useToast()
   const [raffleRecords, setRaffleRecords] = useState<RaffleRecord[]>([])
-  const [apoiadores, setApoiadores] = useState<any[]>([])
-  const [sponsors, setSponsors] = useState<any[]>([])
+  const [apoiadores, setApoiadores] = useState<ApoiadorWithBrindes[]>([])
+  const [sponsors, setSponsors] = useState<SponsorshipWithDetails[]>([])
   const [confirmingPresence, setConfirmingPresence] = useState(false)
   const [savingProfile, setSavingProfile] = useState(false)
 
@@ -216,9 +216,9 @@ export default function AthleteDashboard() {
         <div className="space-y-4">
           {(() => {
             const all = store.getTournaments()
-            const registering = all.filter((t: any) => t.status === "registering")
-            const upcoming = all.filter((t: any) => t.status === "upcoming")
-            if (registering.length > 0) return registering.map((t: any) => (
+            const registering = all.filter((t: Tournament) => t.status === "registering")
+            const upcoming = all.filter((t: Tournament) => t.status === "upcoming")
+            if (registering.length > 0) return registering.map((t: Tournament) => (
               <Card key={t.id}>
                 <CardHeader title={t.title} subtitle={t.edition} />
                 <div className="flex flex-wrap items-center gap-3">
@@ -246,7 +246,7 @@ export default function AthleteDashboard() {
             ))
             if (upcoming.length > 0) return (
               <div className="space-y-4">
-                {upcoming.map((t: any) => (
+                {upcoming.map((t: Tournament) => (
                   <Card key={t.id}>
                     <CardHeader title={t.title} subtitle={t.edition} />
                     <div className="flex flex-wrap items-center gap-3">
@@ -304,7 +304,7 @@ export default function AthleteDashboard() {
                   <span className="text-lg">🏆</span> Patrocinadores
                 </p>
                 <div className="flex flex-wrap gap-3">
-                  {sponsors.map((s: any) => (
+                  {sponsors.map((s: SponsorshipWithDetails) => (
                     <div key={s.id} className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/30 dark:to-yellow-900/30 border-2 border-amber-300 dark:border-amber-700 rounded-xl px-5 py-4 shadow-sm flex items-center gap-3 min-w-[200px]">
                       <span className="text-2xl">{s.tier === "gold" ? "🥇" : s.tier === "silver" ? "🥈" : "🥉"}</span>
                       <div>
@@ -326,8 +326,8 @@ export default function AthleteDashboard() {
                 <div className="flex flex-wrap gap-2">
                   {(() => {
                     const masterName = "REY MADEIRAS"
-                    const master = apoiadores.find((a: any) => a.name?.trim().toUpperCase() === masterName)
-                    const others = apoiadores.filter((a: any) => a.name?.trim().toUpperCase() !== masterName)
+                    const master = apoiadores.find((a: ApoiadorWithBrindes) => a.name?.trim().toUpperCase() === masterName)
+                    const others = apoiadores.filter((a: ApoiadorWithBrindes) => a.name?.trim().toUpperCase() !== masterName)
                     return (
                       <>
                         <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 text-sm w-full">
@@ -337,16 +337,16 @@ export default function AthleteDashboard() {
                           <span className="font-medium text-gray-900 dark:text-white">REY MADEIRAS</span>
                           {master?.brindes && master.brindes.length > 0 && (
                             <span className="text-gray-600 dark:text-gray-300 ml-1">
-                              - {master.brindes.map((b: any) => `${b.description} (${b.type === "kit" ? "Kit" : "Sorteio"})`).join(", ")}
+                              - {master.brindes.map((b: Brinde) => `${b.description} (${b.type === "kit" ? "Kit" : "Sorteio"})`).join(", ")}
                             </span>
                           )}
                         </div>
-                        {others.map((a: any) => (
+                        {others.map((a: ApoiadorWithBrindes) => (
                           <div key={a.id} className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 text-sm">
                             <span className="font-medium text-gray-900 dark:text-white">{a.name}</span>
                             {a.brindes?.length > 0 && (
                               <span className="text-gray-600 dark:text-gray-300 ml-1">
-                                - {a.brindes.map((b: any) => `${b.description} (${b.type === "kit" ? "Kit" : "Sorteio"})`).join(", ")}
+                                - {a.brindes.map((b: Brinde) => `${b.description} (${b.type === "kit" ? "Kit" : "Sorteio"})`).join(", ")}
                               </span>
                             )}
                           </div>

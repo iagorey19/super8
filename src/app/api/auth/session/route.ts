@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     }
 
     const svc = getServiceClient()
-    const { data: users, error } = await svc.from("users").select("*").eq("email", email) as unknown as { data: any[] | null; error: any }
+    const { data: users, error } = await svc.from("users").select("*").eq("email", email) as unknown as { data: { id: string; email: string; password: string; name: string; role: string; phone?: string; avatar?: string; created_at: string }[] | null; error: { message: string } | null }
 
     if (error) {
       console.error("Session auth error:", error)
@@ -76,7 +76,7 @@ export async function GET(req: Request) {
     }
 
     const svc = getServiceClient()
-    const { data: users } = await svc.from("users").select("*").eq("id", result.userId) as unknown as { data: any[] | null }
+    const { data: users } = await svc.from("users").select("*").eq("id", result.userId) as unknown as { data: { id: string; email: string; name: string; role: string; phone?: string; avatar?: string; created_at: string }[] | null }
     const user = users?.[0] as Record<string, unknown> | undefined
     if (!user) {
       return NextResponse.json({ error: "user_not_found" }, { status: 401 })

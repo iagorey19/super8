@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Modal } from "@/components/ui/modal"
 import { useToast } from "@/components/ui/toast"
 import * as store from "@/lib/store"
-import type { Notification } from "@/lib/types"
+import type { Notification, User, NotificationType } from "@/lib/types"
 
 const typeLabels: Record<string, string> = {
   jogo: "Jogo",
@@ -65,10 +65,10 @@ export function NotificationList({ userId, canSend }: { userId: string; canSend?
   async function handleSend() {
     if (!sendForm.title || !sendForm.message) return
     setSending(true)
-    let athletes: any[]
+    let athletes: User[]
     try { athletes = store.getAthletes() } catch { athletes = [] }
     for (const a of athletes) {
-      await store.createNotification(a.id, sendForm.type as any, sendForm.title, sendForm.message)
+      await store.createNotification(a.id, sendForm.type as NotificationType, sendForm.title, sendForm.message)
     }
     setSending(false)
     setSendModal(false)

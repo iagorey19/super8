@@ -11,7 +11,7 @@ import * as store from "@/lib/store"
 import { sanitizeUrl } from "@/lib/validate-url"
 import { RankingInfo } from "@/components/ui/ranking-info"
 import { getStatusLabel } from "@/lib/utils"
-import type { Tournament } from "@/lib/types"
+import type { Tournament, TournamentResultWithName, ApoiadorWithBrindes, Brinde, RaffleRecord, Sponsorship } from "@/lib/types"
 
 const positionStyle = (pos: number) => {
   if (pos === 1) return "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 border-yellow-300 font-bold"
@@ -25,11 +25,11 @@ export default function PublicRankingPage() {
   const tournamentId = params.id as string
 
   const [tournament, setTournament] = useState<Tournament | null>(null)
-  const [results, setResults] = useState<any[]>([])
+  const [results, setResults] = useState<TournamentResultWithName[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>("")
-  const [sponsors, setSponsors] = useState<any[]>([])
-  const [apoiadores, setApoiadores] = useState<any[]>([])
-  const [raffleRecords, setRaffleRecords] = useState<any[]>([])
+  const [sponsors, setSponsors] = useState<(Sponsorship & { sponsor_name: string; sponsor_url?: string })[]>([])
+  const [apoiadores, setApoiadores] = useState<ApoiadorWithBrindes[]>([])
+  const [raffleRecords, setRaffleRecords] = useState<RaffleRecord[]>([])
 
   const loadData = useCallback(() => {
     const t = store.getTournamentById(tournamentId)
@@ -54,7 +54,7 @@ export default function PublicRankingPage() {
   }, [loadData])
 
   const categories = tournament?.categories || ["4e5"]
-  const maxRounds = Math.max(...results.map((r: any) => r.round_scores?.length || 0), 0)
+  const maxRounds = Math.max(...results.map((r: TournamentResultWithName) => r.round_scores?.length || 0), 0)
 
   if (!tournament) {
     return (
@@ -135,7 +135,7 @@ export default function PublicRankingPage() {
               </Td>
             </tr>
           ) : (
-            results.map((r: any, idx: number) => (
+            results.map((r: TournamentResultWithName, idx: number) => (
               <tr
                 key={r.id || idx}
                 className={`transition-colors ${idx === 0 ? "bg-yellow-50/50 dark:bg-yellow-900/20" : idx === 1 ? "bg-gray-50/50 dark:bg-gray-800/50" : idx === 2 ? "bg-orange-50/30 dark:bg-orange-900/20" : "hover:bg-gray-50 dark:hover:bg-gray-800"}`}
@@ -180,7 +180,7 @@ export default function PublicRankingPage() {
                   <span className="text-lg">🏆</span> Patrocinadores
                 </p>
                 <div className="flex flex-wrap gap-3">
-                  {sponsors.map((s: any) => (
+                  {sponsors.map((s: Sponsorship & { sponsor_name: string; sponsor_url?: string }) => (
                     <div key={s.id} className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/30 dark:to-yellow-900/30 border-2 border-amber-300 dark:border-amber-700 rounded-xl px-5 py-4 shadow-sm flex items-center gap-3 min-w-[200px]">
                       <span className="text-2xl">{s.tier === "gold" ? "🥇" : s.tier === "silver" ? "🥈" : "🥉"}</span>
                       <div>
@@ -200,12 +200,12 @@ export default function PublicRankingPage() {
               <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Apoiadores</p>
                 <div className="flex flex-wrap gap-2">
-                  {apoiadores.map((a: any) => (
+                  {apoiadores.map((a: ApoiadorWithBrindes) => (
                     <div key={a.id} className="bg-green-50 dark:bg-green-900/20 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 text-sm">
                       <span className="font-medium text-gray-900 dark:text-white">{a.name}</span>
                       {a.brindes?.length > 0 && (
                         <span className="text-gray-600 dark:text-gray-400 dark:text-gray-300 ml-1">
-                          - {a.brindes.map((b: any) => `${b.description} (${b.type === "kit" ? "Kit" : "Sorteio"})`).join(", ")}
+                          - {a.brindes.map((b: Brinde) => `${b.description} (${b.type === "kit" ? "Kit" : "Sorteio"})`).join(", ")}
                         </span>
                       )}
                     </div>
@@ -217,7 +217,7 @@ export default function PublicRankingPage() {
               <div>
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Vencedores dos Sorteios</p>
                 <div className="space-y-1">
-                  {raffleRecords.map((r: any) => (
+                  {raffleRecords.map((r: RaffleRecord) => (
                     <div key={r.id} className="flex items-center gap-2 text-sm px-2 py-1">
                       <span className="text-green-600 dark:text-green-400">🎁</span>
                         <span className="font-medium text-gray-900 dark:text-white">{r.winner_name}</span>

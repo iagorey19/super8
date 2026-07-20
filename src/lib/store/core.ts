@@ -30,7 +30,7 @@ export async function saveData(data: AppData) {
     const oldData = JSON.parse(lastPersistedSnapshot)
     for (const key of Object.keys(data)) {
       if (key === "seed_version" || key === "config") continue
-      if (JSON.stringify((oldData as any)[key]) !== JSON.stringify((data as any)[key])) {
+      if (JSON.stringify((oldData as Record<string, unknown>)[key]) !== JSON.stringify((data as Record<string, unknown>)[key])) {
         db.markDirty(key)
       }
     }

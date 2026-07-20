@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    const { error: insertError } = await (svc.from("users") as any).insert({
+    const { error: insertError } = await (svc.from("users") as unknown as { insert: (row: Record<string, unknown>) => Promise<{ error: { message: string } | null }> }).insert({
       id,
       email,
       password: hashedPassword,

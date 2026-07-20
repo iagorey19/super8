@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { getRankings, getLiveRankings, getTournamentById, getUserName, getCourtNames } from "@/lib/store"
-import type { Tournament } from "@/lib/types"
+import type { Tournament, TournamentResult } from "@/lib/types"
 
 export default function PrintRankingPage() {
   const params = useParams()
   const tournamentId = params.id as string
-  const [results, setResults] = useState<any[]>([])
+  const [results, setResults] = useState<(TournamentResult & { name: string })[]>([])
   const [tournament, setTournament] = useState<Tournament | undefined>()
   const [selectedCategory, setSelectedCategory] = useState<string>("")
   const [courtNames, setCourtNames] = useState<string[]>([])
@@ -85,7 +85,7 @@ export default function PrintRankingPage() {
           </tr>
         </thead>
         <tbody>
-          {results.map((r: any, idx: number) => (
+          {results.map((r: TournamentResult & { name: string }, idx: number) => (
             <tr key={r.athlete_id || idx} className="border-b border-gray-200 dark:border-gray-700">
               <td className={`py-2 px-3 text-center font-bold ${
                 idx === 0 ? "text-yellow-600 dark:text-yellow-400" : idx === 1 ? "text-gray-500 dark:text-gray-400" : idx === 2 ? "text-orange-600 dark:text-orange-400" : "text-gray-700 dark:text-gray-300"

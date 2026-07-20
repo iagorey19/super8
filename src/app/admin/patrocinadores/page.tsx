@@ -17,7 +17,7 @@ import {
 } from "@/lib/store"
 import { formatCurrency, getTierLabel } from "@/lib/utils"
 import { sanitizeUrl } from "@/lib/validate-url"
-import type { User, SponsorTier } from "@/lib/types"
+import type { User, SponsorTier, Sponsorship, ApoiadorWithBrindes, Brinde, Tournament, RegistrationWithName } from "@/lib/types"
 
 const tierOptions = [
   { value: "gold", label: "Ouro" },
@@ -64,8 +64,8 @@ export default function SponsorsPage() {
 
 function PatrocinadoresTab() {
   const [sponsors, setSponsors] = useState<User[]>([])
-  const [tournaments, setTournaments] = useState<any[]>([])
-  const [allSponsorships, setAllSponsorships] = useState<any[]>([])
+  const [tournaments, setTournaments] = useState<Tournament[]>([])
+  const [allSponsorships, setAllSponsorships] = useState<Sponsorship[]>([])
 
   const [newModalOpen, setNewModalOpen] = useState(false)
   const [newName, setNewName] = useState("")
@@ -81,7 +81,7 @@ function PatrocinadoresTab() {
   const [addSponsorshipForm, setAddSponsorshipForm] = useState({ tournament: "", tier: "gold" as SponsorTier, amount: "", description: "" })
 
   const [editSponsorshipOpen, setEditSponsorshipOpen] = useState(false)
-  const [editSponsorshipData, setEditSponsorshipData] = useState<any>(null)
+  const [editSponsorshipData, setEditSponsorshipData] = useState<Sponsorship | null>(null)
   const [editSponsorshipForm, setEditSponsorshipForm] = useState({ tournament: "", tier: "gold" as SponsorTier, amount: "", description: "" })
 
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -147,7 +147,7 @@ function PatrocinadoresTab() {
     }
   }
 
-  function openEditSponsorship(s: any) {
+  function openEditSponsorship(s: Sponsorship) {
     setEditSponsorshipData(s)
     setEditSponsorshipForm({ tournament: s.tournament_id, tier: s.tier, amount: String(s.amount), description: s.description || "" })
     setEditSponsorshipOpen(true)
@@ -227,7 +227,7 @@ function PatrocinadoresTab() {
                       )}
                       {isExpanded && sponsorShips.length > 0 && (
                         <div className="mt-2 space-y-2">
-                          {sponsorShips.map((sp: any) => (
+                          {sponsorShips.map((sp) => (
                             <div key={sp.id} className="bg-gray-50 dark:bg-gray-950 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
                               <div className="flex items-center justify-between">
                                 <div className="text-sm space-y-0.5">
@@ -327,10 +327,10 @@ function PatrocinadoresTab() {
 }
 
 function ApoiadoresTab() {
-  const [tournaments, setTournaments] = useState<any[]>([])
+  const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [selectedTournament, setSelectedTournament] = useState("")
-  const [apoiadores, setApoiadores] = useState<any[]>([])
-  const [registrations, setRegistrations] = useState<any[]>([])
+  const [apoiadores, setApoiadores] = useState<ApoiadorWithBrindes[]>([])
+  const [registrations, setRegistrations] = useState<RegistrationWithName[]>([])
   const [saving, setSaving] = useState(false)
 
   const [apoioModal, setApoioModal] = useState(false)
@@ -426,7 +426,7 @@ function ApoiadoresTab() {
     }
   }
 
-  function openEditApoio(apoio: any) {
+  function openEditApoio(apoio: ApoiadorWithBrindes) {
     setEditApoioId(apoio.id)
     setEditApoioForm({ name: apoio.name, phone: apoio.phone || "" })
     setEditApoioModal(true)
@@ -448,7 +448,7 @@ function ApoiadoresTab() {
     }
   }
 
-  function openEditBrinde(brinde: any) {
+  function openEditBrinde(brinde: Brinde) {
     setEditBrindeId(brinde.id)
     setEditBrindeForm({ description: brinde.description, quantity: String(brinde.quantity), type: brinde.type })
     setEditBrindeModal(true)
@@ -515,7 +515,7 @@ function ApoiadoresTab() {
 
                 {apoio.brindes.length > 0 && (
                   <div className="space-y-1 mb-3">
-                    {apoio.brindes.map((b: any) => (
+                    {apoio.brindes.map((b: Brinde) => (
                       <div key={b.id} className="flex items-center justify-between text-sm bg-gray-50 dark:bg-gray-950 rounded px-3 py-1.5">
                         <span>
                           <span className="text-gray-700 dark:text-gray-300">{b.description}</span>

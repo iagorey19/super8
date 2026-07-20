@@ -3,20 +3,25 @@
 import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>
+}
+
 function isIOS(): boolean {
   if (typeof window === "undefined") return false
   const ua = navigator.userAgent
-  return /iPhone|iPad|iPod/i.test(ua) && !(window as any).MSStream
+  return /iPhone|iPad|iPod/i.test(ua) && !("MSStream" in window)
 }
 
 function isStandalone(): boolean {
   if (typeof window === "undefined") return false
-  const nav = window.navigator as any
+  const nav = window.navigator as Navigator & { standalone?: boolean }
   return window.matchMedia("(display-mode: standalone)").matches || nav.standalone === true
 }
 
 export function PWAPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [show, setShow] = useState(false)
   const pathname = usePathname()
   const ios = isIOS()
@@ -32,7 +37,7 @@ export function PWAPrompt() {
 
     const handler = (e: Event) => {
       e.preventDefault()
-      setDeferredPrompt(e)
+      setDeferredPrompt(e as BeforeInstallPromptEvent)
       setShow(true)
     }
     window.addEventListener("beforeinstallprompt", handler)
