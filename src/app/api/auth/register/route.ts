@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServiceClient } from "@/lib/supabase"
 import { getClientIp, isRateLimited } from "@/lib/rate-limit"
 import { signToken } from "@/lib/auth-secret"
+import { isPasswordLeaked } from "@/lib/hibp"
 import crypto from "crypto"
 import bcrypt from "bcryptjs"
 
@@ -26,6 +27,9 @@ export async function POST(req: Request) {
     }
     if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
       return NextResponse.json({ error: "Senha deve conter ao menos uma letra maiúscula, uma minúscula e um número" }, { status: 400 })
+    }
+    if (await isPasswordLeaked(password)) {
+      return NextResponse.json({ error: "Essa senha já vazou em outros sites. Escolha outra senha." }, { status: 400 })
     }
 
     const svc = getServiceClient()

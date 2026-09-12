@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs"
 import { getServiceClient } from "@/lib/supabase"
 import { getClientIp, isRateLimited } from "@/lib/rate-limit"
 import { validateToken } from "@/lib/auth-secret"
+import { isPasswordLeaked } from "@/lib/hibp"
 
 function passwordError(pw: string): string | null {
   if (pw.length < 6) return "A senha deve ter no mínimo 6 caracteres"
@@ -62,6 +63,9 @@ export async function POST(req: Request) {
   if (policyError) {
     return NextResponse.json({ error: policyError }, { status: 400 })
   }
+  if (await isPasswordLeaked(newPassword)) {
+    return NextResponse.json({ error: "Essa senha já vazou em outros sites. Escolha outra senha." }, { status: 400 })
+  }
   const svc = getServiceClient()
   const { data: row } = await svc.from("users").select("id,email,password").eq("id", userId).maybeSingle() as unknown as { data: { id: string; email: string; password: string } | null }
   if (!row) {
@@ -98,6 +102,9 @@ export async function PUT(req: Request) {
   const policyError = passwordError(password)
   if (policyError) {
     return NextResponse.json({ error: policyError }, { status: 400 })
+  }
+  if (await isPasswordLeaked(password)) {
+    return NextResponse.json({ error: "Essa senha já vazou em outros sites. Escolha outra senha." }, { status: 400 })
   }
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
