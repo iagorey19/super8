@@ -13,7 +13,7 @@ interface LogEntry {
   url?: string
 }
 
-let buffer: LogEntry[] = []
+const buffer: LogEntry[] = []
 let timer: ReturnType<typeof setTimeout> | null = null
 
 function flush() {

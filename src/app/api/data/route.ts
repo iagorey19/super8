@@ -5,6 +5,7 @@ import { seed } from "@/lib/seed"
 import { getClientIp, isRateLimited } from "@/lib/rate-limit"
 import { validateToken } from "@/lib/auth-secret"
 import { appDataSchema, validateTableData } from "@/lib/validation"
+import { stripPassword } from "@/lib/utils"
 import type { AppData, User, Tournament, AthleteRegistration, Pairing, Match, TournamentResult, AnnualRanking, Sponsorship, Expense, Revenue, Photo, Notification, Apoiador, Brinde, RaffleRecord, Note } from "@/lib/types"
 import bcrypt from "bcryptjs"
 
@@ -83,7 +84,7 @@ export async function GET(req: Request) {
     if (count === 0) {
       const data = seed()
       await syncToSupabase(data, "admin", "seed")
-      data.users = data.users.map(({ password, ...rest }) => rest as User)
+      data.users = data.users.map((u) => stripPassword(u as unknown as Record<string, unknown>) as unknown as User)
       return NextResponse.json(data)
     }
     if (error) {
@@ -91,7 +92,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Database query failed" }, { status: 500 })
     }
     const data = await getFullData()
-    data.users = data.users.map(({ password, ...rest }) => rest as User)
+    data.users = data.users.map((u) => stripPassword(u as unknown as Record<string, unknown>) as unknown as User)
 
     const auth = req.headers.get("authorization")
     let currentUser: User | null = null
@@ -261,7 +262,7 @@ async function syncToSupabase(data: AppData, callerRole: Role, callerUserId: str
         for (const user of filteredRecords as unknown as User[]) {
           const { password, ...rest } = user
           if (password) {
-            const upsertData = { ...rest, password: bcrypt.hashSync(password, 10) }
+            const upsertData = { ...rest, password: await bcrypt.hash(password, 10) }
             const { error } = await (svc.from(table) as unknown as { upsert: (row: Record<string, unknown>, opts: { onConflict: string; ignoreDuplicates: boolean }) => Promise<{ error: { message: string } | null }> }).upsert(upsertData, { onConflict: "id", ignoreDuplicates: false })
             if (error) {
               if (error.message?.includes("users_email_unique") || error.message?.includes("duplicate key")) {
@@ -271,8 +272,19 @@ async function syncToSupabase(data: AppData, callerRole: Role, callerUserId: str
               }
             }
           } else {
-            const { error } = await (svc.from(table) as unknown as { update: (row: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<{ error: { message: string } | null }> } }).update(rest as Record<string, unknown>).eq("id", user.id)
-            if (error) errors.push(`${table} update: ${error.message}`)
+            // Sem senha no payload: preserva o hash existente. Se a linha ainda
+            // não existe (ex.: seed inicial), insere com senha aleatória inutilizável
+            // (admin recupera acesso via "Esqueci minha senha").
+            const { data: existingRow } = await (svc.from(table) as unknown as { select: (c: string) => { eq: (col: string, val: string) => { maybeSingle: () => Promise<{ data: { id: string } | null }> } } }).select("id").eq("id", user.id).maybeSingle()
+            if (existingRow) {
+              const { error } = await (svc.from(table) as unknown as { update: (row: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<{ error: { message: string } | null }> } }).update(rest as Record<string, unknown>).eq("id", user.id)
+              if (error) errors.push(`${table} update: ${error.message}`)
+            } else {
+              const { randomUUID } = await import("crypto")
+              const upsertData = { ...rest, password: bcrypt.hashSync(randomUUID(), 10) }
+              const { error } = await (svc.from(table) as unknown as { upsert: (row: Record<string, unknown>, opts: { onConflict: string; ignoreDuplicates: boolean }) => Promise<{ error: { message: string } | null }> }).upsert(upsertData, { onConflict: "id", ignoreDuplicates: false })
+              if (error) errors.push(`${table} upsert: ${error.message}`)
+            }
           }
         }
       } else {

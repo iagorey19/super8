@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
 
-export function proxy(_req: NextRequest) {
+export function proxy() {
   const res = NextResponse.next()
 
   res.headers.set("Cache-Control", "no-store, must-revalidate")

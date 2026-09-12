@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server"
+import crypto from "crypto"
+import bcrypt from "bcryptjs"
 import { getServiceClient } from "@/lib/supabase"
 import { getClientIp, isRateLimited } from "@/lib/rate-limit"
 import { validateToken } from "@/lib/auth-secret"
@@ -32,6 +34,12 @@ export async function POST(req: Request) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ error: "Invalid email format" }, { status: 400 })
     }
+    if (password.length < 6) {
+      return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 })
+    }
+    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
+      return NextResponse.json({ error: "Password must contain uppercase, lowercase and a number" }, { status: 400 })
+    }
 
     const { error: createError } = await svc.auth.admin.createUser({
       email,
@@ -55,6 +63,24 @@ export async function POST(req: Request) {
       }
       console.error("admin-register createUser error:", createError)
       return NextResponse.json({ error: createError.message }, { status: 500 })
+    }
+
+    // Espelha no public.users (login do app lê de lá) — sem isso o admin criado aqui não loga.
+    const { data: existingRow } = await svc.from("users").select("id").eq("email", email).maybeSingle() as unknown as { data: { id: string } | null }
+    if (!existingRow) {
+      const hashed = await bcrypt.hash(password, 10)
+      const { error: insertError } = await (svc.from("users") as unknown as { insert: (row: Record<string, unknown>) => Promise<{ error: { message: string } | null }> }).insert({
+        id: crypto.randomUUID(),
+        email,
+        password: hashed,
+        name: email.split("@")[0],
+        role: "admin",
+        created_at: new Date().toISOString(),
+      })
+      if (insertError) {
+        console.error("admin-register public.users insert error:", insertError)
+        return NextResponse.json({ error: insertError.message }, { status: 500 })
+      }
     }
 
     return NextResponse.json({ ok: true })

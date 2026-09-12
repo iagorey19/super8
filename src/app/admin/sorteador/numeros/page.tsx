@@ -133,7 +133,7 @@ export default function SortearNumeros() {
         <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight animate-fade-in">
           SORTEIO - Números dos Atletas
         </h1>
-        <p className="text-gray-500 dark:text-gray-400">Clique em "Sortear" para definir o número de cada atleta, um por vez</p>
+        <p className="text-gray-500 dark:text-gray-400">Clique em &quot;Sortear&quot; para definir o número de cada atleta, um por vez</p>
       </div>
 
       <Card>

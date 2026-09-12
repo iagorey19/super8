@@ -64,7 +64,7 @@ export async function GET(request: Request) {
   const response = NextResponse.redirect(redirectUrl.toString())
   response.cookies.set("super8-auth-token", token, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: 86400,
     path: "/",

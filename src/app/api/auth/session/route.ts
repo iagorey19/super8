@@ -3,6 +3,7 @@ import { cookies } from "next/headers"
 import { getServiceClient } from "@/lib/supabase"
 import { getClientIp, isRateLimited } from "@/lib/rate-limit"
 import { validateToken, signToken } from "@/lib/auth-secret"
+import { stripPassword } from "@/lib/utils"
 import bcrypt from "bcryptjs"
 
 const TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000
@@ -40,11 +41,12 @@ export async function POST(req: Request) {
     const payloadB64 = Buffer.from(payload).toString("base64url")
     const token = payloadB64 + "." + signToken(payloadB64)
 
-    const { password: _, ...safeUser } = user
+    const safeUser = stripPassword(user as unknown as Record<string, unknown>)
     const response = NextResponse.json({ token, user: safeUser })
+    const secure = process.env.NODE_ENV === "production"
     response.cookies.set("super8-auth-token", token, {
       httpOnly: true,
-      secure: true,
+      secure,
       sameSite: "lax",
       maxAge: 86400,
       path: "/",
@@ -56,7 +58,7 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(_req: Request) {
+export async function GET() {
   try {
     const cookieStore = await cookies()
     const tokenCookie = cookieStore.get("super8-auth-token")
@@ -76,7 +78,7 @@ export async function GET(_req: Request) {
       return NextResponse.json({ error: "user_not_found" }, { status: 401 })
     }
 
-    const { password: _, ...safeUser } = user
+    const safeUser = stripPassword(user as unknown as Record<string, unknown>)
     return NextResponse.json({ user: safeUser, token: tokenCookie.value })
   } catch (e) {
     console.error("GET /api/auth/session error:", e)
@@ -90,6 +92,12 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Muitas requisições. Tente novamente mais tarde." }, { status: 429 })
   }
   const response = NextResponse.json({ ok: true })
-  response.cookies.set("super8-auth-token", "", { maxAge: 0, path: "/" })
+  response.cookies.set("super8-auth-token", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 0,
+    path: "/",
+  })
   return response
 }

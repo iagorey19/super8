@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useId, useRef } from "react"
 
 export function Modal({
   open,
@@ -15,9 +15,12 @@ export function Modal({
 }) {
   const dialogRef = useRef<HTMLDivElement>(null)
   const onCloseRef = useRef(onClose)
-  onCloseRef.current = onClose
-  const titleId = useRef(`modal-title-${Math.random().toString(36).slice(2, 9)}`).current
+  const titleId = useId()
   const initialFocusDone = useRef(false)
+
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
 
   useEffect(() => {
     if (open) {

@@ -3,7 +3,7 @@ import type { AppData } from "../types"
 let _data: AppData | null = null
 let _ready = false
 let _initPromise: Promise<void> | null = null
-let _dirtyTables = new Set<string>()
+const _dirtyTables = new Set<string>()
 let _persisting = false
 let _persistChain: Promise<void> = Promise.resolve()
 
@@ -39,7 +39,12 @@ export function clearDirty() {
 export async function init(): Promise<void> {
   if (_ready) return
   if (_initPromise) return _initPromise
-  await reloadFromServer()
+  _initPromise = reloadFromServer()
+  try {
+    await _initPromise
+  } finally {
+    _initPromise = null
+  }
 }
 
 export async function reloadFromServer(): Promise<void> {

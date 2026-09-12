@@ -1,8 +1,34 @@
 import { NextResponse } from "next/server"
+import { cookies } from "next/headers"
+import { getServiceClient } from "@/lib/supabase"
+import { validateToken } from "@/lib/auth-secret"
 
 // GET /api/debug/all — diagnostico para a IA (poll a cada 30s).
 // Expõe SOMENTE nomes/booleans. NUNCA valores de secrets.
-export async function GET() {
+// Em produção exige token de admin (evita fingerprinting).
+export async function GET(req: Request) {
+  if (process.env.NODE_ENV === "production") {
+    const auth = req.headers.get("authorization")
+    let userId: string | null = null
+    if (auth?.startsWith("Bearer ")) {
+      userId = validateToken(auth.slice(7))?.userId ?? null
+    }
+    if (!userId) {
+      const cookieStore = await cookies()
+      const tokenCookie = cookieStore.get("super8-auth-token")
+      if (tokenCookie?.value) {
+        userId = validateToken(tokenCookie.value)?.userId ?? null
+      }
+    }
+    if (!userId) {
+      return NextResponse.json({ error: "admin_required" }, { status: 401 })
+    }
+    const svc = getServiceClient()
+    const { data } = await svc.from("users").select("role").eq("id", userId).maybeSingle() as unknown as { data: { role: string } | null }
+    if (data?.role !== "admin") {
+      return NextResponse.json({ error: "admin_required" }, { status: 401 })
+    }
+  }
   return NextResponse.json({
     ok: true,
     timestamp: new Date().toISOString(),

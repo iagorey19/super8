@@ -91,13 +91,32 @@ export async function updateAthlete(athleteId: string, updates: { name?: string;
   }
   if (updates.password) {
     if (!updates.currentPassword) return "Senha atual é obrigatória para alterar a senha"
-    const bcrypt = await import("bcryptjs")
-    if (!bcrypt.compareSync(updates.currentPassword, user.password)) return "Senha atual incorreta"
+    try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" }
+      if (typeof window !== "undefined") {
+        const stored = sessionStorage.getItem("super8-session")
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          if (parsed.token) headers["Authorization"] = `Bearer ${parsed.token}`
+        }
+      }
+      const res = await fetch("/api/auth/password", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ currentPassword: updates.currentPassword, newPassword: updates.password }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => null) as { error?: string } | null
+        return body?.error || "Não foi possível alterar a senha"
+      }
+    } catch {
+      return "Não foi possível alterar a senha"
+    }
   }
   if (updates.name !== undefined) user.name = updates.name
   if (updates.email !== undefined) user.email = updates.email
   if (updates.phone !== undefined) user.phone = updates.phone || undefined
-  if (updates.password !== undefined) user.password = updates.password
+  // Senha já atualizada (com hash) via /api/auth/password — não replicar em texto puro.
   await saveData(data)
   return null
 }

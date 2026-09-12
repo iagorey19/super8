@@ -14,6 +14,7 @@ export async function createClient() {
         },
         setAll(cookiesToSet) {
           try {
+            // Padrão documentado de @supabase/ssr — escrita de cookies do Auth.
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             )

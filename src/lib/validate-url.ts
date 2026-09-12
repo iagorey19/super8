@@ -1,10 +1,13 @@
 export function isSafeRedirect(url: string | null): boolean {
   if (!url) return false
-  if (url.startsWith("/")) return true
+  // Só destinos internos: path relativo sem host. Bloqueia "//evil.com" e URLs absolutas.
+  if (!url.startsWith("/") || url.startsWith("//")) return false
   try {
     const parsed = new URL(url, "http://localhost")
-    if (parsed.protocol === "https:" || parsed.protocol === "http:") return true
-    return false
+    // Com base http://localhost, qualquer host diferente indica tentativa de fuga.
+    if (parsed.host !== "localhost") return false
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false
+    return true
   } catch {
     return false
   }

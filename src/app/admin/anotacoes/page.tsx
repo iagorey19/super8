@@ -91,7 +91,7 @@ export default function AnotacoesPage() {
           <div className="text-center text-gray-400 dark:text-gray-500 py-12">
             <p className="text-4xl mb-3">📝</p>
             <p>Nenhuma anotação ainda</p>
-            <p className="text-sm mt-1">Clique em "Nova Anotação" para começar</p>
+            <p className="text-sm mt-1">Clique em &quot;Nova Anotação&quot; para começar</p>
           </div>
         </Card>
       ) : (

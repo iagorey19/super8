@@ -121,6 +121,12 @@ export function getRevenueSourceIcon(source: string): string {
   return icons[source] || "📋"
 }
 
+export function stripPassword<U extends Record<string, unknown>>(u: U): Omit<U, "password"> {
+  const copy = { ...u }
+  delete copy.password
+  return copy
+}
+
 export function exportToCSV(headers: string[], rows: string[][], filename: string) {
   const BOM = "\uFEFF"
   const escape = (v: string) => `"${String(v).replace(/"/g, '""')}"`

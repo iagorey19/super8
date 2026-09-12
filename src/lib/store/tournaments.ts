@@ -65,7 +65,10 @@ export async function updateTournament(id: string, updates: Partial<Tournament>)
   const data = getData()
   const idx = data.tournaments.findIndex((t) => t.id === id)
   if (idx >= 0) {
-    const { id: _id, created_at: _ca, created_by: _cb, ...safe } = updates
+    const safe: Partial<Tournament> = { ...updates }
+    delete safe.id
+    delete safe.created_at
+    delete safe.created_by
     Object.assign(data.tournaments[idx], safe)
     await saveData(data)
   }

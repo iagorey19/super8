@@ -4,6 +4,33 @@ _Histórico completo de alterações. Consulte AGENTS.md para as últimas 5._
 
 ---
 
+## 12/09/2026 — Auditoria completa (P0/P1/P2)
+
+**P0 — senha/divergência Auth×public.users**
+- Novo `POST/PUT /api/auth/password`: troca exige senha atual (confere bcrypt no servidor); sync pós-reset via OTP usa `access_token` do Supabase Auth como prova
+- `reset-password/page`: removido `getServiceClient()` do browser (service_role nunca existiu no client → sync nunca executava)
+- `updateAthlete`: sem bcrypt client-side (hash nunca chegava ao client); senha atualizada só via endpoint
+- `exec_sql` removido do banco (secret vazava nos postgres logs a cada DDL) + `REVOKE` de anon/authenticated e `search_path` travado nas 11 RPCs de diagnóstico (migration `security_hardening`)
+
+**P1 — segurança/fluxos**
+- `isSafeRedirect`: só path interno (`/…`, sem `//`, sem host) — fim do open redirect no `/auth/handler`
+- `admin-register`: espelha `public.users` (admin criado ali agora loga) + política de senha forte
+- Storage `photos`: `INSERT` só `authenticated` (leitura pública mantida); migration `storage_upload_auth`
+- `raffle_records.winner_id` anulável + `recordRaffle` resolve atleta pelo nome (fim do FK violation no sorteio manual)
+- Seed: `syncToSupabase` insere users mesmo sem senha (hash aleatório inutilizável; acesso via reset)
+- `/api/debug/all` exige admin em produção
+- Editions normalizadas (`4 Edição `→`4ª Edição`, `5 Edição `→`5ª Edição`)
+
+**Qualidade**
+- eslint: 0 errors (era 65) — modal com `useId` (sem `Math.random` no render), helper `stripPassword()`, dead code removido; `set-state-in-effect`→warn (hidratação client-side documentada); tsc zero
+- `bcrypt.hashSync`→async no `/api/data`; cookies `secure` só em prod + `DELETE` espelha atributos; senha forte (maiúscula/minúscula/número) unificada em register/admin-register/password/reset
+
+**Banco (P2)**
+- Migration `index_cleanup`: 8 índices duplicados + 1 constraint UNIQUE duplicada (`users_email_unique`) removidos; 9 índices de FK criados
+- `supabase db push` bloqueado por `.env.local` poluído pelo `vercel env pull` (vars TURBO/VERCEL quebram o parser da CLI) — migrations aplicadas via API com arquivos espelhados em `supabase/migrations/`
+
+---
+
 ## 12/09/2026 — Guias adaptados + debug/ + strict TS + version check
 
 - `docs/padroes/`: README + 10 arquivos com as regras dos 25 guias adaptadas para Next 16 + Supabase + Vercel (sem links absolutos)

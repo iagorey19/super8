@@ -76,7 +76,7 @@ export async function POST(req: Request) {
     })
     response.cookies.set("super8-auth-token", token, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 86400,
       path: "/",

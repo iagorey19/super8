@@ -98,13 +98,13 @@ Get-Process node | Where-Object { $_.Id -ne $PID } | Stop-Process -Force
 | Estado | Store centralizada (`src/lib/store.ts`) |
 | Auth | Custom bcrypt + HMAC token + Google OAuth + Password Reset via Supabase Auth |
 | Sessão | `sessionStorage` (chave `super8-session`: `{ user, token }`) |
-| Rate Limit | In-memory (5/min login, 30/min data, 10/min register, 30/min upload) |
+| Rate Limit | Tabela `rate_limits` no Supabase (5/min login/senha, 30/min data, 10/min register, 30/min upload) |
 | Deploy | **Vercel** (git push no master → auto-deploy) |
 | Lint | ESLint v9 + `eslint-config-next` |
 | TypeScript | `strict + noUnusedLocals + noUnusedParameters + noImplicitAny`, zero `any`, `tsc` zero erros |
 | Validação | Zod schema no POST /api/data |
 | Security Headers | X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy |
-| Observabilidade | `serverLogger` pino (dev→`data/logs/app.log`, prod→stdout) + `GET /api/debug/all` + `POST /api/logs` |
+| Observabilidade | `serverLogger` pino (dev→`data/logs/app.log`, prod→stdout) + `GET /api/debug/all` (admin em prod) + `POST /api/logs` |
 | Cache busting | `public/version.json` (gerado no `prebuild`) + `<VersionCheck />` recarrega em deploy novo |
 | Ícones | `lucide-react@0.400.0` travado (`CheckCircle2/MoreVertical/AlertCircle`) |
 | Diagnóstico | `debug/` (scripts + checklists) · acervo `20-licoes-aprendidas/` · padrões `docs/padroes/` |
@@ -218,7 +218,7 @@ Navegador (store.ts)
 - **Login**: bcrypt.compare() em `public.users`, gera HMAC-SHA256 token com `AUTH_TOKEN_SECRET`
 - **Token**: `payloadB64.signatureB64`, expira em 24h. Armazenado em `sessionStorage` (`super8-session`)
 - **Google OAuth**: `/auth/callback` → troca código → cria/busca user em `public.users` → cookie httpOnly → handler lê → sessionStorage
-- **Password Reset**: `/auth/forgot-password` (Supabase Auth email) → `/auth/reset-password` (OTP + update `public.users`)
+- **Password Reset**: `/auth/forgot-password` (Supabase Auth email) → `/auth/reset-password` (OTP) → `PUT /api/auth/password` (sync `public.users` via access_token); troca logada via `POST /api/auth/password` (exige senha atual))
 - **Rate Limiting**: Login (5/min), POST data (30/min), admin-register (10/min), upload (30/min)
 - **XSS**: URLs sanitizadas com `sanitizeUrl()` em inputs de patrocinadores e fotos
 - **Open Redirect**: Parâmetros `next`/`redirect` validados com `isSafeRedirect()`
@@ -405,3 +405,4 @@ Ao gerar código visual, **SEGUIR** os tokens de `DESIGN.md`:
 ---
 
 _Baseado nos guias do MASTER APP (.project-rules.md, AGENTS.md, docs/*) e POKER (GUIA_COMUNICACAO_IA.md, GUIA_PADROES_CODIGO.md, GUIA_PROTOCOLO_ANTI_BREAKING.md, GUIA_ARQUITETURA.md)_
+

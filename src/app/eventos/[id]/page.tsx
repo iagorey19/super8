@@ -22,10 +22,10 @@ export default function EventoDetalhePage() {
   const [registrations, setRegistrations] = useState<RegistrationWithName[]>([])
   const [sponsors, setSponsors] = useState<(Sponsorship & { sponsor_name: string; sponsor_url?: string })[]>([])
   const [apoiadores, setApoiadores] = useState<ApoiadorWithBrindes[]>([])
-  const [_session, setSession] = useState<{ user: { id: string; name: string; role: string } } | null>(null)
+  const [, setSession] = useState<{ user: { id: string; name: string; role: string } } | null>(null)
   const [myReg, setMyReg] = useState<AthleteRegistration | null>(null)
   const [step, setStep] = useState<"idle" | "category" | "pix" | "done">("idle")
-  const [_selectedCategory, setSelectedCategory] = useState("")
+  const [, setSelectedCategory] = useState("")
   const [pixPayload, setPixPayload] = useState("")
   const [pixQR, setPixQR] = useState("")
   const [copied, setCopied] = useState(false)
@@ -68,7 +68,7 @@ export default function EventoDetalhePage() {
     if (existing) {
       setMyReg(existing)
       if (existing.payment_status === "pending" && tournament?.registration_fee) {
-        await generatePixForRegistration(existing, sess.user.name)
+        await generatePixForRegistration()
         setStep("pix")
       }
       return
@@ -77,7 +77,7 @@ export default function EventoDetalhePage() {
       setStep("category")
     } else {
       setSelectedCategory(tournament?.categories[0] || "4e5")
-      await doRegister(tournament?.categories[0] || "4e5", sess.user.id, sess.user.name)
+      await doRegister(tournament?.categories[0] || "4e5", sess.user.id)
     }
   }
 
@@ -85,10 +85,10 @@ export default function EventoDetalhePage() {
     const sess = store.getSession()
     if (!sess) return
     setSelectedCategory(cat)
-    await doRegister(cat, sess.user.id, sess.user.name)
+    await doRegister(cat, sess.user.id)
   }
 
-  async function doRegister(cat: string, athleteId: string, athleteName: string) {
+  async function doRegister(cat: string, athleteId: string) {
     setLoading(true)
     const reg = await store.registerAthleteInTournament(id, athleteId, cat)
     setLoading(false)
@@ -99,11 +99,11 @@ export default function EventoDetalhePage() {
     setMyReg(reg)
     toast(reg.is_waiting ? "Inscrição realizada! Você está na lista de espera." : "Inscrição realizada!")
     if (tournament?.registration_fee) {
-      await generatePixForRegistration(reg, athleteName)
+      await generatePixForRegistration()
     }
   }
 
-  async function generatePixForRegistration(_reg: AthleteRegistration, _athleteName: string) {
+  async function generatePixForRegistration() {
     const config = store.getConfig()
     if (!config.pix_key || !tournament?.registration_fee) return
     const payload = generatePixPayload( config.pix_key, tournament.registration_fee, config.pix_name || "Pagamento", config.pix_city || "Cidade")
@@ -333,7 +333,7 @@ export default function EventoDetalhePage() {
             {tournament?.registration_fee && myReg.payment_status !== "paid" && (
               <>
                 <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/40 rounded-lg px-3 py-2">
-                  ⚠️ Após o pagamento, clique em "Já paguei" para avisar o organizador. A inscrição será confirmada após aprovação.
+                  ⚠️ Após o pagamento, clique em &quot;Já paguei&quot; para avisar o organizador. A inscrição será confirmada após aprovação.
                 </p>
                 <Button onClick={handleStartRegistration} disabled={loading} className="bg-green-600 hover:bg-green-700 text-white font-bold">
                   {loading ? "Preparando..." : "Pagar com PIX"}
@@ -420,7 +420,7 @@ export default function EventoDetalhePage() {
                 {sendingPayment ? "Enviando..." : "✅ Já paguei"}
               </Button>
               <p className="text-xs text-gray-400">
-                Após pagar, clique em "Já paguei" para nos avisar via WhatsApp.
+                Após pagar, clique em &quot;Já paguei&quot; para nos avisar via WhatsApp.
               </p>
             </div>
           </div>

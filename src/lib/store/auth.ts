@@ -113,7 +113,7 @@ export async function registerAthlete(
     saveSession({ user: data.user, token: data.token })
     await refreshFromServer()
     return { user: data.user }
-  } catch (e) {
+  } catch {
     return { error: "Erro de conexão. Verifique sua internet e tente novamente." }
   }
 }

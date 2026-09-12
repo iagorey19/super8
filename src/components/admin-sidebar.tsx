@@ -24,10 +24,6 @@ export function AdminSidebar() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
 
-  function handleNav(_href: string) {
-    setOpen(false)
-  }
-
   return (
     <>
       {/* Mobile menu button */}
@@ -81,7 +77,7 @@ export function AdminSidebar() {
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={() => handleNav(link.href)}
+                onClick={() => setOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   isActive
                     ? "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-700"

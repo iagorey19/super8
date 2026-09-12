@@ -136,12 +136,13 @@ export function getRaffleRecords(tournamentId: string): RaffleRecord[] {
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 }
 
-export async function recordRaffle(tournamentId: string, description: string, winnerName: string) {
+  export async function recordRaffle(tournamentId: string, description: string, winnerName: string) {
   const data = getData()
   if (!data.raffle_records) data.raffle_records = []
+  const linked = data.users.find((u) => u.name === winnerName)
   data.raffle_records.push({
     id: crypto.randomUUID(), tournament_id: tournamentId,
-    brinde_description: description, winner_id: "", winner_name: winnerName,
+    brinde_description: description, winner_id: linked?.id ?? null, winner_name: winnerName,
     created_at: new Date().toISOString(),
   })
   await saveData(data)

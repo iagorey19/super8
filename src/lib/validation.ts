@@ -175,7 +175,7 @@ const raffleRecordSchema = z.object({
   id: idField,
   tournament_id: z.string(),
   brinde_description: z.string(),
-  winner_id: z.string(),
+  winner_id: z.string().nullish(),
   winner_name: z.string(),
   created_at: dateField,
 })

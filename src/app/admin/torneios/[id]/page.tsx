@@ -510,7 +510,7 @@ export default function TournamentDetail() {
                                     <Button size="sm" variant="danger" className="px-1.5 sm:px-3 text-xs sm:text-sm" disabled={saving} onClick={async () => {
                                       if (!window.confirm(`Remover ${r.name} do torneio?`)) return
                                       setSaving(true)
-                                      try { await store.unregisterAthlete(r.id) } catch (e) { alert("Erro ao remover atleta. Tente novamente.") } finally { load(); setSaving(false) }
+                                      try { await store.unregisterAthlete(r.id) } catch { alert("Erro ao remover atleta. Tente novamente.") } finally { load(); setSaving(false) }
                                     }}>
                                       {saving ? "Removendo..." : "Remover"}
                                     </Button>
@@ -793,7 +793,7 @@ export default function TournamentDetail() {
                     setRegisterCategory("")
                     setRegisterGroup("A")
                     setRegisterPaymentStatus("pending")
-                  } catch (e) {
+                  } catch {
                     alert("Erro ao registrar atleta(s). Tente novamente.")
                   } finally {
                     load()

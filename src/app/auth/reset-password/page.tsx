@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/utils/supabase/client"
-import { getServiceClient } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -44,6 +43,10 @@ export default function ResetPasswordPage() {
       setError("A senha deve ter no mínimo 6 caracteres")
       return
     }
+    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
+      setError("Senha deve conter ao menos uma letra maiúscula, uma minúscula e um número")
+      return
+    }
     if (password !== confirmPassword) {
       setError("As senhas não conferem")
       return
@@ -59,11 +62,18 @@ export default function ResetPasswordPage() {
         return
       }
 
-      const { data: { user: authUser } } = await supabase.auth.getUser()
-      if (authUser?.email) {
-        const svc = getServiceClient()
-        const hashed = await import("bcryptjs").then(m => m.hashSync(password, 10))
-        await (svc.from("users") as unknown as { update: (row: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<{ error: unknown }> } }).update({ password: hashed } as Record<string, unknown>).eq("email", authUser.email)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        const syncRes = await fetch("/api/auth/password", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ access_token: session.access_token, password }),
+        })
+        if (!syncRes.ok) {
+          setError("Senha redefinida no login, mas falhou a sincronização. Tente entrar e trocar a senha no perfil.")
+          setSubmitting(false)
+          return
+        }
       }
 
       router.push("/auth/login?reset=ok")

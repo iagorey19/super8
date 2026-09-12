@@ -330,7 +330,7 @@ function ApoiadoresTab() {
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [selectedTournament, setSelectedTournament] = useState("")
   const [apoiadores, setApoiadores] = useState<ApoiadorWithBrindes[]>([])
-  const [_registrations, setRegistrations] = useState<RegistrationWithName[]>([])
+  const [, setRegistrations] = useState<RegistrationWithName[]>([])
   const [saving, setSaving] = useState(false)
 
   const [apoioModal, setApoioModal] = useState(false)

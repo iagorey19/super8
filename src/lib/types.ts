@@ -196,7 +196,7 @@ export interface RaffleRecord {
   id: string
   tournament_id: string
   brinde_description: string
-  winner_id: string
+  winner_id: string | null
   winner_name: string
   created_at: string
 }

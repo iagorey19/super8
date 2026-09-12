@@ -32,7 +32,7 @@ export default function AthletesPage() {
   const [selectedAthlete, setSelectedAthlete] = useState<User | null>(null)
   const [selectedTournament, setSelectedTournament] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("")
-  const [_selectedGroup, setSelectedGroup] = useState("")
+  const [, setSelectedGroup] = useState("")
   const [registerPaymentStatus, setRegisterPaymentStatus] = useState<"paid" | "pending">("pending")
   const { toast: notify } = useToast()
   const [editModalOpen, setEditModalOpen] = useState(false)
