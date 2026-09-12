@@ -1,5 +1,5 @@
--- ⚠️ ATENÇÃO: Esta migration contém o secret hardcoded (exposto no git).
--- O secret JÁ FOI aplicado ao banco. Após rotacionar, criar nova migration.
+-- ⚠️ ATENÇÃO: secret original higienizado em 12/09/2026 (nunca commitar valor real).
+-- O secret JÁ FOI aplicado ao banco e rotacionado depois. Valor real em .env.local + Vercel.
 -- Substitui exec_sql por versão com parâmetro secret
 -- Remove a versão antiga (sem proteção)
 DROP FUNCTION IF EXISTS exec_sql(text);
@@ -8,7 +8,7 @@ DROP FUNCTION IF EXISTS exec_sql(text);
 CREATE OR REPLACE FUNCTION exec_sql(query text, secret text)
 RETURNS void AS $$
 BEGIN
-  IF secret != '4970fe6b7dcb990386c868291c6b5cce7c2d80d26cad3853322719c51f0fc665' THEN
+  IF secret != '<EXEC_SQL_SECRET — valor historico removido>' THEN
     RAISE EXCEPTION 'Unauthorized: invalid exec_sql secret';
   END IF;
   EXECUTE query;

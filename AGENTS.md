@@ -147,9 +147,8 @@ Ao iniciar conversa em qualquer projeto, SEMPRE:
 Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (arquivo + resumo). Manter só últimas 5. Se conversa ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e reiniciar."
 
 ## Últimas Alterações
-- `docs/padroes/`: Criados README + 10 arquivos com regras dos 25 guias adaptadas (sem links absolutos)
-- `debug/`: Criado (README, 6 scripts, logs/dumps/fixes, 4 checklists manuais) + `GET /api/debug/all`
-- `20-licoes-aprendidas/`: Acervo local criado + bug-001 (seed T3) documentado
+- `EXEC_SQL_SECRET` (segurança): `git add -A` commitou o secret real (estava untracked) → rotacionado 2x (banco + `.env.local` + Vercel Sensitive) + arquivos higienizados com placeholder. `.env.local` foi destruído no processo (`Set-Content -NoNewline` junta linhas!) → restaurado via `vercel env pull` + API do Supabase. Lição: nunca `-NoNewline` em array, nunca `add -A` sem `git status` antes
+- `docs/padroes/` + `debug/` + `20-licoes-aprendidas/`: 25 guias adaptados (10 arquivos), pasta debug (6 scripts, 4 checklists) + `GET /api/debug/all`, acervo local + bug-001 (seed T3)
 - `tsconfig`: `noUnusedLocals` + `noUnusedParameters` + `noImplicitAny` — 54 dead codes removidos (tsc zero)
 - `version.json` + `<VersionCheck />` + `serverLogger` pino + `lucide-react@0.400.0` + headers `proxy.ts` completos
 - Histórico anterior completo em `docs/CHANGELOG.md` + `HISTORICO.md`

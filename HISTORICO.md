@@ -17,6 +17,13 @@
 ### Lição desta sessão
 Subagente de limpeza tocou 38 arquivos — working tree já estava sujo de sessões anteriores. Daqui em diante: `git status` no início da sessão para separar o que é pré-existente do que a sessão alterou.
 
+### Incidente — EXEC_SQL_SECRET commitado + .env.local destruído (recuperado)
+- **Causa 1**: `git add -A` sem `git status` antes → commitou `supabase/exec_sql_with_secret.sql` com o secret real (estava untracked).
+- **Correção 1**: secret rotacionado 2x — banco (`supabase db query --linked --file` com SQL em `$env:TEMP`, apagado depois), `.env.local`, Vercel (`env rm` + `env add --sensitive`, redeploy via push). SQL do repo higienizados com placeholder. Valores mortos removidos da árvore (histórico do git ainda tem — aceito, precedente da sessão 21/07).
+- **Causa 2**: `(Get-Content) ... | Set-Content -NoNewline` — `-NoNewline` com array **concatena tudo sem separador** → `.env.local` virou 1 linha de 356 chars com valores truncados.
+- **Correção 2**: `vercel env pull --environment=production` (não-sensíveis) + `supabase projects api-keys` (service_role real) + AUTH_TOKEN novo local (dev é autoconsistente; produção intocada). Descobertas: `env pull` escreve `[Sensitive]` nos sensíveis; `GOOGLE_*` não é usado pelo código nem existe na Vercel — sem ação.
+- **Regras novas**: nunca `Set-Content -NoNewline` com array; nunca `git add -A` sem `git status`; secrets só via variável, nunca impressos.
+
 ## 21/Jul — Documentação de Seed Data Loss + Atualização de Guias
 
 ### Feito

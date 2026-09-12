@@ -14,6 +14,7 @@ _Histórico completo de alterações. Consulte AGENTS.md para as últimas 5._
 - `src/proxy.ts`: headers completos (`XSS`, `Permissions-Policy`) · `src/app/api/logs`: aceita nível `INFO`
 - `AGENTS.md`: Últimas Alterações enxutadas (regra: só 5) + seção Guias Universais aponta para `docs/padroes/`
 - `npm run build`: ✅ zero erros
+- **Incidente + correção (segurança)**: `git add -A` commitou `EXEC_SQL_SECRET` real (arquivo estava untracked) → secret rotacionado 2x (banco via `db query --file` temporário fora do repo, `.env.local`, Vercel Sensitive com redeploy) + SQL higienizados com placeholder (valores mortos `09bef7cb`/`4970fe6b` removidos da árvore). `.env.local` destruído no processo (`Set-Content -NoNewline` concatena array sem separador!) → restaurado via `vercel env pull` (não-sensíveis) + `supabase projects api-keys` (service_role) + novo AUTH_TOKEN local. Nota: `vercel env pull` escreve `[Sensitive]` nos sensíveis — completar manualmente. `GOOGLE_*` não existe no código (só no debug check) nem na Vercel — sem ação.
 
 ---
 
