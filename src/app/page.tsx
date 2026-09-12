@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useAuth } from "@/lib/auth-context"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -28,7 +29,7 @@ export default function Home() {
         <div className="w-full max-w-sm text-center space-y-8">
           <div>
             <div className="mx-auto">
-              <img src="/logo.jpg" alt="THE SUPER 8" className="h-28 w-auto mx-auto" />
+              <Image src="/logo.jpg" alt="THE SUPER 8" width={419} height={419} className="h-28 w-auto mx-auto" priority />
             </div>
             <h1 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">
               THE SUPER 8

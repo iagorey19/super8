@@ -22,19 +22,25 @@ export default function AdminDashboard() {
   const [summary, setSummary] = useState({ totalRevenues: 0, totalExpenses: 0, balance: 0 })
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/")
-      return
-    }
-    if (user) {
-      const t = store.getCurrentTournament()
-      setTournament(t)
-      if (t) {
-        setMatches(store.getTournamentMatches(t.id))
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (cancelled) return
+      if (!loading && !user) {
+        router.push("/")
+        return
       }
-      setAthleteCount(store.getAthletes().length)
-      setSummary(store.getFinancialSummary(t?.id))
-    }
+      if (user) {
+        const t = store.getCurrentTournament()
+        setTournament(t)
+        if (t) {
+          setMatches(store.getTournamentMatches(t.id))
+        }
+        setAthleteCount(store.getAthletes().length)
+        setSummary(store.getFinancialSummary(t?.id))
+      }
+    })()
+    return () => { cancelled = true }
   }, [user, loading, router])
 
   if (loading) {

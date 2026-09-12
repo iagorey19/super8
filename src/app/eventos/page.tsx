@@ -12,7 +12,14 @@ export default function EventosPage() {
   const [tournaments, setTournaments] = useState<Tournament[]>([])
 
   useEffect(() => {
-    setTournaments(store.getTournaments())
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        setTournaments(store.getTournaments())
+      }
+    })()
+    return () => { cancelled = true }
   }, [])
 
   if (tournaments.length === 0) {

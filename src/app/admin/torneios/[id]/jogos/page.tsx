@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -21,16 +21,23 @@ export default function JogosPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("")
   const [view, setView] = useState<"lista" | "grade">("lista")
 
-  function loadData() {
+  const loadData = useCallback(() => {
     const t = getTournamentById(id)
     setTournament(t || null)
     setMatches(getTournamentMatches(id))
     setLoading(false)
-  }
+  }, [id])
 
   useEffect(() => {
-    loadData()
-  }, [id])
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        loadData()
+      }
+    })()
+    return () => { cancelled = true }
+  }, [id, loadData])
 
   const categories = tournament?.categories || ["4e5"]
 

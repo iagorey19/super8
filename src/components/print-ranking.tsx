@@ -14,17 +14,24 @@ export default function PrintRankingPage() {
   const [, setCourtNames] = useState<string[]>([])
 
   useEffect(() => {
-    const t = getTournamentById(tournamentId)
-    setTournament(t)
-    setCourtNames(getCourtNames(tournamentId))
-    if (t) {
-      const cat = selectedCategory || undefined
-      if (t.status === "ongoing") {
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        const t = getTournamentById(tournamentId)
+        setTournament(t)
+        setCourtNames(getCourtNames(tournamentId))
+        if (t) {
+        const cat = selectedCategory || undefined
+        if (t.status === "ongoing") {
         setResults(getLiveRankings(tournamentId, cat))
-      } else {
+        } else {
         setResults(getRankings(tournamentId, cat))
+        }
+        }
       }
-    }
+    })()
+    return () => { cancelled = true }
   }, [tournamentId, selectedCategory])
 
   useEffect(() => {

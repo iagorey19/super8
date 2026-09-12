@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -35,12 +35,21 @@ export function NotificationList({ userId, canSend }: { userId: string; canSend?
   const [sending, setSending] = useState(false)
   const { toast: notify } = useToast()
 
-  function load() {
+  const load = useCallback(() => {
     setNotifications(store.getNotifications(userId))
     setLoading(false)
-  }
+  }, [userId])
 
-  useEffect(() => { load() }, [userId])
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        load()
+      }
+    })()
+    return () => { cancelled = true }
+  }, [userId, load])
 
   async function handleMarkRead(id: string) {
     await store.markNotificationRead(id)

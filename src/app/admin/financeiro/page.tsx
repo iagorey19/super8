@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import { Card, CardHeader } from "@/components/ui/card"
@@ -50,7 +50,7 @@ export default function AdminFinanceiro() {
   const { toast: baseToast } = useToast()
   const showToast = (type: "success" | "error", message: string) => baseToast(message, type)
 
-  function loadData() {
+  const loadData = useCallback(() => {
     if (!selectedTournament) {
       setSummary(null)
       setExpenses([])
@@ -60,23 +60,43 @@ export default function AdminFinanceiro() {
     setSummary(store.getFinancialSummary(selectedTournament))
     setExpenses(store.getExpenses(selectedTournament))
     setRevenues(store.getRevenues(selectedTournament))
-  }
+  }, [selectedTournament])
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/")
-      return
-    }
-    if (user) setTournaments(store.getTournaments())
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (cancelled) return
+      if (!loading && !user) {
+        router.push("/")
+        return
+      }
+      if (user) setTournaments(store.getTournaments())
+    })()
+    return () => { cancelled = true }
   }, [user, loading, router])
 
   useEffect(() => {
-    setCurrentTournament(selectedTournament ? store.getTournamentById(selectedTournament) ?? null : null)
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        setCurrentTournament(selectedTournament ? store.getTournamentById(selectedTournament) ?? null : null)
+      }
+    })()
+    return () => { cancelled = true }
   }, [selectedTournament])
 
   useEffect(() => {
-    loadData()
-  }, [selectedTournament])
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        loadData()
+      }
+    })()
+    return () => { cancelled = true }
+  }, [selectedTournament, loadData])
 
   async function handleAddExpense() {
     if (!expenseForm.description || !expenseForm.amount || !expenseForm.date) return

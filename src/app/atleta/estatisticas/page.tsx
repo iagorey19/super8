@@ -13,8 +13,14 @@ export default function AthleteStatsPage() {
   const [stats, setStats] = useState<ReturnType<typeof store.getAthleteStats> | null>(null)
 
   useEffect(() => {
-    if (!loading && !user) { router.push("/"); return }
-    if (user) setStats(store.getAthleteStats(user.id))
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (cancelled) return
+      if (!loading && !user) { router.push("/"); return }
+      if (user) setStats(store.getAthleteStats(user.id))
+    })()
+    return () => { cancelled = true }
   }, [user, loading, router])
 
   if (loading || !stats) {

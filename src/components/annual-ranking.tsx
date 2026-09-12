@@ -1,6 +1,6 @@
 "use client"
 
-import { Fragment, useState, useEffect } from "react"
+import { Fragment, useState, useEffect, useCallback } from "react"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, Td } from "@/components/ui/table"
@@ -27,15 +27,19 @@ export function AnnualRanking() {
   const [ranking, setRanking] = useState<AnnualRankingWithDetails[]>([])
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  function loadRanking() {
+  const loadRanking = useCallback(() => {
     setRanking(getAnnualRanking(selectedCategory))
-  }
+  }, [selectedCategory])
 
   useEffect(() => {
-    loadRanking()
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) loadRanking()
+    })()
     const interval = setInterval(loadRanking, 10000)
-    return () => clearInterval(interval)
-  }, [selectedCategory])
+    return () => { cancelled = true; clearInterval(interval) }
+  }, [selectedCategory, loadRanking])
 
   function toggleExpand(id: string) {
     setExpandedId(expandedId === id ? null : id)

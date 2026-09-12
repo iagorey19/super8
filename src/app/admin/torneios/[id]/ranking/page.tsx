@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -31,18 +31,36 @@ export default function TournamentRankingPage() {
   const [raffleRecords, setRaffleRecords] = useState<RaffleRecord[]>([])
   const categories = tournament?.categories || ["4e5"]
 
-  useEffect(() => { setTournament(getTournamentById(tournamentId)) }, [tournamentId])
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        setTournament(getTournamentById(tournamentId))
+      }
+    })()
+    return () => { cancelled = true }
+  }, [tournamentId])
 
-  useEffect(() => { setTournament(getTournamentById(tournamentId)) }, [tournamentId])
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        setTournament(getTournamentById(tournamentId))
+      }
+    })()
+    return () => { cancelled = true }
+  }, [tournamentId])
 
-  function loadAgradecimentos() {
+  const loadAgradecimentos = useCallback(() => {
     if (!tournamentId) return
     setApoiadores(getApoiadores(tournamentId))
     setSponsorships(getSponsorships(tournamentId))
     setRaffleRecords(getRaffleRecords(tournamentId))
-  }
+  }, [tournamentId])
 
-  function loadRankings() {
+  const loadRankings = useCallback(() => {
     if (!tournament) return
     const cat = selectedCategory || undefined
     if (tournament.status === "ongoing") {
@@ -52,20 +70,33 @@ export default function TournamentRankingPage() {
       const data = getRankings(tournamentId, cat)
       setResults(data)
     }
-  }
+  }, [tournament, selectedCategory, tournamentId])
 
   useEffect(() => {
-    setTournament(getTournamentById(tournamentId))
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        setTournament(getTournamentById(tournamentId))
+      }
+    })()
+    return () => { cancelled = true }
   }, [tournamentId])
 
   useEffect(() => {
-    loadRankings()
-    loadAgradecimentos()
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (cancelled) return
+      loadRankings()
+      loadAgradecimentos()
+    })()
     if (tournament?.status === "ongoing") {
       const interval = setInterval(loadRankings, 15000)
-      return () => clearInterval(interval)
+      return () => { cancelled = true; clearInterval(interval) }
     }
-  }, [tournamentId, tournament?.status, selectedCategory])
+    return () => { cancelled = true }
+  }, [tournamentId, tournament?.status, selectedCategory, loadRankings, loadAgradecimentos])
 
   const maxRounds = Math.max(...results.map((r) => r.round_scores?.length || 0), 0)
 

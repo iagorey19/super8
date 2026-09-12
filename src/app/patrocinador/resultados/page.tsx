@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-context"
+import Image from "next/image"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select } from "@/components/ui/select"
@@ -25,29 +26,41 @@ export default function SponsorResults() {
   const [raffleRecords, setRaffleRecords] = useState<RaffleRecord[]>([])
 
   useEffect(() => {
-    if (!user) return
-    const t = store.getSponsorTournaments(user.id)
-    setTournaments(t)
-    if (t.length > 0 && !selectedTournamentId) {
-      setSelectedTournamentId(t[0].id)
-    }
-  }, [user])
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (cancelled) return
+      if (!user) return
+      const t = store.getSponsorTournaments(user.id)
+      setTournaments(t)
+      if (t.length > 0 && !selectedTournamentId) {
+        setSelectedTournamentId(t[0].id)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [user, selectedTournamentId])
 
   useEffect(() => {
-    if (!selectedTournamentId) return
-    setPhotos(store.getPhotos(selectedTournamentId))
-    setMatches(store.getTournamentMatches(selectedTournamentId, selectedCategory || undefined))
-    const results = store.getRankings(selectedTournamentId, selectedCategory || undefined)
-    setRankings(
-      results.map((r) => ({
-        ...r,
-        name: store.getUserName(r.athlete_id),
-      }))
-    )
-    setApoiadores(store.getApoiadores(selectedTournamentId))
-    setSponsorships(store.getSponsorships(selectedTournamentId))
-    setRaffleRecords(store.getRaffleRecords(selectedTournamentId))
-    setCurrentTournament(store.getTournamentById(selectedTournamentId) ?? null)
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (cancelled) return
+      if (!selectedTournamentId) return
+      setPhotos(store.getPhotos(selectedTournamentId))
+      setMatches(store.getTournamentMatches(selectedTournamentId, selectedCategory || undefined))
+      const results = store.getRankings(selectedTournamentId, selectedCategory || undefined)
+      setRankings(
+        results.map((r) => ({
+          ...r,
+          name: store.getUserName(r.athlete_id),
+        }))
+      )
+      setApoiadores(store.getApoiadores(selectedTournamentId))
+      setSponsorships(store.getSponsorships(selectedTournamentId))
+      setRaffleRecords(store.getRaffleRecords(selectedTournamentId))
+      setCurrentTournament(store.getTournamentById(selectedTournamentId) ?? null)
+    })()
+    return () => { cancelled = true }
   }, [selectedTournamentId, selectedCategory])
 
   if (!user) return null
@@ -115,11 +128,13 @@ export default function SponsorResults() {
               <CardHeader title="Fotos" subtitle={`${photos.length} foto(s)`} />
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {photos.map((photo) => (
-                  <div key={photo.id} className="rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
-                    <img
+                  <div key={photo.id} className="relative h-32 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+                    <Image
                       src={sanitizeUrl(photo.url, "/placeholder.jpg")}
                       alt={photo.caption || "Foto do torneio"}
-                      className="w-full h-32 object-cover"
+                      fill
+                      sizes="(max-width: 640px) 50vw, 33vw"
+                      className="object-cover"
                     />
                     {photo.caption && (
                       <p className="text-xs text-gray-500 dark:text-gray-400 p-2">{photo.caption}</p>

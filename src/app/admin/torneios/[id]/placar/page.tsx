@@ -63,7 +63,14 @@ export default function PlacarPage() {
   }, [id])
 
   useEffect(() => {
-    loadData()
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        loadData()
+      }
+    })()
+    return () => { cancelled = true }
   }, [loadData])
 
   useEffect(() => {

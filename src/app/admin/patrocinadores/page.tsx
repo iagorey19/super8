@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -96,7 +96,16 @@ function PatrocinadoresTab() {
     setAllSponsorships(getSponsorships())
   }
 
-  useEffect(() => { setTournaments(getTournaments()); loadData() }, [])
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        setTournaments(getTournaments()); loadData()
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   function getSponsorshipsForSponsor(sponsorId: string) {
     return allSponsorships.filter((s) => s.sponsor_id === sponsorId)
@@ -349,18 +358,34 @@ function ApoiadoresTab() {
   const showToast = (type: "success" | "error", message: string) => baseToast(message, type)
 
   useEffect(() => {
-    const all = getTournaments()
-    setTournaments(all)
-    if (all.length > 0 && !selectedTournament) setSelectedTournament(all[0].id)
-  }, [])
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        const all = getTournaments()
+        setTournaments(all)
+        if (all.length > 0 && !selectedTournament) setSelectedTournament(all[0].id)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [selectedTournament])
 
-  function load() {
+  const load = useCallback(() => {
     if (!selectedTournament) return
     setApoiadores(getApoiadores(selectedTournament))
     setRegistrations(getRegisteredAthletes(selectedTournament))
-  }
+  }, [selectedTournament])
 
-  useEffect(() => { load() }, [selectedTournament])
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        load()
+      }
+    })()
+    return () => { cancelled = true }
+  }, [selectedTournament, load])
 
   async function handleAddApoio() {
     if (saving || !apoioForm.name || !selectedTournament) return

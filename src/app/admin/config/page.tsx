@@ -16,8 +16,15 @@ export default function AdminConfigPage() {
   const [dirty, setDirty] = useState(false)
 
   useEffect(() => {
-    const c = store.getConfig()
-    setConfig({ ...c })
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        const c = store.getConfig()
+        setConfig({ ...c })
+      }
+    })()
+    return () => { cancelled = true }
   }, [])
 
   useEffect(() => {

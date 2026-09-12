@@ -14,9 +14,13 @@ export default function AthleteHistory() {
   const [results, setResults] = useState<Record<string, { position: number; points: number; category?: string }>>({})
 
   useEffect(() => {
-    if (!user) return
-    const t = store.getAthleteTournaments(user.id)
-    setTournaments(t)
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (cancelled) return
+      if (!user) return
+      const t = store.getAthleteTournaments(user.id)
+      setTournaments(t)
     const resultsMap: Record<string, { position: number; points: number; category?: string }> = {}
     t.forEach((tour) => {
       const ranking = store.getRankings(tour.id)
@@ -35,6 +39,8 @@ export default function AthleteHistory() {
       }
     })
     setResults(resultsMap)
+    })()
+    return () => { cancelled = true }
   }, [user])
 
   if (!user) return null

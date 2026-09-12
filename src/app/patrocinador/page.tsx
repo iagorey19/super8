@@ -22,11 +22,17 @@ export default function SponsorDashboard() {
   const { toast: notify } = useToast()
 
   useEffect(() => {
-    if (!user) return
-    const t = store.getSponsorTournaments(user.id)
-    setTournaments(t)
-    const s = store.getSponsorships().filter((sp) => sp.sponsor_id === user.id)
-    setSponsorships(s)
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (cancelled) return
+      if (!user) return
+      const t = store.getSponsorTournaments(user.id)
+      setTournaments(t)
+      const s = store.getSponsorships().filter((sp) => sp.sponsor_id === user.id)
+      setSponsorships(s)
+    })()
+    return () => { cancelled = true }
   }, [user])
 
   if (loading) {

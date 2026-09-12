@@ -34,11 +34,17 @@ export default function AdminTorneios() {
   }
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/")
-      return
-    }
-    if (user) load()
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (cancelled) return
+      if (!loading && !user) {
+        router.push("/")
+        return
+      }
+      if (user) load()
+    })()
+    return () => { cancelled = true }
   }, [user, loading, router])
 
   async function handleCreate() {

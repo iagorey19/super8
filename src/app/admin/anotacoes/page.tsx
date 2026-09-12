@@ -24,7 +24,16 @@ export default function AnotacoesPage() {
     setNotes(getNotes())
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        load()
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   function openNew() {
     setEditing(null)

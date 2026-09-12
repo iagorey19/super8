@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
@@ -50,7 +50,13 @@ export default function TournamentDetail() {
   const [allAthletes, setAllAthletes] = useState<User[]>([])
   const availability = tournament ? store.getCategoryAvailability(tournament.id) : []
   useEffect(() => {
-    try { setAllAthletes(store.getAthletes().filter((a) => !registrations.some((r) => r.athlete_id === a.id))) } catch { setAllAthletes([]) }
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (cancelled) return
+      try { setAllAthletes(store.getAthletes().filter((a) => !registrations.some((r) => r.athlete_id === a.id))) } catch { setAllAthletes([]) }
+    })()
+    return () => { cancelled = true }
   }, [registrations])
 
   function flashSuccess(regId: string) {
@@ -60,24 +66,31 @@ export default function TournamentDetail() {
     }, 1500)
   }
 
-  function load() {
+  const load = useCallback(() => {
     const t = store.getTournamentById(id)
     setTournament(t ? { ...t } : undefined)
     if (t) {
       setRegistrations(store.getRegisteredAthletes(t.id))
       setMatches(store.getTournamentMatches(t.id))
     }
-  }
+  }, [id])
 
   const [courtNameInputs, setCourtNameInputs] = useState<string[]>([])
 
   useEffect(() => {
-    if (tournament) {
-      const existing = tournament.court_names?.length
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        if (tournament) {
+        const existing = tournament.court_names?.length
         ? [...tournament.court_names]
         : store.getCourtNames(id)
-      setCourtNameInputs(existing)
-    }
+        setCourtNameInputs(existing)
+        }
+      }
+    })()
+    return () => { cancelled = true }
   }, [tournament, id])
 
   async function handleSaveCourtNames() {
@@ -94,12 +107,18 @@ export default function TournamentDetail() {
   }
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/")
-      return
-    }
-    if (user) load()
-  }, [user, loading, router, id])
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (cancelled) return
+      if (!loading && !user) {
+        router.push("/")
+        return
+      }
+      if (user) load()
+    })()
+    return () => { cancelled = true }
+  }, [user, loading, router, id, load])
 
   if (loading) {
     return (

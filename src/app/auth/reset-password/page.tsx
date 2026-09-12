@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { createClient } from "@/utils/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,22 +18,29 @@ export default function ResetPasswordPage() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    const token_hash = searchParams.get("token_hash")
-    const type = searchParams.get("type")
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (cancelled) return
+      const token_hash = searchParams.get("token_hash")
+      const type = searchParams.get("type")
 
-    if (token_hash && type === "recovery") {
-      const supabase = createClient()
-      supabase.auth.verifyOtp({ token_hash, type: "recovery" })
-        .then(({ error: verifyError }) => {
-          if (verifyError) {
-            setError("Link inválido ou expirado. Solicite uma nova redefinição.")
-          } else {
-            setVerified(true)
-          }
-        })
-    } else {
-      setError("Link inválido. Solicite uma nova redefinição.")
-    }
+      if (token_hash && type === "recovery") {
+        const supabase = createClient()
+        supabase.auth.verifyOtp({ token_hash, type: "recovery" })
+          .then(({ error: verifyError }) => {
+            if (cancelled) return
+            if (verifyError) {
+              setError("Link inválido ou expirado. Solicite uma nova redefinição.")
+            } else {
+              setVerified(true)
+            }
+          })
+      } else {
+        setError("Link inválido. Solicite uma nova redefinição.")
+      }
+    })()
+    return () => { cancelled = true }
   }, [searchParams])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -88,7 +96,7 @@ export default function ResetPasswordPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
-            <img src="/logo.jpg" alt="THE SUPER 8" className="h-20 w-auto" />
+            <Image src="/logo.jpg" alt="THE SUPER 8" width={419} height={419} className="h-20 w-auto" priority />
           </Link>
           <h1 className="mt-4 text-xl font-bold text-gray-900 dark:text-white">Nova senha</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Defina sua nova senha</p>

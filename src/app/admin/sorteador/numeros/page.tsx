@@ -39,7 +39,7 @@ export default function SortearNumeros() {
   const tournamentCategories = currentTournament?.categories || []
   const hasMultipleCategories = tournamentCategories.length > 1
 
-  function loadAthletes() {
+  const loadAthletes = useCallback(() => {
     if (!selectedTournament) {
       setAthletes([])
       setHasDrawn(false)
@@ -61,23 +61,43 @@ export default function SortearNumeros() {
       setAthletes(mapped)
       setHasDrawn(false)
     }
-  }
+  }, [selectedTournament, selectedCategory, selectedGroup, hasMultipleCategories])
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/")
-      return
-    }
-    if (user) loadTournaments()
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (cancelled) return
+      if (!loading && !user) {
+        router.push("/")
+        return
+      }
+      if (user) loadTournaments()
+    })()
+    return () => { cancelled = true }
   }, [user, loading, router])
 
   useEffect(() => {
-    setCurrentTournament(selectedTournament ? store.getTournamentById(selectedTournament) ?? null : null)
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        setCurrentTournament(selectedTournament ? store.getTournamentById(selectedTournament) ?? null : null)
+      }
+    })()
+    return () => { cancelled = true }
   }, [selectedTournament])
 
   useEffect(() => {
-    loadAthletes()
-  }, [selectedTournament, selectedCategory, selectedGroup])
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        loadAthletes()
+      }
+    })()
+    return () => { cancelled = true }
+  }, [selectedTournament, selectedCategory, selectedGroup, loadAthletes])
 
   const animateDraw = useCallback(() => {
     if (hasMultipleCategories && !selectedCategory) return
@@ -113,7 +133,7 @@ export default function SortearNumeros() {
         }
       }
     }, 200)
-  }, [athletes, athletesWithoutNumber, selectedTournament, selectedCategory, selectedGroup, hasMultipleCategories])
+  }, [athletes, athletesWithoutNumber, selectedTournament, selectedCategory, selectedGroup, hasMultipleCategories, loadAthletes])
 
   if (loading) {
     return (

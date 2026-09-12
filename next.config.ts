@@ -13,7 +13,11 @@ const csp = [
 ].join("; ")
 
 const nextConfig: NextConfig = {
-  async headers() {
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "*.supabase.co" },
+    ],
+  },  async headers() {
     return [
       {
         source: "/(.*)",

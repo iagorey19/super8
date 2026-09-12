@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -91,7 +92,7 @@ export default function CadastroPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
-            <img src="/logo.jpg" alt="THE SUPER 8" className="h-20 w-auto" />
+            <Image src="/logo.jpg" alt="THE SUPER 8" width={419} height={419} className="h-20 w-auto" priority />
           </Link>
           <h1 className="mt-4 text-xl font-bold text-gray-900 dark:text-white">Cadastro</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Cadastre-se como atleta</p>

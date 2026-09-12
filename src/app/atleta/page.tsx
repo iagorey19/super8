@@ -58,9 +58,13 @@ export default function AthleteDashboard() {
   }, [user])
 
   useEffect(() => {
-    loadData()
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) loadData()
+    })()
     const interval = setInterval(loadData, 30000)
-    return () => clearInterval(interval)
+    return () => { cancelled = true; clearInterval(interval) }
   }, [loadData])
 
   if (loading) {

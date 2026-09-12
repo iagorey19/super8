@@ -40,22 +40,36 @@ export default function SortearBrindes() {
   const [manualWinnerId, setManualWinnerId] = useState("")
 
   useEffect(() => {
-    const all = store.getTournaments()
-    setTournaments(all)
-    const current = store.getCurrentTournament()
-    if (current) setSelectedTournamentId(current.id)
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        const all = store.getTournaments()
+        setTournaments(all)
+        const current = store.getCurrentTournament()
+        if (current) setSelectedTournamentId(current.id)
+      }
+    })()
+    return () => { cancelled = true }
   }, [])
 
   useEffect(() => {
-    if (selectedTournamentId) {
-      setSorteioBrindes(store.getBrindes(selectedTournamentId, "sorteio"))
-      setApoiadores(store.getApoiadores(selectedTournamentId))
-      setRecords(store.getRaffleRecords(selectedTournamentId))
-    } else {
-      setSorteioBrindes([])
-      setApoiadores([])
-      setRecords([])
-    }
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        if (selectedTournamentId) {
+        setSorteioBrindes(store.getBrindes(selectedTournamentId, "sorteio"))
+        setApoiadores(store.getApoiadores(selectedTournamentId))
+        setRecords(store.getRaffleRecords(selectedTournamentId))
+        } else {
+        setSorteioBrindes([])
+        setApoiadores([])
+        setRecords([])
+        }
+      }
+    })()
+    return () => { cancelled = true }
   }, [selectedTournamentId])
 
   function handleAddName() {

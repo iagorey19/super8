@@ -50,7 +50,16 @@ export default function AthletesPage() {
     setPending(getPendingAthletes())
   }
 
-  useEffect(() => { setTournaments(getTournaments()); loadData() }, [])
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        setTournaments(getTournaments()); loadData()
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   async function handleApprove(registrationId: string) {
     setSaving((prev) => new Set(prev).add(`approve-${registrationId}`))

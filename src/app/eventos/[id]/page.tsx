@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { useEffect, useState, useCallback } from "react"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -53,9 +54,13 @@ export default function EventoDetalhePage() {
   }, [id])
 
   useEffect(() => {
-    loadData()
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) loadData()
+    })()
     const interval = setInterval(loadData, 30000)
-    return () => clearInterval(interval)
+    return () => { cancelled = true; clearInterval(interval) }
   }, [loadData])
 
   async function handleStartRegistration() {
@@ -215,7 +220,7 @@ export default function EventoDetalhePage() {
                         <span className="text-lg">🏆</span> Prêmio: Tábua Oficial The Super 8
                       </p>
                       <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                        <img src="/images/logo-rey-madeiras.jpg" alt="REY MADEIRAS" className="inline-block w-7 h-7 object-contain align-text-bottom rounded-sm" /> REY MADEIRAS
+                        <Image src="/images/logo-rey-madeiras.jpg" alt="REY MADEIRAS" width={28} height={28} className="inline-block w-7 h-7 object-contain align-text-bottom rounded-sm" /> REY MADEIRAS
                       </p>
                     </div>
                   </div>
@@ -391,7 +396,7 @@ export default function EventoDetalhePage() {
 
             <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-inner inline-block">
               {pixQR ? (
-                <img src={pixQR} alt="QR Code PIX" className="w-64 h-64 mx-auto" />
+                <Image src={pixQR} alt="QR Code PIX" width={256} height={256} unoptimized className="w-64 h-64 mx-auto" />
               ) : (
                 <div className="w-52 h-52 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse mx-auto" />
               )}

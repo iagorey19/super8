@@ -38,8 +38,6 @@ export async function GET(req: Request) {
       hasServiceRole: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
       hasAuthSecret: Boolean(process.env.AUTH_TOKEN_SECRET),
       hasExecSqlSecret: Boolean(process.env.EXEC_SQL_SECRET),
-      hasGoogleOAuth:
-        Boolean(process.env.GOOGLE_CLIENT_ID) && Boolean(process.env.GOOGLE_CLIENT_SECRET),
     },
     runtime: {
       node: process.version,

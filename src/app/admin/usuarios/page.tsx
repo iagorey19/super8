@@ -42,7 +42,16 @@ export default function UsuariosPage() {
     setUsers(getAllUsers())
   }
 
-  useEffect(() => { loadData() }, [])
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        loadData()
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   async function handleCreate() {
     if (!newForm.name || !newForm.email || !newForm.password) {

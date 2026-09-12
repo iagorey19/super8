@@ -4,7 +4,15 @@ _Histórico completo de alterações. Consulte AGENTS.md para as últimas 5._
 
 ---
 
-## 12/09/2026 — Auditoria completa (P0/P1/P2)
+## 12/09/2026 — Warns zerados (sem nada pago)
+
+- `set-state-in-effect` 50→0: padrão async-guarded (microtask + `cancelled`, semântica idêntica, +segurança em unmount); regra voltou a `error` no eslint
+- `exhaustive-deps` 13→0 via `useCallback` (sem loops: deps equivalentes)
+- `<img>` 12→`next/image`: `remotePatterns *.supabase.co`, `fill` nas grades de fotos, `unoptimized` no QR PIX e preview blob, logos com `priority`
+- `GOOGLE_*` removido do `/api/debug/all`; eslint 0/0, tsc zero, build zero
+- Backup pré-sessão em `$env:TEMP\super8-data-20260912.json` (16 tabelas, 194KB)
+
+---
 
 **P0 — senha/divergência Auth×public.users**
 - Novo `POST/PUT /api/auth/password`: troca exige senha atual (confere bcrypt no servidor); sync pós-reset via OTP usa `access_token` do Supabase Auth como prova

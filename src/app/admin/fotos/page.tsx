@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -35,7 +36,7 @@ export default function AdminFotos() {
     setTournaments(store.getTournaments())
   }
 
-  function loadPhotos() {
+  const loadPhotos = useCallback(() => {
     const all = store.getPhotos()
     if (selectedFilter === "" || selectedFilter === "geral") {
       setPhotos(selectedFilter === "geral" ? all.filter((p) => !p.tournament_id) : all)
@@ -43,19 +44,32 @@ export default function AdminFotos() {
       setPhotos(all.filter((p) => p.tournament_id === selectedFilter))
     }
     setBrokenImages(new Set())
-  }
+  }, [selectedFilter])
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/")
-      return
-    }
-    if (user) loadTournaments()
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (cancelled) return
+      if (!loading && !user) {
+        router.push("/")
+        return
+      }
+      if (user) loadTournaments()
+    })()
+    return () => { cancelled = true }
   }, [user, loading, router])
 
   useEffect(() => {
-    loadPhotos()
-  }, [selectedFilter])
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        loadPhotos()
+      }
+    })()
+    return () => { cancelled = true }
+  }, [selectedFilter, loadPhotos])
 
   async function handleUploadFile() {
     if (!selectedFile) return
@@ -179,7 +193,7 @@ export default function AdminFotos() {
           {photos.map((photo) => (
             <div
               key={photo.id}
-              className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+              className="group relative aspect-[4/3] bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
             >
               {brokenImages.has(photo.id) ? (
                 <div className="aspect-[4/3] bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 dark:text-gray-500">
@@ -189,10 +203,12 @@ export default function AdminFotos() {
                   </div>
                 </div>
               ) : (
-                <img
+                <Image
                   src={sanitizeUrl(photo.url, "/placeholder.jpg")}
                   alt={photo.caption || "Foto"}
-                  className="aspect-[4/3] w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  fill
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
                   onError={() => handleImageError(photo.id)}
                 />
               )}
@@ -260,9 +276,12 @@ export default function AdminFotos() {
               />
               {selectedFile && (
                 <div className="mt-2 flex items-center gap-3">
-                  <img
+                  <Image
                     src={URL.createObjectURL(selectedFile)}
                     alt="Preview"
+                    width={80}
+                    height={64}
+                    unoptimized
                     className="w-20 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
                   />
                   <div className="text-xs text-gray-500 dark:text-gray-400">

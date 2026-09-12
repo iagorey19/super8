@@ -21,20 +21,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
-    const session = store.getSession()
-    if (session) {
-      setUser(session.user)
-      setLoading(false)
-    } else {
-      store.fetchSessionFromCookie().then((s) => {
-        if (s) setUser(s.user)
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (cancelled) return
+      const session = store.getSession()
+      if (session) {
+        setUser(session.user)
         setLoading(false)
-      }).catch((e) => {
-        console.error("fetchSessionFromCookie failed:", e)
-        setUser(null)
-        setLoading(false)
-      })
-    }
+      } else {
+        store.fetchSessionFromCookie().then((s) => {
+          if (cancelled) return
+          if (s) setUser(s.user)
+          setLoading(false)
+        }).catch((e) => {
+          if (cancelled) return
+          console.error("fetchSessionFromCookie failed:", e)
+          setUser(null)
+          setLoading(false)
+        })
+      }
+    })()
+    return () => { cancelled = true }
   }, [])
 
   const login = useCallback(

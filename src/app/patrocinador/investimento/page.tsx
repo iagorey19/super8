@@ -24,32 +24,44 @@ export default function SponsorInvestment() {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    if (!user) return
-    const t = store.getSponsorTournaments(user.id)
-    setTournaments(t)
-    if (t.length > 0 && !selectedTournamentId) {
-      setSelectedTournamentId(t[0].id)
-    }
-  }, [user])
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (cancelled) return
+      if (!user) return
+      const t = store.getSponsorTournaments(user.id)
+      setTournaments(t)
+      if (t.length > 0 && !selectedTournamentId) {
+        setSelectedTournamentId(t[0].id)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [user, selectedTournamentId])
 
   useEffect(() => {
-    if (!selectedTournamentId || !user) return
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (cancelled) return
+      if (!selectedTournamentId || !user) return
 
-    setSummary(store.getFinancialSummary(selectedTournamentId))
-    setExpensesByCategory(store.getExpensesByCategory(selectedTournamentId))
-    setRevenuesBySource(store.getRevenuesBySource(selectedTournamentId))
+      setSummary(store.getFinancialSummary(selectedTournamentId))
+      setExpensesByCategory(store.getExpensesByCategory(selectedTournamentId))
+      setRevenuesBySource(store.getRevenuesBySource(selectedTournamentId))
 
-    const sponsorships = store.getSponsorships(selectedTournamentId)
-    const mySponsorship = sponsorships.find((s) => s.sponsor_id === user.id)
-    setMySponsorshipAmount(mySponsorship?.amount || 0)
+      const sponsorships = store.getSponsorships(selectedTournamentId)
+      const mySponsorship = sponsorships.find((s) => s.sponsor_id === user.id)
+      setMySponsorshipAmount(mySponsorship?.amount || 0)
 
-    const matches = store.getTournamentMatches(selectedTournamentId)
-    setMatchCount(matches.length)
-    const uniqueRounds = new Set(matches.map((m) => m.round))
-    setRoundCount(uniqueRounds.size)
+      const matches = store.getTournamentMatches(selectedTournamentId)
+      setMatchCount(matches.length)
+      const uniqueRounds = new Set(matches.map((m) => m.round))
+      setRoundCount(uniqueRounds.size)
 
-    const regs = store.getRegisteredAthletes(selectedTournamentId)
-    setAthleteCount(regs.filter((r) => r.status === "approved").length)
+      const regs = store.getRegisteredAthletes(selectedTournamentId)
+      setAthleteCount(regs.filter((r) => r.status === "approved").length)
+    })()
+    return () => { cancelled = true }
   }, [selectedTournamentId, user])
 
   if (!user) return null

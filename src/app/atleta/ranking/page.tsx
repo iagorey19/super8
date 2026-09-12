@@ -33,9 +33,13 @@ export default function AthleteRanking() {
   }, [selectedCategory, user])
 
   useEffect(() => {
-    refresh()
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) refresh()
+    })()
     const interval = setInterval(refresh, 30000)
-    return () => clearInterval(interval)
+    return () => { cancelled = true; clearInterval(interval) }
   }, [refresh])
 
   if (!user) return null

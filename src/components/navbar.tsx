@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useAuth } from "@/lib/auth-context"
 import { getUnreadCount } from "@/lib/store"
 import { useEffect, useState } from "react"
@@ -30,14 +31,17 @@ export function Navbar({ variant = "authenticated" }: { variant?: "authenticated
   const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
-    if (user) {
-      setUnread(getUnreadCount(user.id))
-      const interval = setInterval(() => {
-        const next = getUnreadCount(user!.id)
-        setUnread((prev) => (prev === next ? prev : next))
-      }, 30000)
-      return () => clearInterval(interval)
-    }
+    if (!user) return
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled && user) setUnread(getUnreadCount(user.id))
+    })()
+    const interval = setInterval(() => {
+      const next = getUnreadCount(user!.id)
+      setUnread((prev) => (prev === next ? prev : next))
+    }, 30000)
+    return () => { cancelled = true; clearInterval(interval) }
   }, [user])
 
   if (variant === "authenticated" && !user) return null
@@ -48,7 +52,7 @@ export function Navbar({ variant = "authenticated" }: { variant?: "authenticated
     <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
       <div className="px-4 h-14 flex items-center justify-between">
         <Link href={logoLink} className="flex items-center gap-2">
-          <img src="/logo.jpg" alt="THE SUPER 8" className="h-14 w-auto" />
+          <Image src="/logo.jpg" alt="THE SUPER 8" width={419} height={419} className="h-14 w-auto" priority />
           <span className="font-bold text-gray-900 dark:text-white block">THE SUPER 8</span>
         </Link>
 

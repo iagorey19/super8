@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import * as store from "@/lib/store"
 import { sanitizeUrl } from "@/lib/validate-url"
 import type { Photo } from "@/lib/types"
@@ -25,9 +26,13 @@ export default function AthleteFotos() {
   }, [user, loading, router])
 
   useEffect(() => {
-    loadPhotos()
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) loadPhotos()
+    })()
     const interval = setInterval(loadPhotos, 30000)
-    return () => clearInterval(interval)
+    return () => { cancelled = true; clearInterval(interval) }
   }, [])
 
   if (loading) {
@@ -56,12 +61,14 @@ export default function AthleteFotos() {
               href={sanitizeUrl(photo.url, "#")}
               target="_blank"
               rel="noopener noreferrer"
-              className="block aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 group"
+              className="block relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 group"
             >
-              <img
+              <Image
                 src={sanitizeUrl(photo.url, "/placeholder.jpg")}
                 alt={photo.caption || "Foto"}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                fill
+                sizes="(max-width: 640px) 50vw, 33vw"
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
               />
             </a>
           ))}

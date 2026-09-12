@@ -14,11 +14,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    const stored = localStorage.getItem("super8-theme-v2") as Theme | null
-    if (stored === "dark" || stored === "light") {
-      setTheme(stored)
-    }
-    setMounted(true)
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) {
+        const stored = localStorage.getItem("super8-theme-v2") as Theme | null
+        if (stored === "dark" || stored === "light") {
+        setTheme(stored)
+        }
+        setMounted(true)
+      }
+    })()
+    return () => { cancelled = true }
   }, [])
 
   useEffect(() => {

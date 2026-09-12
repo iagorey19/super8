@@ -35,9 +35,13 @@ export default function PublicJogosPage() {
   }, [id])
 
   useEffect(() => {
-    loadData()
+    let cancelled = false
+    void (async () => {
+      await Promise.resolve()
+      if (!cancelled) loadData()
+    })()
     const interval = setInterval(loadData, 30000)
-    return () => clearInterval(interval)
+    return () => { cancelled = true; clearInterval(interval) }
   }, [loadData])
 
   const categories = tournament?.categories || ["4e5"]
