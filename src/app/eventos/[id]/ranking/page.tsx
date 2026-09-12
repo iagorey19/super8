@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Table, Td } from "@/components/ui/table"
 import * as store from "@/lib/store"
 import { sanitizeUrl } from "@/lib/validate-url"
+import { tiebreakSeal } from "@/lib/utils"
 import { RankingInfo } from "@/components/ui/ranking-info"
 import type { Tournament, TournamentResultWithName, ApoiadorWithBrindes, Brinde, RaffleRecord, Sponsorship } from "@/lib/types"
 
@@ -126,6 +127,7 @@ export default function PublicRankingPage() {
             "Categoria",
             ...Array.from({ length: maxRounds }, (_, i) => `R${i + 1}`),
             "Total Games",
+            "Saldo",
             "Pontos",
           ]}
         >
@@ -138,7 +140,11 @@ export default function PublicRankingPage() {
               </Td>
             </tr>
           ) : (
-            results.map((r: TournamentResultWithName, idx: number) => (
+            results.map((r: TournamentResultWithName, idx: number) => {
+              const prev = idx > 0 ? results[idx - 1] : undefined
+              const sameGroup = !!prev && prev.category === r.category && (prev.group_name || "A") === (r.group_name || "A")
+              const seal = sameGroup && prev ? tiebreakSeal(prev, r) : null
+              return (
               <tr
                 key={r.id || idx}
                 className={`transition-colors ${idx === 0 ? "bg-yellow-50/50 dark:bg-yellow-900/20" : idx === 1 ? "bg-gray-50/50 dark:bg-gray-800/50" : idx === 2 ? "bg-orange-50/30 dark:bg-orange-900/20" : "hover:bg-gray-50 dark:hover:bg-gray-800"}`}
@@ -152,6 +158,12 @@ export default function PublicRankingPage() {
                 </Td>
                 <Td className="font-medium text-gray-900 dark:text-white">
                   {r.name || store.getUserName(r.athlete_id)}
+                  {seal === "saldo" && (
+                    <span title="Desempate por saldo de games" className="ml-1 text-xs">⚖️</span>
+                  )}
+                  {seal === "h2h" && (
+                    <span title="Desempate por confronto direto" className="ml-1 text-xs">🤝</span>
+                  )}
                 </Td>
                 <Td>
                   {r.category && (
@@ -166,10 +178,12 @@ export default function PublicRankingPage() {
                   </Td>
                 ))}
                 <Td className="text-center font-medium">{r.total_games}</Td>
+                <Td className="text-center text-gray-600 dark:text-gray-400">{r.saldo ?? "-"}</Td>
                 <Td className="text-center font-semibold text-amber-700 dark:text-amber-400">{r.points}</Td>
               </tr>
-            ))
-          )}
+              )
+            }
+          ))}
         </Table>
       </Card>
 

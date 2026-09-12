@@ -1,5 +1,7 @@
 "use client"
 
+import { getSessionToken } from "./db"
+
 const FLUSH_INTERVAL = 5000
 const MAX_BUFFER = 10
 
@@ -20,9 +22,12 @@ function flush() {
   if (buffer.length === 0) return
   const batch = buffer.splice(0, buffer.length)
   timer = null
+  const headers: Record<string, string> = { "Content-Type": "application/json" }
+  const token = getSessionToken()
+  if (token) headers["Authorization"] = `Bearer ${token}`
   fetch("/api/logs", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ entries: batch }),
   }).catch(() => {})
 }
@@ -63,6 +68,8 @@ export function logInfo(message: string) {
 
 export function initLogger() {
   if (typeof window === "undefined") return
+  if ((initLogger as { done?: boolean }).done) return
+  ;(initLogger as { done?: boolean }).done = true
 
   const origError = window.onerror
   window.onerror = (msg, source, line, col, error) => {

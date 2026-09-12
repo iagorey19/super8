@@ -19,6 +19,26 @@ function isStandalone(): boolean {
   return window.matchMedia("(display-mode: standalone)").matches || nav.standalone === true
 }
 
+const SNOOZE_KEY = "super8-pwa-dismissed-at"
+const SNOOZE_MS = 7 * 24 * 60 * 60 * 1000
+
+function isSnoozed(): boolean {
+  try {
+    const at = Number(localStorage.getItem(SNOOZE_KEY) || 0)
+    return Date.now() - at < SNOOZE_MS
+  } catch {
+    return false
+  }
+}
+
+function snooze() {
+  try {
+    localStorage.setItem(SNOOZE_KEY, String(Date.now()))
+  } catch {
+    // ignore
+  }
+}
+
 export function PWAPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [show, setShow] = useState(false)
@@ -26,7 +46,7 @@ export function PWAPrompt() {
   const standalone = isStandalone()
 
   useEffect(() => {
-    if (standalone) return
+    if (standalone || isSnoozed()) return
 
     if (ios) {
       const timer = setTimeout(() => setShow(true), 3000)
@@ -46,12 +66,14 @@ export function PWAPrompt() {
     if (!deferredPrompt) return
     deferredPrompt.prompt()
     deferredPrompt.userChoice.then(() => {
+      snooze()
       setDeferredPrompt(null)
       setShow(false)
     })
   }
 
   function handleDismiss() {
+    snooze()
     setShow(false)
   }
 
@@ -79,19 +101,15 @@ export function PWAPrompt() {
           <ol className="text-sm text-gray-600 dark:text-gray-300 space-y-3 ml-1">
             <li className="flex items-start gap-2">
               <span className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-              <span>Clique nos <strong className="text-gray-900 dark:text-white">3 pontinhos</strong> (•••) no canto inferior direito</span>
+              <span>Clique no botão <strong className="text-gray-900 dark:text-white">Compartilhar</strong> (quadrado com seta para cima) na barra do Safari</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-              <span>Clique em <strong className="text-gray-900 dark:text-white">Compartilhar</strong>, também no canto inferior direito</span>
+              <span>Role a lista e toque em <strong className="text-gray-900 dark:text-white">Adicionar à Tela de Início</strong></span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-              <span>Clique em <strong className="text-gray-900 dark:text-white">Ver mais</strong> na parte inferior da tela</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
-              <span>Arraste para baixo até achar <strong className="text-gray-900 dark:text-white">Adicionar à Tela Inicial</strong></span>
+              <span>Confirme em <strong className="text-gray-900 dark:text-white">Adicionar</strong> no canto superior direito</span>
             </li>
           </ol>
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { getRankings, getLiveRankings, getTournamentById, getUserName, getCourtNames } from "@/lib/store"
+import { tiebreakSeal } from "@/lib/utils"
 import type { Tournament, TournamentResult } from "@/lib/types"
 
 export default function PrintRankingPage() {
@@ -88,11 +89,16 @@ export default function PrintRankingPage() {
             <th className="text-left py-2 px-3 text-sm font-semibold text-gray-600 dark:text-gray-400 w-10">#</th>
             <th className="text-left py-2 px-3 text-sm font-semibold text-gray-600 dark:text-gray-400">Atleta</th>
             <th className="text-center py-2 px-3 text-sm font-semibold text-gray-600 dark:text-gray-400">Jogos</th>
+            <th className="text-center py-2 px-3 text-sm font-semibold text-gray-600 dark:text-gray-400">Saldo</th>
             <th className="text-center py-2 px-3 text-sm font-semibold text-gray-600 dark:text-gray-400">Pontos</th>
           </tr>
         </thead>
         <tbody>
-          {results.map((r: TournamentResult & { name: string }, idx: number) => (
+          {results.map((r: TournamentResult & { name: string }, idx: number) => {
+            const prev = idx > 0 ? results[idx - 1] : undefined
+            const sameGroup = !!prev && prev.category === r.category && (prev.group_name || "A") === (r.group_name || "A")
+            const seal = sameGroup && prev ? tiebreakSeal(prev, r) : null
+            return (
             <tr key={r.athlete_id || idx} className="border-b border-gray-200 dark:border-gray-700">
               <td className={`py-2 px-3 text-center font-bold ${
                 idx === 0 ? "text-yellow-600 dark:text-yellow-400" : idx === 1 ? "text-gray-500 dark:text-gray-400" : idx === 2 ? "text-orange-600 dark:text-orange-400" : "text-gray-700 dark:text-gray-300"
@@ -101,11 +107,15 @@ export default function PrintRankingPage() {
               </td>
               <td className="py-2 px-3 font-medium text-gray-900 dark:text-white">
                 {r.name || getUserName(r.athlete_id)}
+                {seal === "saldo" && " ⚖️"}
+                {seal === "h2h" && " 🤝"}
               </td>
               <td className="py-2 px-3 text-center text-gray-600 dark:text-gray-400">{r.total_games || 0}</td>
+              <td className="py-2 px-3 text-center text-gray-600 dark:text-gray-400">{r.saldo ?? "-"}</td>
               <td className="py-2 px-3 text-center font-bold text-gray-900 dark:text-white">{r.points || 0}</td>
             </tr>
-          ))}
+            )
+          })}
         </tbody>
       </table>
 

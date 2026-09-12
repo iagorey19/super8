@@ -69,6 +69,9 @@ export async function updateTournament(id: string, updates: Partial<Tournament>)
     delete safe.id
     delete safe.created_at
     delete safe.created_by
+    if (safe.max_score !== undefined && (!Number.isInteger(safe.max_score) || safe.max_score < 1)) {
+      delete safe.max_score
+    }
     Object.assign(data.tournaments[idx], safe)
     await saveData(data)
   }
@@ -102,7 +105,7 @@ export async function updateCourtName(tournamentId: string, index: number, name:
 
 export function getTournaments(): Tournament[] {
   const data = getData()
-  return data.tournaments.sort(
+  return [...data.tournaments].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   )
 }
@@ -152,7 +155,8 @@ export async function closeRegistrations(tournamentId: string): Promise<{ promot
     )
     const waiting = data.athlete_registrations.filter(
       (r) => r.tournament_id === tournamentId && r.category === cat && r.is_waiting && r.status === "approved"
-    ).sort((a, b) => (a.registration_order || 999) - (b.registration_order || 999))
+    ).sort((a, b) => (a.registration_order || 999) - (b.registration_order || 999) ||
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
 
     for (const w of waiting) {
       if (approved.length >= 8) break
@@ -184,11 +188,11 @@ export async function startTournament(tournamentId: string, category?: string, g
 
   const registrations = data.athlete_registrations.filter(
     (r) => r.tournament_id === tournamentId && r.category === cat &&
-      (r.group_name === grp || (!r.group_name && grp === "A")) && r.status === "approved"
+      (r.group_name === grp || (!r.group_name && grp === "A")) && r.status === "approved" && !r.is_waiting
   )
 
   if (registrations.length !== 8) {
-    throw new Error(`É necessário 8 atletas aprovados. Atuais: ${registrations.length}`)
+    throw new Error(`É necessário 8 atletas aprovados (fora da espera). Atuais: ${registrations.length}`)
   }
 
   if (registrations.some((r) => r.draw_number == null)) {
@@ -199,7 +203,11 @@ export async function startTournament(tournamentId: string, category?: string, g
   const athleteIds = sorted.map((r) => r.athlete_id)
 
   const catIndex = tournament.categories.indexOf(cat)
-  const courtOffset = catIndex * 2
+  const allGroups = [...new Set(data.athlete_registrations
+    .filter((r) => r.tournament_id === tournamentId && r.category === cat)
+    .map((r) => r.group_name || "A"))].sort()
+  const groupIndex = Math.max(0, allGroups.indexOf(grp))
+  const courtOffset = (catIndex * Math.max(allGroups.length, 1) + groupIndex) * 2
 
   const { pairings, matches } = generatePairings(tournamentId, athleteIds, cat, grp, courtOffset)
   data.pairings.push(...pairings)
@@ -225,7 +233,7 @@ export async function finalizeTournament(tournamentId: string) {
       if (matches.length === 0) return
 
       const sortedRegs = data.athlete_registrations
-        .filter((r) => r.tournament_id === tournamentId && r.category === cat && (r.group_name || "A") === grp && r.status === "approved")
+        .filter((r) => r.tournament_id === tournamentId && r.category === cat && (r.group_name || "A") === grp && r.status === "approved" && !r.is_waiting)
         .sort((a, b) => (a.draw_number || 999) - (b.draw_number || 999))
       const athleteIds = sortedRegs.map((r) => r.athlete_id)
 
@@ -245,7 +253,7 @@ export async function finalizeTournament(tournamentId: string) {
         data.tournament_results.push({
           id: crypto.randomUUID(), tournament_id: tournamentId, category: r.category,
           group_name: r.group_name, athlete_id: r.athlete_id, round_scores: r.round_scores,
-          total_games: r.total_games, position: r.position, points: r.points,
+          total_games: r.total_games, saldo: r.saldo, position: r.position, points: r.points,
         })
       })
 
@@ -286,7 +294,7 @@ export async function updateMatchScore(matchId: string, team: 1 | 2): Promise<Ma
   if (!match) return null
 
   const tournament = data.tournaments.find((t) => t.id === match.tournament_id)
-  const maxScore = tournament?.max_score ?? 5
+  const maxScore = tournament?.max_score || 5
 
   match.status = "live"
 
@@ -308,7 +316,7 @@ export async function decrementMatchScore(matchId: string, team: 1 | 2): Promise
   if (!match) return null
 
   const tournament = data.tournaments.find((t) => t.id === match.tournament_id)
-  const maxScore = tournament?.max_score ?? 5
+  const maxScore = tournament?.max_score || 5
 
   if (team === 1) {
     if (match.score_team1 <= 0) return null
@@ -320,8 +328,17 @@ export async function decrementMatchScore(matchId: string, team: 1 | 2): Promise
 
   if (match.score_team1 < maxScore && match.score_team2 < maxScore) match.status = "live"
 
+  invalidateGroupResults(data, match.tournament_id, match.category || "4e5", match.group_name || "A")
   await saveData(data)
   return { ...match }
+}
+
+// Resultados calculados valem para um cenário de placares/jogadores; qualquer
+// edição posterior invalida o grupo (será reconstruído ao concluir/recacular).
+function invalidateGroupResults(data: AppData, tournamentId: string, category: string, groupName: string) {
+  data.tournament_results = data.tournament_results.filter(
+    (r) => !(r.tournament_id === tournamentId && r.category === category && (r.group_name || "A") === groupName)
+  )
 }
 
 export async function swapMatchTeams(matchId: string): Promise<Match | null> {
@@ -347,6 +364,7 @@ export async function swapMatchTeams(matchId: string): Promise<Match | null> {
     pairing.player3_id = pp1; pairing.player4_id = pp2
   }
 
+  invalidateGroupResults(data, match.tournament_id, match.category || "4e5", match.group_name || "A")
   await saveData(data)
   return { ...match }
 }
@@ -365,6 +383,7 @@ export async function updateMatchPlayers(matchId: string, t1p1: string, t1p2: st
     pairing.player3_id = t2p1; pairing.player4_id = t2p2
   }
 
+  invalidateGroupResults(data, match.tournament_id, match.category || "4e5", match.group_name || "A")
   await saveData(data)
 }
 
@@ -386,13 +405,14 @@ export async function regenerateWhistFromRound(tournamentId: string, fromRound: 
   for (const match of affectedMatches) {
     const cat = match.category || "4e5"
     const grp = match.group_name || "A"
+    invalidateGroupResults(data, tournamentId, cat, grp)
 
     const tournament = data.tournaments.find((t) => t.id === tournamentId)
     if (!tournament) continue
 
     const sortedRegs = data.athlete_registrations
       .filter((r) => r.tournament_id === tournamentId && r.category === cat &&
-        (r.group_name || "A") === grp && r.status === "approved")
+        (r.group_name || "A") === grp && r.status === "approved" && !r.is_waiting)
       .sort((a, b) => (a.draw_number || 999) - (b.draw_number || 999))
 
     if (sortedRegs.length !== 8) continue
@@ -413,12 +433,21 @@ export async function regenerateWhistFromRound(tournamentId: string, fromRound: 
     const matchIdx = roundMatches.indexOf(match)
     if (matchIdx < 0 || matchIdx > 1) continue
 
-    const sc = matchIdx === 0 ? scheduleEntry.courtA : scheduleEntry.courtB
+    // Mesmo swap de generatePairings: rodadas pares alternam courtA↔courtB
+    const swap = match.round % 2 === 0
+    const sched = matchIdx === 0
+      ? (swap ? scheduleEntry.courtB : scheduleEntry.courtA)
+      : (swap ? scheduleEntry.courtA : scheduleEntry.courtB)
+    const sc = sched
 
     match.team1_player1_id = athleteIds[sc.t1[0] - 1]
     match.team1_player2_id = athleteIds[sc.t1[1] - 1]
     match.team2_player1_id = athleteIds[sc.t2[0] - 1]
     match.team2_player2_id = athleteIds[sc.t2[1] - 1]
+    // Placares antigos valiam para outra formação — reseta
+    match.score_team1 = 0
+    match.score_team2 = 0
+    match.status = "pending"
 
     const pairing = data.pairings.find((p) => p.id === match.pairing_id)
     if (pairing) {
@@ -437,14 +466,14 @@ export async function regenerateWhistFromRound(tournamentId: string, fromRound: 
 
 async function checkTournamentCompletion(data: AppData, tournamentId: string, category: string, groupName: string) {
   const matches = data.matches.filter(
-    (m) => m.tournament_id === tournamentId && m.category === category && m.group_name === groupName
+    (m) => m.tournament_id === tournamentId && m.category === category && (m.group_name || "A") === groupName
   )
   const allFinished = matches.every((m) => m.status === "finished")
 
   if (allFinished) {
     const sortedRegs = data.athlete_registrations
       .filter((r) => r.tournament_id === tournamentId && r.category === category &&
-        (r.group_name || "A") === groupName && r.status === "approved")
+        (r.group_name || "A") === groupName && r.status === "approved" && !r.is_waiting)
       .sort((a, b) => (a.draw_number || 999) - (b.draw_number || 999))
     const athleteIds = sortedRegs.map((r) => r.athlete_id)
 
@@ -469,18 +498,24 @@ async function checkTournamentCompletion(data: AppData, tournamentId: string, ca
       data.tournament_results.push(result)
     })
 
-    updateAnnualRankings(data, category)
+    updateAnnualRankings(data, category, tournamentYear(data, tournamentId))
     await saveData(data)
   }
 }
 
-function updateAnnualRankings(data: AppData, category: string) {
-  const year = new Date().getFullYear()
+function tournamentYear(data: AppData, tournamentId: string): number {
+  const t = data.tournaments.find((x) => x.id === tournamentId)
+  return t ? new Date(t.date).getFullYear() : new Date().getFullYear()
+}
 
-  data.annual_rankings = data.annual_rankings.filter((r) => !(r.year === year && r.category === category))
+function updateAnnualRankings(data: AppData, category: string, year?: number) {
+  const y = year || new Date().getFullYear()
 
-  const tournamentsThisYear = data.tournaments.filter((t) => new Date(t.date).getFullYear() === year)
+  data.annual_rankings = data.annual_rankings.filter((r) => !(r.year === y && r.category === category))
+
+  const tournamentsThisYear = data.tournaments.filter((t) => new Date(t.date).getFullYear() === y)
   const tournamentIds = new Set(tournamentsThisYear.map((t) => t.id))
+  const maxByTournament = new Map(tournamentsThisYear.map((t) => [t.id, t.max_score || 5]))
 
   const athletePoints: Record<string, { total_points: number; total_games: number; tournaments_count: number; wins_count: number }> = {}
 
@@ -491,13 +526,14 @@ function updateAnnualRankings(data: AppData, category: string) {
         athletePoints[r.athlete_id] = { total_points: 0, total_games: 0, tournaments_count: 0, wins_count: 0 }
       }
       athletePoints[r.athlete_id].total_points += r.points
-      athletePoints[r.athlete_id].total_games += r.total_games
+      // Mesma normalização do computeAnnualRanking (base 5)
+      athletePoints[r.athlete_id].total_games += Math.round(r.total_games * (5 / (maxByTournament.get(r.tournament_id) || 5)))
       athletePoints[r.athlete_id].tournaments_count += 1
       if (r.position === 1) athletePoints[r.athlete_id].wins_count += 1
     })
 
   const newRankings = Object.entries(athletePoints).map(([athlete_id, stats]) => ({
-    id: crypto.randomUUID(), athlete_id, category, year,
+    id: crypto.randomUUID(), athlete_id, category, year: y,
     total_points: stats.total_points, total_games: stats.total_games,
     tournaments_count: stats.tournaments_count, wins_count: stats.wins_count,
   }))
@@ -524,7 +560,7 @@ export function getLiveRankings(tournamentId: string, category?: string, groupNa
 
   const groups = [...new Set(
     data.athlete_registrations
-      .filter((r) => r.tournament_id === tournamentId && r.category === cat && r.status === "approved")
+      .filter((r) => r.tournament_id === tournamentId && r.category === cat && r.status === "approved" && !r.is_waiting)
       .map((r) => r.group_name || "A")
   )]
 
@@ -537,7 +573,7 @@ export function getLiveRankings(tournamentId: string, category?: string, groupNa
 
     const sortedRegs = data.athlete_registrations
       .filter((r) => r.tournament_id === tournamentId && r.category === cat &&
-        (r.group_name || "A") === grp && r.status === "approved")
+        (r.group_name || "A") === grp && r.status === "approved" && !r.is_waiting)
       .sort((a, b) => (a.draw_number || 999) - (b.draw_number || 999))
     const athleteIds = sortedRegs.map((r) => r.athlete_id)
 
@@ -555,7 +591,9 @@ export function getLiveRankings(tournamentId: string, category?: string, groupNa
     })))
   }
 
-  return allResults.sort((a, b) => b.points - a.points || b.total_games - a.total_games)
+  return allResults.sort((a, b) =>
+    b.points - a.points || b.total_games - a.total_games || (b.saldo || 0) - (a.saldo || 0)
+  )
 }
 
 export function computeAnnualRanking(category?: string, year?: number) {
@@ -610,9 +648,14 @@ export async function recalculateTournamentResults(tournamentId: string) {
   const data = getData()
   const keys = new Set<string>()
 
-  data.tournament_results.filter((r) => r.tournament_id === tournamentId).forEach((r) => {
-    keys.add(`${r.category}|${r.group_name || "A"}`)
-  })
+  // Chaves a partir de inscrições + partidas (não só de resultados existentes,
+  // que podem ter sido invalidados por edições)
+  data.athlete_registrations
+    .filter((r) => r.tournament_id === tournamentId)
+    .forEach((r) => keys.add(`${r.category}|${r.group_name || "A"}`))
+  data.matches
+    .filter((m) => m.tournament_id === tournamentId)
+    .forEach((m) => keys.add(`${m.category}|${m.group_name || "A"}`))
 
   keys.forEach((key) => {
     const [category, groupName] = key.split("|")
@@ -632,7 +675,7 @@ export async function recalculateTournamentResults(tournamentId: string) {
     })
 
     const matches = data.matches.filter(
-      (m) => m.tournament_id === tournamentId && m.category === category && m.group_name === groupName
+      (m) => m.tournament_id === tournamentId && m.category === category && (m.group_name || "A") === groupName
     )
 
     const results = calculateTournamentResults(athleteIds, matches, athleteNames, category, groupName)
@@ -651,7 +694,8 @@ export async function recalculateTournamentResults(tournamentId: string) {
   })
 
   const categories = [...new Set(data.tournament_results.filter((r) => r.tournament_id === tournamentId).map((r) => r.category))]
-  categories.forEach((cat) => updateAnnualRankings(data, cat))
+  const y = tournamentYear(data, tournamentId)
+  categories.forEach((cat) => updateAnnualRankings(data, cat, y))
   await saveData(data)
 }
 
@@ -662,6 +706,17 @@ export async function resetAllScores(tournamentId: string, category?: string, gr
     .forEach((m) => {
       m.score_team1 = 0; m.score_team2 = 0; m.status = "pending"
     })
+  if (category) {
+    invalidateGroupResults(data, tournamentId, category, groupName || "A")
+  } else {
+    const keys = new Set<string>()
+    data.matches.filter((m) => m.tournament_id === tournamentId)
+      .forEach((m) => keys.add(`${m.category}|${m.group_name || "A"}`))
+    keys.forEach((key) => {
+      const [cat, grp] = key.split("|")
+      invalidateGroupResults(data, tournamentId, cat, grp)
+    })
+  }
   await saveData(data)
 }
 
@@ -671,10 +726,10 @@ export function getCategoryAvailability(tournamentId: string) {
   if (!tournament) return []
   return tournament.categories.map((cat) => {
     const registered = data.athlete_registrations.filter(
-      (r) => r.tournament_id === tournamentId && r.category === cat && !r.is_waiting
+      (r) => r.tournament_id === tournamentId && r.category === cat && !r.is_waiting && r.status === "approved"
     ).length
     const waiting = data.athlete_registrations.filter(
-      (r) => r.tournament_id === tournamentId && r.category === cat && r.is_waiting
+      (r) => r.tournament_id === tournamentId && r.category === cat && r.is_waiting && r.status !== "rejected"
     ).length
     return { category: cat, max: 8, registered, waiting, available: Math.max(0, 8 - registered) }
   })
@@ -722,16 +777,17 @@ export async function registerAthleteInTournament(
   if (tournament.registrations_closed) return null
   if (data.athlete_registrations.some((r) => r.tournament_id === tournamentId && r.athlete_id === athleteId)) return null
 
-  const existingCount = data.athlete_registrations.filter(
-    (r) => r.tournament_id === tournamentId && r.category === cat && !r.is_waiting
-  ).length
-  const isWaiting = existingCount >= 8
+  const catRegs = data.athlete_registrations.filter(
+    (r) => r.tournament_id === tournamentId && r.category === cat && r.status !== "rejected"
+  )
+  const filledCount = catRegs.filter((r) => !r.is_waiting).length
+  const isWaiting = filledCount >= 8
 
   const reg: AthleteRegistration = {
     id: crypto.randomUUID(), tournament_id: tournamentId, athlete_id: athleteId,
     status: paymentStatus === "paid" ? "approved" : "pending",
     payment_status: paymentStatus || (tournament.registration_fee ? "pending" : undefined),
-    registration_order: existingCount + 1, is_waiting: isWaiting,
+    registration_order: catRegs.length + 1, is_waiting: isWaiting,
     category: cat, group_name: groupName || "A",
     created_at: new Date().toISOString(),
   }
@@ -757,18 +813,18 @@ export async function registerAthleteInTournament(
 
   if (isWaiting) {
     await createNotification(athleteId, "geral", "Lista de Espera",
-      `Você está na lista de espera do ${tournamentName} (${cat}). Posição: ${existingCount + 1}ª.`)
+      `Você está na lista de espera do ${tournamentName} (${cat}). Posição: ${reg.registration_order}ª.`)
   } else {
     await createNotification(athleteId, "geral", paymentStatus === "paid" ? "Inscrição Confirmada" : "Inscrição Realizada",
       paymentStatus === "paid"
-        ? `Sua inscrição no ${tournamentName} (${cat}) foi confirmada! Posição: ${existingCount + 1}ª de 8.`
-        : `Sua inscrição no ${tournamentName} (${cat}) foi registrada! Posição: ${existingCount + 1}ª de 8.`)
+        ? `Sua inscrição no ${tournamentName} (${cat}) foi confirmada! Posição: ${reg.registration_order}ª de 8.`
+        : `Sua inscrição no ${tournamentName} (${cat}) foi registrada! Posição: ${reg.registration_order}ª de 8.`)
   }
 
   const admins = data.users.filter((u) => u.role === "admin")
   for (const admin of admins) {
     await createNotification(admin.id, "geral", "Nova Inscrição",
-      `${athleteName} se inscreveu no ${tournamentName} (${cat})${paymentStatus === "paid" ? " — PAGO" : ""} — ${isWaiting ? "Lista de Espera" : `Posição ${existingCount + 1}`}`)
+      `${athleteName} se inscreveu no ${tournamentName} (${cat})${paymentStatus === "paid" ? " — PAGO" : ""} — ${isWaiting ? "Lista de Espera" : `Posição ${reg.registration_order}`}`)
   }
 
   return reg
@@ -789,16 +845,18 @@ export async function registerMultipleAthletes(
   if (!tournament?.categories.includes(cat)) return []
   const created: AthleteRegistration[] = []
 
-  const existingCount = data.athlete_registrations.filter(
-    (r) => r.tournament_id === tournamentId && r.category === cat && !r.is_waiting
-  ).length
+  const catRegs = data.athlete_registrations.filter(
+    (r) => r.tournament_id === tournamentId && r.category === cat && r.status !== "rejected"
+  )
 
-  let order = existingCount
+  let filled = catRegs.filter((r) => !r.is_waiting).length
+  let order = catRegs.length
 
   for (const athleteId of athleteIds) {
     if (data.athlete_registrations.some((r) => r.tournament_id === tournamentId && r.athlete_id === athleteId)) continue
     order++
-    const isWaiting = order > 8
+    const isWaiting = filled >= 8
+    if (!isWaiting) filled++
     const reg: AthleteRegistration = {
       id: crypto.randomUUID(), tournament_id: tournamentId, athlete_id: athleteId,
       status: paymentStatus === "paid" ? "approved" : "pending",
@@ -858,7 +916,9 @@ export async function updateRegistrationPayment(registrationId: string, paymentS
   if (paymentStatus === "paid") {
     reg.status = "approved"
     const tournament = data.tournaments.find((t) => t.id === reg.tournament_id)
-    if (tournament?.registration_fee && !data.revenues.some((rv) => rv.tournament_id === reg.tournament_id && rv.description?.includes(reg.athlete_id))) {
+    const alreadyBilled = data.revenues.some((rv) => rv.tournament_id === reg.tournament_id &&
+      rv.created_by === reg.athlete_id && rv.source === "inscricao")
+    if (tournament?.registration_fee && !alreadyBilled) {
       const athlete = data.users.find((u) => u.id === reg.athlete_id)
       const revenue: Revenue = {
         id: crypto.randomUUID(), tournament_id: reg.tournament_id, source: "inscricao",
@@ -935,7 +995,7 @@ export async function drawNumbers(tournamentId: string, category?: string, group
 
   const registrations = data.athlete_registrations.filter(
     (r) => r.tournament_id === tournamentId && r.category === cat &&
-      (r.group_name === grp || (!r.group_name && grp === "A")) && r.status === "approved"
+      (r.group_name === grp || (!r.group_name && grp === "A")) && r.status === "approved" && !r.is_waiting
   )
 
   const numbers = [1, 2, 3, 4, 5, 6, 7, 8]
@@ -944,7 +1004,7 @@ export async function drawNumbers(tournamentId: string, category?: string, group
     ;[numbers[i], numbers[j]] = [numbers[j], numbers[i]]
   }
 
-  registrations.forEach((r, idx) => { r.draw_number = numbers[idx] })
+  registrations.forEach((r, idx) => { if (idx < numbers.length) r.draw_number = numbers[idx] })
 
   data.tournament_results = data.tournament_results.filter(
     (r) => !(r.tournament_id === tournamentId && r.category === cat && r.group_name === grp)
@@ -965,7 +1025,7 @@ export async function drawSingleNumber(tournamentId: string, category?: string, 
 
   const registrations = data.athlete_registrations.filter(
     (r) => r.tournament_id === tournamentId && r.category === cat &&
-      (r.group_name === grp || (!r.group_name && grp === "A")) && r.status === "approved"
+      (r.group_name === grp || (!r.group_name && grp === "A")) && r.status === "approved" && !r.is_waiting
   )
   const withNumber = registrations.filter((r) => r.draw_number != null)
   const withoutNumber = registrations.filter((r) => r.draw_number == null)
@@ -974,6 +1034,7 @@ export async function drawSingleNumber(tournamentId: string, category?: string, 
 
   const usedNumbers = new Set(withNumber.map((r) => r.draw_number))
   const availableNumbers = [1, 2, 3, 4, 5, 6, 7, 8].filter((n) => !usedNumbers.has(n))
+  if (availableNumbers.length === 0) return null
 
   const idx = Math.floor(Math.random() * withoutNumber.length)
   const chosen = withoutNumber[idx]
@@ -1026,7 +1087,7 @@ export async function toggleAttendance(tournamentId: string, athleteId: string) 
 export function getUnconfirmedAthletes(tournamentId: string) {
   const data = getData()
   return data.athlete_registrations
-    .filter((r) => r.tournament_id === tournamentId && r.status === "approved" && !r.confirmed)
+    .filter((r) => r.tournament_id === tournamentId && r.status === "approved" && !r.is_waiting && !r.confirmed)
     .map((r) => {
       const user = data.users.find((u) => u.id === r.athlete_id)
       return { ...r, name: user?.name || "" }
@@ -1036,7 +1097,7 @@ export function getUnconfirmedAthletes(tournamentId: string) {
 export async function sendConfirmationReminder(tournamentId: string) {
   const data = getData()
   const unconfirmed = data.athlete_registrations.filter(
-    (r) => r.tournament_id === tournamentId && r.status === "approved" && !r.confirmed
+    (r) => r.tournament_id === tournamentId && r.status === "approved" && !r.is_waiting && !r.confirmed
   )
   const tournament = data.tournaments.find((t) => t.id === tournamentId)
   for (const r of unconfirmed) {

@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Modal } from "@/components/ui/modal"
 import { Table, Td } from "@/components/ui/table"
 import * as store from "@/lib/store"
-import { formatDate, getTournamentStatusLabel, getTournamentStatusColor, exportToCSV } from "@/lib/utils"
+import { formatCurrency, formatDate, getTournamentStatusLabel, getTournamentStatusColor, exportToCSV } from "@/lib/utils"
 import type { Tournament } from "@/lib/types"
 
 const ALL_CATEGORIES = ["4e5", "6e7"]
@@ -117,7 +117,7 @@ export default function AdminTorneios() {
             <div className="flex gap-2">
               <Button size="sm" variant="secondary" onClick={() => exportToCSV(
                 ["Título","Edição","Data","Local","Status","Categorias","Taxa Inscrição"],
-                tournaments.map((t) => [t.title, t.edition, t.date, t.location || "", getTournamentStatusLabel(t.status, t.registrations_closed), (t.categories || []).join(", "), t.registration_fee ? `R$ ${t.registration_fee}` : ""]),
+                tournaments.map((t) => [t.title, t.edition, t.date, t.location || "", getTournamentStatusLabel(t.status, t.registrations_closed), (t.categories || []).join(", "), t.registration_fee ? formatCurrency(t.registration_fee) : ""]),
                 `torneios_${new Date().toISOString().slice(0, 10)}`
               )}>
                 Exportar CSV

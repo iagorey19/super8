@@ -147,11 +147,11 @@ Ao iniciar conversa em qualquer projeto, SEMPRE:
 Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (arquivo + resumo). Manter só últimas 5. Se conversa ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e reiniciar."
 
 ## Últimas Alterações
+- Pacote regra+ranking (13/09/2026): H2H com sinal corrigido; `saldo` no banco (backfill 56/56) + selo ⚖️/🤝 em todo ranking; planilha com abas por grupo/categoria + posição TS + fórmulas por ID; docs da regra verdadeira (total→saldo→confronto, sem "vencer por 2")
+- Lógica Whist (13/09/2026): espera fora de sorteio/placar/ranking, ordem sem duplicar, `max_score`≥1, resultados invalidados ao editar, `regenerate` com swap, live=final, quadras por grupo, ano civil pela data, anual normalizado; financeiro sem duplicada/órfã + validação; PIX sem DDD duplo; CSV sem injeção
+- Shell (13/09/2026): SW registrado e corrigido, offline com snapshot+aviso, `global-error`+`not-found`, `/api/logs` com auth, token fora do `sessionStorage`, papéis nos layouts, PWA/iOS corrigidos; backup em `$env:TEMP\super8-data-20260913.json`
 - Warns zerados (12/09/2026): 50 `set-state-in-effect` convertidos p/ async-guarded (microtask+cancelled, semântica idêntica) + 13 `exhaustive-deps` via `useCallback` + 12 `<img>`→`next/image` (remotePatterns supabase, `fill`/`unoptimized` onde precisa); eslint 0/0, `GOOGLE_*` removido do debug; backup em `$env:TEMP\super8-data-20260912.json`
 - Senha vazada sem Pro: `src/lib/hibp.ts` (HaveIBeenPwned k-anonymity, fail-open) wired em register + troca + reset; proteção nativa do Supabase é Pro+ (doc confirmada)
-- Pós-auditoria 12/09/2026: `EXEC_SQL_SECRET` removido (Vercel + `.env.local`) + redeploy, `hasExecSqlSecret:false` em prod; `.env.local` sem BOM e sem vars TURBO/VERCEL (`supabase db push` voltou a funcionar, histórico alinhado); `exec_sql_with_secret.sql` virou registro histórico
-- Auditoria completa 12/09/2026 (P0): `POST/PUT /api/auth/password` — reset e troca de senha no servidor (bcrypt+Auth sync); `reset-password/page` sem service_role no browser; `updateAthlete` sem bcrypt client-side; `exec_sql` removido do banco (vazava secret nos postgres logs) + REVOKE/search_path nas RPCs debug
-- Auditoria (P1): `isSafeRedirect` só interno (fim do open redirect); `admin-register` espelha `public.users`; storage `photos` INSERT só `authenticated`; `winner_id` anulável + `recordRaffle` vincula atleta; `seed` insere mesmo sem senha; `/api/debug/all` exige admin em prod; editions normalizadas (4ª/5ª)
 
 ## Regras de Código
 - **NÃO usar `any`** — Nunca usar `any`, `any[]`, `as any` em nenhum arquivo TypeScript. Usar tipos específicos, `unknown`, `Record<string, unknown>`, ou tipos de `src/lib/types.ts`. Supabase queries: usar `as unknown as { ... }` com tipos reais.

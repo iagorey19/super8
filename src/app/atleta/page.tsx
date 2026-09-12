@@ -11,7 +11,7 @@ import { Modal } from "@/components/ui/modal"
 import * as store from "@/lib/store"
 import { sanitizeUrl } from "@/lib/validate-url"
 import { useToast } from "@/components/ui/toast"
-import { formatDate, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
+import { formatCurrency, formatDate, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
 import type { Tournament, AthleteRegistration, RaffleRecord, SponsorshipWithDetails, ApoiadorWithBrindes, Brinde } from "@/lib/types"
 
 export default function AthleteDashboard() {
@@ -199,7 +199,7 @@ export default function AthleteDashboard() {
               </p>
               {tournament.registration_fee && (
                 <p className="text-sm text-amber-700 dark:text-amber-300">
-                  Taxa: R$ {tournament.registration_fee.toFixed(2)}
+                  Taxa: {formatCurrency(tournament.registration_fee)}
                 </p>
               )}
               <Link href={`/eventos/${tournament.id}`}>
@@ -237,7 +237,7 @@ export default function AthleteDashboard() {
                   </p>
                   {t.registration_fee && (
                     <p className="text-sm text-amber-700 dark:text-amber-300">
-                      Taxa: R$ {t.registration_fee.toFixed(2)}
+                      Taxa: {formatCurrency(t.registration_fee)}
                     </p>
                   )}
                   <Link href={`/eventos/${t.id}`}>

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next"
 import { Providers } from "@/components/providers"
 import { ErrorLogger } from "@/components/error-logger"
 import { VersionCheck } from "@/components/version-check"
+import { ServiceWorkerRegister } from "@/components/service-worker-register"
 import { DataLoader } from "@/components/data-loader"
 import { PWAPrompt } from "@/components/pwa-prompt"
 import "./globals.css"
@@ -14,9 +15,9 @@ export const metadata: Metadata = {
   description: "Aplicativo Oficial Do Evento",
   manifest: "/manifest.json",
   icons: { apple: "/logo.jpg" },
-  other: {
-    "apple-mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-status-bar-style": "black-translucent",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
   },
   openGraph: {
     type: "website",
@@ -58,13 +59,14 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if(localStorage.getItem("super8-theme-v2")==='"dark"'||(!localStorage.getItem("super8-theme-v2")&&window.matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.classList.add("dark")}catch(e){}`,
+            __html: `try{var t=localStorage.getItem("super8-theme-v2");if(t==='"dark"'||t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme:dark)").matches))document.documentElement.classList.add("dark")}catch(e){}`,
           }}
         />
       </head>
       <body className="min-h-full antialiased bg-gray-50 dark:bg-gray-950">
         <ErrorLogger />
         <VersionCheck />
+        <ServiceWorkerRegister />
         <DataLoader>
           <Providers>{children}</Providers>
         </DataLoader>

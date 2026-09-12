@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select } from "@/components/ui/select"
 import { Table, Td } from "@/components/ui/table"
 import * as store from "@/lib/store"
-import { formatCurrency, getStatusColor, getStatusLabel } from "@/lib/utils"
+import { formatCurrency, getStatusColor, getStatusLabel, tiebreakSeal } from "@/lib/utils"
 import { sanitizeUrl } from "@/lib/validate-url"
 import type { Tournament, Photo, TournamentResult, Match, Apoiador, Brinde, RaffleRecord, SponsorshipWithDetails } from "@/lib/types"
 
@@ -153,11 +153,19 @@ export default function SponsorResults() {
             {rankings.length === 0 ? (
               <p className="text-gray-500 dark:text-gray-400 text-center py-4">Resultados ainda não disponíveis.</p>
             ) : (
-              <Table headers={["Posição", "Atleta", "Categoria", "Total Games", "Pontos"]}>
-                {rankings.map((r) => (
+              <Table headers={["Posição", "Atleta", "Categoria", "Total Games", "Saldo", "Pontos"]}>
+                {rankings.map((r, idx) => {
+                  const prev = idx > 0 ? rankings[idx - 1] : undefined
+                  const sameGroup = !!prev && prev.category === r.category && (prev.group_name || "A") === (r.group_name || "A")
+                  const seal = sameGroup && prev ? tiebreakSeal(prev, r) : null
+                  return (
                   <tr key={r.athlete_id}>
                     <Td className="font-semibold">{r.position}º</Td>
-                    <Td>{r.name}</Td>
+                    <Td>
+                      {r.name}
+                      {seal === "saldo" && <span title="Desempate por saldo de games" className="text-xs ml-1">⚖️</span>}
+                      {seal === "h2h" && <span title="Desempate por confronto direto" className="text-xs ml-1">🤝</span>}
+                    </Td>
                     <Td>
                       {r.category ? (
                         <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300">
@@ -168,9 +176,11 @@ export default function SponsorResults() {
                       )}
                     </Td>
                     <Td>{r.total_games}</Td>
+                    <Td className="text-gray-600 dark:text-gray-400">{r.saldo ?? "-"}</Td>
                     <Td className="font-semibold">{r.points}</Td>
                   </tr>
-                ))}
+                  )
+                })}
               </Table>
             )}
           </Card>

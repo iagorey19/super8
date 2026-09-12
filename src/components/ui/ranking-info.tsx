@@ -45,6 +45,7 @@ export function RankingInfo() {
               <li><strong>Saldo</strong> — diferença entre games marcados e sofridos (scored - conceded)</li>
               <li><strong>Confronto direto</strong> — quem venceu mais vezes o duelo direto entre os atletas empatados</li>
             </ol>
+            <p className="mt-2 text-xs">Na tabela, a coluna <strong>Saldo</strong> mostra o critério 2 e os selos <strong>⚖️</strong> (decidido no saldo) e <strong>🤝</strong> (decidido no confronto) marcam quem passou pelo desempate.</p>
           </div>
 
           <div>

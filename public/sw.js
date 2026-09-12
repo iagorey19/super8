@@ -1,4 +1,4 @@
-const CACHE = "super8-v1"
+const CACHE = "super8-v2"
 
 self.addEventListener("install", () => {
   self.skipWaiting()
@@ -6,11 +6,13 @@ self.addEventListener("install", () => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
-    )
+    Promise.all([
+      caches.keys().then((keys) =>
+        Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+      ),
+      self.clients.claim(),
+    ])
   )
-  event.waitUntil(self.clients.claim())
 })
 
 self.addEventListener("fetch", (event) => {
@@ -29,13 +31,26 @@ self.addEventListener("fetch", (event) => {
     return
   }
 
+  // Só GET navegacional/estático; nunca guarda erro
+  if (request.method !== "GET") return
+
   event.respondWith(
     fetch(request.clone())
       .then((response) => {
-        const clone = response.clone()
-        caches.open(CACHE).then((cache) => cache.put(request, clone))
+        if (response.ok) {
+          const clone = response.clone()
+          caches.open(CACHE).then((cache) => cache.put(request, clone))
+        }
         return response
       })
-      .catch(() => caches.match(request))
+      .catch(async () => {
+        const cached = await caches.match(request)
+        if (cached) return cached
+        if (request.mode === "navigate") {
+          const shell = await caches.match("/")
+          if (shell) return shell
+        }
+        return Response.error()
+      })
   )
 })

@@ -17,19 +17,23 @@ export function getData(): AppData {
   return db.getData()
 }
 
+export function setData(data: AppData) {
+  db.setData(data)
+}
+
 export async function saveData(data: AppData) {
   db.setData(data)
   const currentSnapshot = JSON.stringify(data)
 
   if (!lastPersistedSnapshot) {
     for (const key of Object.keys(data)) {
-      if (key === "seed_version" || key === "config") continue
+      if (key === "seed_version") continue
       db.markDirty(key)
     }
   } else {
     const oldData = JSON.parse(lastPersistedSnapshot)
     for (const key of Object.keys(data)) {
-      if (key === "seed_version" || key === "config") continue
+      if (key === "seed_version") continue
       if (JSON.stringify((oldData as Record<string, unknown>)[key]) !== JSON.stringify((data as Record<string, unknown>)[key])) {
         db.markDirty(key)
       }

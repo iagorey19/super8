@@ -1,5 +1,6 @@
 import type { User } from "../types"
 import { getData, saveData } from "./core"
+import { getSessionToken } from "../db"
 
 export function getUserName(id: string): string {
   const data = getData()
@@ -79,6 +80,9 @@ export async function deleteUser(id: string) {
   data.annual_rankings = data.annual_rankings.filter((r) => r.athlete_id !== id)
   data.notifications = data.notifications.filter((n) => n.user_id !== id)
   data.sponsorships = data.sponsorships.filter((s) => s.sponsor_id !== id)
+  data.revenues = data.revenues.filter((r) => r.created_by !== id)
+  data.expenses = data.expenses.filter((e) => e.created_by !== id)
+  data.photos = data.photos.filter((p) => p.uploaded_by !== id)
   await saveData(data)
 }
 
@@ -93,13 +97,8 @@ export async function updateAthlete(athleteId: string, updates: { name?: string;
     if (!updates.currentPassword) return "Senha atual é obrigatória para alterar a senha"
     try {
       const headers: Record<string, string> = { "Content-Type": "application/json" }
-      if (typeof window !== "undefined") {
-        const stored = sessionStorage.getItem("super8-session")
-        if (stored) {
-          const parsed = JSON.parse(stored)
-          if (parsed.token) headers["Authorization"] = `Bearer ${parsed.token}`
-        }
-      }
+      const token = getSessionToken()
+      if (token) headers["Authorization"] = `Bearer ${token}`
       const res = await fetch("/api/auth/password", {
         method: "POST",
         headers,

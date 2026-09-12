@@ -29,6 +29,15 @@ function textWidth(ctx: CanvasRenderingContext2D, text: string, size: number, bo
   return ctx.measureText(text).width
 }
 
+function fitText(ctx: CanvasRenderingContext2D, text: string, maxW: number, size: number): { text: string; size: number } {
+  let s = size
+  while (s > 9 && textWidth(ctx, text, s, false) > maxW) s -= 1
+  let t = text
+  while (t.length > 4 && textWidth(ctx, t, s, false) > maxW) t = t.slice(0, -2)
+  if (t !== text) t = t.slice(0, -1) + "…"
+  return { text: t, size: s }
+}
+
 function drawDataCell(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, cell: GridCell) {
   const padX = 8
   const maxW = w - padX * 2
@@ -43,39 +52,45 @@ function drawDataCell(ctx: CanvasRenderingContext2D, x: number, y: number, w: nu
   ctx.fillStyle = "#ffffff"
   ctx.fillRect(x, y, w, h)
 
-  const w1 = textWidth(ctx, l1, fontSize, false)
-  const w3 = textWidth(ctx, l3, fontSize, false)
+  const f1 = fitText(ctx, l1, maxW, fontSize)
+  const f3 = fitText(ctx, l3, maxW, fontSize)
+  const w1 = textWidth(ctx, f1.text, f1.size, false)
+  const w3 = textWidth(ctx, f3.text, f3.size, false)
 
   if (w1 <= maxW && w3 <= maxW) {
     const total = 3
     const lineH = h / total
     ctx.fillStyle = colorText
-    ctx.font = `${fontSize}px 'Segoe UI', Arial, sans-serif`
+    ctx.font = `${f1.size}px 'Segoe UI', Arial, sans-serif`
     ctx.textAlign = "center"
     ctx.textBaseline = "middle"
-    ctx.fillText(l1, x + w / 2, y + lineH * 0 + lineH / 2)
+    ctx.fillText(f1.text, x + w / 2, y + lineH * 0 + lineH / 2)
     ctx.fillStyle = colorVs
     ctx.font = `${vsSize}px 'Segoe UI', Arial, sans-serif`
     ctx.fillText("vs", x + w / 2, y + lineH * 1 + lineH / 2)
     ctx.fillStyle = colorText
-    ctx.font = `${fontSize}px 'Segoe UI', Arial, sans-serif`
-    ctx.fillText(l3, x + w / 2, y + lineH * 2 + lineH / 2)
+    ctx.font = `${f3.size}px 'Segoe UI', Arial, sans-serif`
+    ctx.fillText(f3.text, x + w / 2, y + lineH * 2 + lineH / 2)
   } else {
     const total = 5
     const lineH = h / total
-    ctx.font = `${fontSize}px 'Segoe UI', Arial, sans-serif`
+    const names = [cell.team1[0], cell.team1[1], cell.team2[0], cell.team2[1]]
+      .map((n) => fitText(ctx, n, maxW, fontSize))
     ctx.textAlign = "center"
     ctx.textBaseline = "middle"
     ctx.fillStyle = colorText
-    ctx.fillText(cell.team1[0], x + w / 2, y + lineH * 0 + lineH / 2)
-    ctx.fillText(cell.team1[1], x + w / 2, y + lineH * 1 + lineH / 2)
+    ctx.font = `${names[0].size}px 'Segoe UI', Arial, sans-serif`
+    ctx.fillText(names[0].text, x + w / 2, y + lineH * 0 + lineH / 2)
+    ctx.font = `${names[1].size}px 'Segoe UI', Arial, sans-serif`
+    ctx.fillText(names[1].text, x + w / 2, y + lineH * 1 + lineH / 2)
     ctx.fillStyle = colorVs
     ctx.font = `${vsSize}px 'Segoe UI', Arial, sans-serif`
     ctx.fillText("vs", x + w / 2, y + lineH * 2 + lineH / 2)
     ctx.fillStyle = colorText
-    ctx.font = `${fontSize}px 'Segoe UI', Arial, sans-serif`
-    ctx.fillText(cell.team2[0], x + w / 2, y + lineH * 3 + lineH / 2)
-    ctx.fillText(cell.team2[1], x + w / 2, y + lineH * 4 + lineH / 2)
+    ctx.font = `${names[2].size}px 'Segoe UI', Arial, sans-serif`
+    ctx.fillText(names[2].text, x + w / 2, y + lineH * 3 + lineH / 2)
+    ctx.font = `${names[3].size}px 'Segoe UI', Arial, sans-serif`
+    ctx.fillText(names[3].text, x + w / 2, y + lineH * 4 + lineH / 2)
   }
 }
 

@@ -99,6 +99,7 @@ export interface TournamentResult {
   athlete_id: string
   round_scores: number[]
   total_games: number
+  saldo?: number
   position: number
   points: number
 }
@@ -142,16 +143,17 @@ export interface Expense {
 
 export type RevenueSource = "patrocinio" | "inscricao" | "outros"
 
-export interface Revenue {
-  id: string
-  tournament_id: string
-  source: RevenueSource
-  amount: number
-  description: string
-  date: string
-  created_by: string
-  created_at: string
-}
+  export interface Revenue {
+    id: string
+    tournament_id: string
+    source: RevenueSource
+    amount: number
+    description: string
+    date: string
+    created_by: string
+    sponsorship_id?: string
+    created_at: string
+  }
 
 export interface Photo {
   id: string

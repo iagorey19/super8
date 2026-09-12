@@ -2,23 +2,20 @@
   "name": "THE SUPER 8",
   "short_name": "THE SUPER 8",
   "description": "Aplicativo Oficial Do Evento",
+  "id": "/",
+  "scope": "/",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#f9fafb",
   "theme_color": "#d97706",
   "lang": "pt-BR",
   "icons": [
     {
       "src": "/logo.jpg",
-      "sizes": "192x192",
+      "sizes": "419x419",
       "type": "image/jpeg",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/logo.jpg",
-      "sizes": "512x512",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }

@@ -9,7 +9,7 @@ export function buildGridFromMatches(
   groupName: string,
   courtNames: string[]
 ): GradeData {
-  const rounds = [1, 2, 3, 4, 5, 6, 7]
+  const rounds = WHIST_SCHEDULE.map((s) => s.round)
   const filtered = matches.filter(
     (m) => m.category === category && (m.group_name || "A") === groupName
   )
@@ -33,7 +33,7 @@ export function buildGridFromRegistrations(
   courtNames: string[],
   courtOffset: number = 0
 ): GradeData {
-  const rounds = [1, 2, 3, 4, 5, 6, 7]
+  const rounds = WHIST_SCHEDULE.map((s) => s.round)
   const gridCells: GridCell[] = []
 
   const withNumbers = registrations.filter((r) => r.draw_number != null)
@@ -98,5 +98,10 @@ export function generateCSV(gridCells: GridCell[], uniqueCourts: string[], round
     })
     rows.push([label, ...cols])
   })
-  return rows.map((r) => r.map((c) => `"${c}"`).join(",")).join("\n")
+  // Aspas duplicadas + neutraliza fórmula inicial (=,+,-,@) — CSV injection
+  const escape = (c: string) => {
+    const t = /^[=+\-@]/.test(c.trim()) ? `'${c}` : c
+    return `"${t.replace(/"/g, '""')}"`
+  }
+  return rows.map((r) => r.map(escape).join(";")).join("\r\n")
 }

@@ -64,8 +64,18 @@ export async function exportGradePDF(
   const dataUrl = canvas.toDataURL("image/png")
   const pdf = new jsPDF("l", "mm", "a4")
   const pdfWidth = pdf.internal.pageSize.getWidth()
+  const pageHeight = pdf.internal.pageSize.getHeight()
   const pdfHeight = (canvas.height / 3 * pdfWidth) / (canvas.width / 3)
-  pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight)
+  // Cabe na página: se a altura estourar, ajusta pela altura e centraliza
+  let w = pdfWidth
+  let h = pdfHeight
+  let x = 0
+  if (h > pageHeight) {
+    h = pageHeight
+    w = (canvas.width / 3 * pageHeight) / (canvas.height / 3)
+    x = (pdfWidth - w) / 2
+  }
+  pdf.addImage(dataUrl, "PNG", x, 0, w, h)
   pdf.save(`grade-${category}-grupo-${groupName}.pdf`)
 }
 

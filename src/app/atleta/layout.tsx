@@ -24,7 +24,10 @@ export default function AthleteLayout({
   const pathname = usePathname()
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (loading) return
+    if (!user) {
+      router.push("/")
+    } else if (user.role !== "athlete" && user.role !== "admin") {
       router.push("/")
     }
   }, [user, loading, router])
@@ -38,6 +41,17 @@ export default function AthleteLayout({
   }
 
   if (!user) return null
+
+  if (user.role !== "athlete" && user.role !== "admin") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-6">
+        <div className="text-center space-y-3">
+          <p className="text-lg font-semibold text-gray-900 dark:text-white">Acesso restrito</p>
+          <p className="text-sm text-gray-500">Esta área é só para atletas.</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-16">

@@ -1,4 +1,6 @@
 import * as store from "./store"
+import { calculateTournamentResults } from "./chaveamento"
+import { tiebreakSeal } from "./utils"
 
 export async function exportTournamentSpreadsheet(tournamentId: string) {
   const XLSX = await import("xlsx")
@@ -24,13 +26,14 @@ export async function exportTournamentSpreadsheet(tournamentId: string) {
 
   const wb = XLSX.utils.book_new()
 
-  // ── Sheet 1: Jogos ──
-  // Col:  A         B       C        D        E (Jog1 TA)  F (Jog2 TA)  G (Jog1 TB)  H (Jog2 TB)  I (Placar A)  J (Placar B)  K (Vit A)  L (Vit B)
+  // ── Sheet 1: Jogos (global; inclui IDs ocultos p/ fórmulas por ID) ──
+  // Col:  A         B       C        D        E (Jog1 TA)  F (Jog2 TA)  G (Jog1 TB)  H (Jog2 TB)  I (Placar A)  J (Placar B)  K (Vit A)  L (Vit B)  M-P (IDs ocultos)
   const header = [
     "Categoria", "Grupo", "Rodada", "Quadra",
     "Jogador 1 (Time A)", "Jogador 2 (Time A)",
     "Jogador 1 (Time B)", "Jogador 2 (Time B)",
     "Placar A", "Placar B", "Vit A", "Vit B",
+    "ID1A", "ID2A", "ID1B", "ID2B",
   ]
 
   const data: (string | number)[][] = [header]
@@ -48,6 +51,8 @@ export async function exportTournamentSpreadsheet(tournamentId: string) {
       getName(m.team2_player2_id),
       m.status !== "pending" ? m.score_team1 : "",
       m.status !== "pending" ? m.score_team2 : "",
+      "", "",
+      m.team1_player1_id, m.team1_player2_id, m.team2_player1_id, m.team2_player2_id,
     ])
   }
 
@@ -56,6 +61,7 @@ export async function exportTournamentSpreadsheet(tournamentId: string) {
     { wch: 18 }, { wch: 8 }, { wch: 9 }, { wch: 14 },
     { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 },
     { wch: 10 }, { wch: 10 }, { wch: 7 }, { wch: 7 },
+    { hidden: true }, { hidden: true }, { hidden: true }, { hidden: true },
   ]
 
   const lastDataRow = data.length
@@ -66,71 +72,91 @@ export async function exportTournamentSpreadsheet(tournamentId: string) {
 
   XLSX.utils.book_append_sheet(wb, ws1, "Jogos")
 
-  // ── Sheet 2: Classificação ──
-  const playerMap = new Map<string, { name: string }>()
-
+  // ── Classificação: uma aba por (categoria, grupo) existente; aba única se só houver 1 ──
+  const combos: { category: string; group: string }[] = []
   for (const m of sorted) {
-    const ids = [m.team1_player1_id, m.team1_player2_id, m.team2_player1_id, m.team2_player2_id]
-    for (const id of ids) {
-      if (!playerMap.has(id)) {
-        playerMap.set(id, { name: getName(id) })
+    const category = m.category || "4e5"
+    const group = m.group_name || "A"
+    if (!combos.some((c) => c.category === category && c.group === group)) {
+      combos.push({ category, group })
+    }
+  }
+
+  const catLabel = (cat: string) => cat === "4e5" ? "Categoria 4e5" : "Categoria 6e7"
+
+  for (const combo of combos) {
+    const groupMatches = sorted.filter(
+      (m) => (m.category || "4e5") === combo.category && (m.group_name || "A") === combo.group
+    )
+    if (groupMatches.length === 0) continue
+
+    const ids = [...new Set(groupMatches.flatMap((m) =>
+      [m.team1_player1_id, m.team1_player2_id, m.team2_player1_id, m.team2_player2_id]))]
+    const names: Record<string, string> = {}
+    ids.forEach((id) => { names[id] = getName(id) })
+
+    // Ordem oficial (games → saldo → confronto), igual à tela
+    const ordered = calculateTournamentResults(ids, groupMatches, names, combo.category, combo.group)
+
+    const sheetName = combos.length === 1
+      ? "Classificação"
+      : `Classif ${combo.category} ${combo.group}`.slice(0, 31)
+
+    const classifHeader = ["ID", "Nome", "Jogos", "Vitórias", "Games Pró", "Games Contra", "Saldo", "Posição", "Critério"]
+    const classifData: (string | number)[][] = [classifHeader]
+    for (const r of ordered) classifData.push([r.athlete_id, names[r.athlete_id] || r.athlete_id])
+
+    const ws = XLSX.utils.aoa_to_sheet(classifData)
+    ws["!cols"] = [
+      { hidden: true }, { wch: 24 }, { wch: 8 }, { wch: 10 }, { wch: 11 },
+      { wch: 14 }, { wch: 8 }, { wch: 9 }, { wch: 10 },
+    ]
+
+    const S = "Jogos"
+    // Cols na aba Jogos: A=categoria, B=grupo, I/J=placares, K/L=vits, M-P=IDs
+    const catCol = `${S}!A:A`
+    const grpCol = `${S}!B:B`
+    const scA = `${S}!I:I`
+    const scB = `${S}!J:J`
+    const wA = `${S}!K:K`
+    const wB = `${S}!L:L`
+    const idCols = [`${S}!M:M`, `${S}!N:N`, `${S}!O:O`, `${S}!P:P`]
+    const catVal = `"${catLabel(combo.category)}"`
+    const grpVal = `"${combo.group}"`
+
+    const countIfs = (col: string, id: string) =>
+      `COUNTIFS(${col},${id},${catCol},${catVal},${grpCol},${grpVal})`
+    const sumIfs = (valCol: string, col: string, id: string) =>
+      `SUMIFS(${valCol},${col},${id},${catCol},${catVal},${grpCol},${grpVal})`
+
+    ordered.forEach((r, i) => {
+      const row = i + 2
+      const id = `A${row}`
+      const nm = `B${row}`
+      // Jogos e vitórias por ID (sem colisão de homônimos), só da categoria+grupo da aba
+      ws[`C${row}`] = { f: `IF(${nm}="","",${idCols.map((c) => countIfs(c, id)).join("+")})` }
+      ws[`D${row}`] = {
+        f: `IF(${nm}="","",${sumIfs(wA, idCols[0], id)}+${sumIfs(wA, idCols[1], id)}+${sumIfs(wB, idCols[2], id)}+${sumIfs(wB, idCols[3], id)})`,
       }
-    }
+      ws[`E${row}`] = {
+        f: `IF(${nm}="","",${sumIfs(scA, idCols[0], id)}+${sumIfs(scA, idCols[1], id)}+${sumIfs(scB, idCols[2], id)}+${sumIfs(scB, idCols[3], id)})`,
+      }
+      ws[`F${row}`] = {
+        f: `IF(${nm}="","",${sumIfs(scB, idCols[0], id)}+${sumIfs(scB, idCols[1], id)}+${sumIfs(scA, idCols[2], id)}+${sumIfs(scA, idCols[3], id)})`,
+      }
+      ws[`G${row}`] = { f: `IF(${nm}="","",E${row}-F${row})` }
+      // Posição e critério vêm do cálculo oficial (inclui confronto direto)
+      ws[`H${row}`] = r.position
+      const prev = i > 0 ? ordered[i - 1] : undefined
+      const seal = tiebreakSeal(
+        prev ? { total_games: prev.total_games, saldo: prev.saldo } : undefined,
+        { total_games: r.total_games, saldo: r.saldo }
+      )
+      ws[`I${row}`] = seal === "saldo" ? "saldo" : seal === "h2h" ? "confronto" : ""
+    })
+
+    XLSX.utils.book_append_sheet(wb, ws, sheetName)
   }
-
-  const players = Array.from(playerMap.values())
-
-  const classifHeader = ["Nome", "Jogos", "Vitórias", "Games Pró", "Games Contra", "Saldo", "Posição"]
-  const classifData: (string | number)[][] = [classifHeader]
-  for (const p of players) classifData.push([p.name])
-
-  const ws2 = XLSX.utils.aoa_to_sheet(classifData)
-  ws2["!cols"] = [
-    { wch: 24 }, { wch: 8 }, { wch: 10 }, { wch: 11 }, { wch: 14 }, { wch: 8 }, { wch: 9 },
-  ]
-
-  const S = "Jogos"
-  const lastPlayerRow = classifData.length
-
-  // Column refs in Jogos sheet:
-  // E:F = Team A players, G:H = Team B players
-  // I = Placar A (Team A score), J = Placar B (Team B score)
-  // K = Vit A (1 if A won), L = Vit B (1 if B won)
-  const p1 = `${S}!E:E`   // Team A player 1
-  const p2 = `${S}!F:F`   // Team A player 2
-  const p3 = `${S}!G:G`   // Team B player 1
-  const p4 = `${S}!H:H`   // Team B player 2
-  const scA = `${S}!I:I`  // Placar A
-  const scB = `${S}!J:J`  // Placar B
-  const wA  = `${S}!K:K`  // Win A
-  const wB  = `${S}!L:L`  // Win B
-
-  for (let r = 2; r <= lastPlayerRow; r++) {
-    const a = `A${r}`
-
-    // Games = COUNTIF on each player column
-    ws2[`B${r}`] = {
-      f: `IF(${a}="","",COUNTIF(${p1},${a})+COUNTIF(${p2},${a})+COUNTIF(${p3},${a})+COUNTIF(${p4},${a}))`,
-    }
-    // Wins = SUMIF on TeamA cols (E,F) → WinA(K) + SUMIF on TeamB cols (G,H) → WinB(L)
-    ws2[`C${r}`] = {
-      f: `IF(${a}="","",SUMIF(${p1},${a},${wA})+SUMIF(${p2},${a},${wA})+SUMIF(${p3},${a},${wB})+SUMIF(${p4},${a},${wB}))`,
-    }
-    // Points For = SUMIF on TeamA cols → ScoreA(I) + SUMIF on TeamB cols → ScoreB(J)
-    ws2[`D${r}`] = {
-      f: `IF(${a}="","",SUMIF(${p1},${a},${scA})+SUMIF(${p2},${a},${scA})+SUMIF(${p3},${a},${scB})+SUMIF(${p4},${a},${scB}))`,
-    }
-    // Points Against = SUMIF on TeamA cols → ScoreB(J) + SUMIF on TeamB cols → ScoreA(I)
-    ws2[`E${r}`] = {
-      f: `IF(${a}="","",SUMIF(${p1},${a},${scB})+SUMIF(${p2},${a},${scB})+SUMIF(${p3},${a},${scA})+SUMIF(${p4},${a},${scA}))`,
-    }
-    // Saldo
-    ws2[`F${r}`] = { f: `IF(${a}="","",D${r}-E${r})` }
-    // Position (rank by Games Pro descending, then Saldo)
-    ws2[`G${r}`] = { f: `IF(${a}="","",RANK(F${r},F:F)+SUMPRODUCT((F:F=F${r})*(D:D>D${r}))/SUMPRODUCT((F:F=F${r})*1))` }
-  }
-
-  XLSX.utils.book_append_sheet(wb, ws2, "Classificação")
 
   const safeName = (t.title + " " + t.edition).replace(/[^a-zA-Z0-9 _-]/g, "").trim()
   XLSX.writeFile(wb, `${safeName}.xlsx`)

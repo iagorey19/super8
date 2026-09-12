@@ -3,6 +3,12 @@ import { getData, saveData } from "./core"
 
 // --- Sponsors ---
 
+function assertMoney(amount: number, date: string, description?: string) {
+  if (!Number.isFinite(amount) || amount <= 0) throw new Error("Valor deve ser maior que zero")
+  if (!date) throw new Error("Data obrigatória")
+  if (description !== undefined && !description.trim()) throw new Error("Descrição obrigatória")
+}
+
 export async function createSponsor(name: string, email: string, password: string, phone: string, url?: string): Promise<User> {
   const data = getData()
   const sponsor: User = {
@@ -28,6 +34,10 @@ export async function updateSponsor(sponsorId: string, updates: { name?: string;
 
 export async function deleteSponsor(sponsorId: string) {
   const data = getData()
+  const ownSponsorshipIds = new Set(data.sponsorships.filter((s) => s.sponsor_id === sponsorId).map((s) => s.id))
+  data.revenues = data.revenues.filter((r) =>
+    !(r.source === "patrocinio" && (ownSponsorshipIds.has(r.sponsorship_id || "") || r.created_by === sponsorId))
+  )
   data.sponsorships = data.sponsorships.filter((s) => s.sponsor_id !== sponsorId)
   data.users = data.users.filter((u) => u.id !== sponsorId)
   await saveData(data)
@@ -39,6 +49,7 @@ export async function createSponsorship(
   tournamentId: string, sponsorId: string, tier: SponsorTier, amount: number,
   description: string, createdBy?: string, date?: string
 ): Promise<Sponsorship> {
+  assertMoney(amount, date || "x")
   const data = getData()
   const sponsorship: Sponsorship = {
     id: crypto.randomUUID(), tournament_id: tournamentId, sponsor_id: sponsorId,
@@ -52,7 +63,8 @@ export async function createSponsorship(
     id: crypto.randomUUID(), tournament_id: tournamentId, source: "patrocinio",
     amount, description: revenueDesc,
     date: date || new Date().toISOString().split("T")[0],
-    created_by: createdBy || sponsorId, created_at: new Date().toISOString(),
+    created_by: createdBy || sponsorId, sponsorship_id: sponsorship.id,
+    created_at: new Date().toISOString(),
   }
   data.revenues.push(revenue)
 
@@ -64,10 +76,21 @@ export async function updateSponsorship(id: string, updates: { tier?: SponsorTie
   const data = getData()
   const sponsorship = data.sponsorships.find((s) => s.id === id)
   if (!sponsorship) return
+  if (updates.amount !== undefined && (!Number.isFinite(updates.amount) || updates.amount <= 0)) {
+    throw new Error("Valor deve ser maior que zero")
+  }
   if (updates.tier !== undefined) sponsorship.tier = updates.tier
   if (updates.amount !== undefined) sponsorship.amount = updates.amount
   if (updates.description !== undefined) sponsorship.description = updates.description
   if (updates.tournament_id !== undefined) sponsorship.tournament_id = updates.tournament_id
+  // Sincroniza a receita vinculada
+  const linked = data.revenues.find((r) => r.sponsorship_id === id)
+  if (linked) {
+    linked.amount = sponsorship.amount
+    const sponsor = data.users.find((u) => u.id === sponsorship.sponsor_id)
+    linked.description = sponsorship.description || `Patrocínio ${sponsor?.name || "Desconhecido"}`
+    linked.tournament_id = sponsorship.tournament_id
+  }
   await saveData(data)
 }
 
@@ -76,8 +99,12 @@ export async function deleteSponsorship(sponsorshipId: string) {
   const sponsorship = data.sponsorships.find((s) => s.id === sponsorshipId)
   data.sponsorships = data.sponsorships.filter((s) => s.id !== sponsorshipId)
   if (sponsorship) {
+    const sponsor = data.users.find((u) => u.id === sponsorship.sponsor_id)
+    const legacyDesc = sponsorship.description || `Patrocínio ${sponsor?.name || "Desconhecido"}`
     data.revenues = data.revenues.filter(
-      (r) => !(r.tournament_id === sponsorship.tournament_id && r.source === "patrocinio" && r.amount === sponsorship.amount && r.created_at === sponsorship.created_at)
+      (r) => !(r.sponsorship_id === sponsorshipId ||
+        (r.tournament_id === sponsorship.tournament_id && r.source === "patrocinio" &&
+          r.amount === sponsorship.amount && r.description === legacyDesc))
     )
   }
   await saveData(data)
@@ -105,6 +132,7 @@ export function getSponsorTournaments(sponsorId: string): Tournament[] {
 // --- Expenses ---
 
 export async function createExpense(tournamentId: string, category: ExpenseCategory, description: string, amount: number, date: string, createdBy: string): Promise<Expense> {
+  assertMoney(amount, date, description)
   const data = getData()
   const expense: Expense = {
     id: crypto.randomUUID(), tournament_id: tournamentId, category,
@@ -120,6 +148,10 @@ export async function updateExpense(id: string, updates: { category?: ExpenseCat
   const data = getData()
   const expense = data.expenses.find((e) => e.id === id)
   if (!expense) return
+  if (updates.amount !== undefined && (!Number.isFinite(updates.amount) || updates.amount <= 0)) {
+    throw new Error("Valor deve ser maior que zero")
+  }
+  if (updates.description !== undefined && !updates.description.trim()) throw new Error("Descrição obrigatória")
   Object.assign(expense, updates)
   await saveData(data)
 }
@@ -151,6 +183,7 @@ export function getExpensesByCategory(tournamentId?: string) {
 // --- Revenues ---
 
 export async function createRevenue(tournamentId: string, source: RevenueSource, amount: number, description: string, date: string, createdBy: string): Promise<Revenue> {
+  assertMoney(amount, date, description)
   const data = getData()
   const revenue: Revenue = {
     id: crypto.randomUUID(), tournament_id: tournamentId, source,
@@ -166,6 +199,10 @@ export async function updateRevenue(id: string, updates: { source?: RevenueSourc
   const data = getData()
   const revenue = data.revenues.find((r) => r.id === id)
   if (!revenue) return
+  if (updates.amount !== undefined && (!Number.isFinite(updates.amount) || updates.amount <= 0)) {
+    throw new Error("Valor deve ser maior que zero")
+  }
+  if (updates.description !== undefined && !updates.description.trim()) throw new Error("Descrição obrigatória")
   Object.assign(revenue, updates)
   await saveData(data)
 }

@@ -127,6 +127,18 @@ export function stripPassword<U extends Record<string, unknown>>(u: U): Omit<U, 
   return copy
 }
 
+// Critério que decidiu a posição de uma linha do ranking em relação à anterior:
+// null = venceu nos games (sem desempate); "saldo" | "h2h" = desempate aplicado.
+export function tiebreakSeal(
+  prev: { total_games: number; saldo?: number | null } | undefined,
+  cur: { total_games: number; saldo?: number | null }
+): "saldo" | "h2h" | null {
+  if (!prev) return null
+  if (prev.total_games !== cur.total_games) return null
+  if ((prev.saldo ?? 0) !== (cur.saldo ?? 0)) return "saldo"
+  return "h2h"
+}
+
 export function exportToCSV(headers: string[], rows: string[][], filename: string) {
   const BOM = "\uFEFF"
   const escape = (v: string) => `"${String(v).replace(/"/g, '""')}"`

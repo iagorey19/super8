@@ -86,6 +86,7 @@ const tournamentResultSchema = z.object({
   athlete_id: z.string(),
   round_scores: z.array(z.number()).nullish(),
   total_games: z.number(),
+  saldo: z.number().nullish(),
   position: z.number(),
   points: z.number(),
 })
@@ -123,16 +124,17 @@ const expenseSchema = z.object({
   created_at: dateField,
 })
 
-const revenueSchema = z.object({
-  id: idField,
-  tournament_id: z.string(),
-  source: z.enum(["patrocinio", "inscricao", "outros"]),
-  amount: z.number(),
-  description: z.string(),
-  date: dateField,
-  created_by: z.string(),
-  created_at: dateField,
-})
+  const revenueSchema = z.object({
+    id: idField,
+    tournament_id: z.string(),
+    source: z.enum(["patrocinio", "inscricao", "outros"]),
+    amount: z.number(),
+    description: z.string(),
+    date: dateField,
+    created_by: z.string(),
+    sponsorship_id: z.string().nullish(),
+    created_at: dateField,
+  })
 
 const photoSchema = z.object({
   id: idField,

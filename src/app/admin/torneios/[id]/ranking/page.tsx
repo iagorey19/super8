@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Table, Td } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { getRankings, getLiveRankings, getTournamentById, getUserName, getApoiadores, getSponsorships, getRaffleRecords } from "@/lib/store"
-import { formatCurrency, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
+import { formatCurrency, getTournamentStatusLabel, getTournamentStatusColor, tiebreakSeal } from "@/lib/utils"
 import type { Tournament, TournamentResult, RaffleRecord, Sponsorship, ApoiadorWithBrindes, Brinde, SponsorshipWithDetails } from "@/lib/types"
 import { RankingInfo } from "@/components/ui/ranking-info"
 
@@ -160,6 +160,7 @@ export default function TournamentRankingPage() {
             "Categoria",
             ...Array.from({ length: maxRounds }, (_, i) => `R${i + 1}`),
             "Total Games",
+            "Saldo",
             "Pontos",
           ]}
         >
@@ -172,7 +173,11 @@ export default function TournamentRankingPage() {
               </Td>
             </tr>
           ) : (
-            results.map((r, idx) => (
+            results.map((r, idx) => {
+              const prev = idx > 0 ? results[idx - 1] : undefined
+              const sameGroup = !!prev && prev.category === r.category && (prev.group_name || "A") === (r.group_name || "A")
+              const seal = sameGroup && prev ? tiebreakSeal(prev, r) : null
+              return (
               <tr
                 key={r.id || idx}
                 className={`transition-colors ${idx === 0 ? "bg-yellow-50/50 dark:bg-yellow-900/20" : idx === 1 ? "bg-gray-50/50 dark:bg-gray-800/50" : idx === 2 ? "bg-orange-50/30 dark:bg-orange-900/20" : "hover:bg-gray-50 dark:hover:bg-gray-800"}`}
@@ -186,6 +191,12 @@ export default function TournamentRankingPage() {
                 </Td>
                 <Td className="font-medium text-gray-900 dark:text-white">
                   {r.name || getUserName(r.athlete_id)}
+                  {seal === "saldo" && (
+                    <span title="Desempate por saldo de games" className="ml-1 text-xs">⚖️</span>
+                  )}
+                  {seal === "h2h" && (
+                    <span title="Desempate por confronto direto" className="ml-1 text-xs">🤝</span>
+                  )}
                 </Td>
                 <Td>
                   {r.category && (
@@ -200,10 +211,12 @@ export default function TournamentRankingPage() {
                   </Td>
                 ))}
                 <Td className="text-center font-medium">{r.total_games}</Td>
+                <Td className="text-center text-gray-600 dark:text-gray-400">{r.saldo ?? "–"}</Td>
                 <Td className="text-center font-semibold text-amber-700 dark:text-amber-400">{r.points}</Td>
               </tr>
-            ))
-          )}
+              )
+            }
+          ))}
         </Table>
       </Card>
 

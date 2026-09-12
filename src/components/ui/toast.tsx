@@ -20,20 +20,18 @@ export function useToast() {
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const timersRef = useRef(new Map<number, ReturnType<typeof setTimeout>>())
   const idRef = useRef(0)
+  const MAX_TOASTS = 3
 
   const toast = useCallback((message: string, type: "success" | "error" = "success") => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = null
-    }
     const id = ++idRef.current
-    setToasts([{ id, message, type }])
-    timeoutRef.current = setTimeout(() => {
+    setToasts((prev) => [...prev.slice(-(MAX_TOASTS - 1)), { id, message, type }])
+    const timer = setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id))
-      timeoutRef.current = null
+      timersRef.current.delete(id)
     }, 3000)
+    timersRef.current.set(id, timer)
   }, [])
 
   return (

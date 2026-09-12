@@ -1,5 +1,6 @@
 import type { User } from "../types"
 import { refreshFromServer } from "./core"
+import { getSessionToken, setSessionToken, resetData } from "../db"
 
 type Session = { user: User; token?: string }
 
@@ -9,7 +10,10 @@ export function getSession(): Session | null {
     const stored = sessionStorage.getItem("super8-session")
     if (stored) {
       const parsed: Session = JSON.parse(stored)
-      if (parsed.user) return parsed
+      if (parsed.user) {
+        const token = getSessionToken()
+        return token ? { user: parsed.user, token } : { user: parsed.user }
+      }
     }
     return null
   } catch {
@@ -18,11 +22,33 @@ export function getSession(): Session | null {
   }
 }
 
+function tokenExpired(token: string): boolean {
+  try {
+    const payloadB64 = token.split(".")[0]
+    const payload = JSON.parse(Buffer.from(payloadB64, "base64url").toString())
+    return typeof payload.exp === "number" && payload.exp < Date.now()
+  } catch {
+    return false
+  }
+}
+
 const MAX_RETRIES = 3
 const RETRY_DELAY = 500
 
 export async function fetchSessionFromCookie(retries = MAX_RETRIES): Promise<Session | null> {
   if (typeof window === "undefined") return null
+  // Evita retries inúteis com token local já expirado
+  try {
+    const stored = sessionStorage.getItem("super8-session")
+    if (stored) {
+      const parsed: Session = JSON.parse(stored)
+      if (parsed.token && tokenExpired(parsed.token)) {
+        sessionStorage.removeItem("super8-session")
+      }
+    }
+  } catch {
+    sessionStorage.removeItem("super8-session")
+  }
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
       const res = await fetch("/api/auth/session")
@@ -53,10 +79,12 @@ export async function fetchSessionFromCookie(retries = MAX_RETRIES): Promise<Ses
 
 function saveSession(session: Session) {
   try {
-    sessionStorage.setItem("super8-session", JSON.stringify(session))
+    // No storage vai só o usuário; o token fica em memória (cookie httpOnly é canônico)
+    sessionStorage.setItem("super8-session", JSON.stringify({ user: session.user }))
   } catch {
     // storage full or unavailable
   }
+  setSessionToken(session.token)
 }
 
 export async function login(email: string, password: string): Promise<User | null> {
@@ -89,6 +117,8 @@ export async function logout() {
       await fetch("/api/auth/session", { method: "DELETE" })
     } catch { /* ignore */ }
   }
+  setSessionToken(undefined)
+  resetData()
   const db = await import("../db")
   db.clearDirty()
 }

@@ -15,7 +15,10 @@ export default function AdminLayout({
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (loading) return
+    if (!user) {
+      router.push("/")
+    } else if (user.role !== "admin") {
       router.push("/")
     }
   }, [user, loading, router])
@@ -28,7 +31,18 @@ export default function AdminLayout({
     )
   }
 
-  if (!user || user.role !== "admin") return null
+  if (!user) return null
+
+  if (user.role !== "admin") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-6">
+        <div className="text-center space-y-3">
+          <p className="text-lg font-semibold text-gray-900 dark:text-white">Acesso restrito</p>
+          <p className="text-sm text-gray-500">Esta área é só para administradoras.</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">

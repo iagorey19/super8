@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Table, Td } from "@/components/ui/table"
 import * as store from "@/lib/store"
+import { tiebreakSeal } from "@/lib/utils"
 import { RankingInfo } from "@/components/ui/ranking-info"
 import type { TournamentResult, AnnualRankingWithDetails } from "@/lib/types"
 
@@ -60,9 +61,12 @@ export default function AthleteRanking() {
         {liveRanking.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400 text-center py-4">Ranking indisponível.</p>
         ) : (
-          <Table headers={["Posição", "Atleta", "Total Games", "Pontos"]}>
-            {liveRanking.map((r) => {
+          <Table headers={["Posição", "Atleta", "Total Games", "Saldo", "Pontos"]}>
+            {liveRanking.map((r, idx) => {
               const isMe = r.athlete_id === user.id
+              const prev = idx > 0 ? liveRanking[idx - 1] : undefined
+              const sameGroup = !!prev && prev.category === r.category && (prev.group_name || "A") === (r.group_name || "A")
+              const seal = sameGroup && prev ? tiebreakSeal(prev, r) : null
               return (
                 <tr
                   key={r.athlete_id}
@@ -72,8 +76,15 @@ export default function AthleteRanking() {
                   <Td className={isMe ? "font-semibold text-amber-700 dark:text-amber-400" : ""}>
                     {r.name}
                     {isMe && <span className="text-xs ml-1">(você)</span>}
+                    {seal === "saldo" && (
+                      <span title="Desempate por saldo de games" className="text-xs ml-1">⚖️</span>
+                    )}
+                    {seal === "h2h" && (
+                      <span title="Desempate por confronto direto" className="text-xs ml-1">🤝</span>
+                    )}
                   </Td>
                   <Td>{r.total_games}</Td>
+                  <Td className="text-gray-600 dark:text-gray-400">{r.saldo ?? "-"}</Td>
                   <Td className="font-semibold">{r.points}</Td>
                 </tr>
               )

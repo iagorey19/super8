@@ -121,9 +121,9 @@ Get-Process node | Where-Object { $_.Id -ne $PID } | Stop-Process -Force
 - Quadras alternam em rodadas pares (courtA↔courtB) para balancear distribuição
 
 ### Pontuação
-- Partida termina quando atleta atinge `max_score` games
-- Tiebreak: se ambos em `max_score - 1`, vence por 2
-- Ranking: **total_games** vencidos (desempate: confronto direto)
+- Partida termina quando atleta atinge `max_score` games (4 ou 5 conforme torneio)
+- Sem tiebreak/prorrogação: diferença de 1 game decide (ex.: 5×4 encerra)
+- Ranking: **total_games** vencidos (desempate: **saldo** → **confronto direto**)
 - Pontos por etapa: 1º=8pts, 2º=7pts … 8º=1pt
 - Rankings anuais normalizam `total_games` proporcionalmente (`games * 5 / max_score`)
 

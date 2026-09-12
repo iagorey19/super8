@@ -18,12 +18,19 @@ function sanitizePixString(value: string, maxLen: number): string {
 }
 
 function formatPixKey(key: string): string {
-  if (key.includes("@") || (key.length === 36 && key.includes("-"))) return key.trim()
-  const digits = key.replace(/\D/g, "")
-  return digits.length >= 10 ? `+55${digits}` : digits
+  const trimmed = key.trim()
+  if (trimmed.includes("@") || (trimmed.length === 36 && trimmed.includes("-"))) return trimmed
+  const digits = trimmed.replace(/\D/g, "")
+  // Telefone já com DDI (ex.: 5511999999999) → só adiciona o +
+  if (/^55\d{10,11}$/.test(digits)) return `+${digits}`
+  // Telefone com DDD (10-11 dígitos) → +55
+  if (digits.length === 10 || digits.length === 11) return `+55${digits}`
+  // CPF/CNPJ/outros: só dígitos, sem prefixo
+  return digits
 }
 
 export function generatePixPayload(key: string, amount: number, name: string, city: string): string {
+  if (!key.trim() || !Number.isFinite(amount) || amount <= 0) return ""
   const safeName = sanitizePixString(name, 25)
   const safeKey = formatPixKey(key)
   const safeCity = sanitizePixString(city, 15)

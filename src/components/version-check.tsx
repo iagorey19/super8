@@ -22,7 +22,18 @@ export function VersionCheck() {
           return
         }
         if (data.version !== initial.current) {
-          window.location.reload()
+          // Não derruba formulário em preenchimento sem avisar
+          const el = document.activeElement
+          const editing = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement
+          if (editing) {
+            if (window.confirm("Nova versão disponível. Recarregar agora? (dados não salvos podem se perder)")) {
+              window.location.reload()
+            } else {
+              initial.current = data.version
+            }
+          } else {
+            window.location.reload()
+          }
         }
       } catch {
         // sem rede — ignora, tenta no próximo ciclo

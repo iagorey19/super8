@@ -1,4 +1,4 @@
-export { initData, refreshFromServer, getConfig, updateConfig, getData, saveData } from "./core"
+export { initData, refreshFromServer, getConfig, updateConfig, getData, setData, saveData } from "./core"
 
 export {
   getSession, fetchSessionFromCookie, login, logout, registerAthlete,

@@ -23,6 +23,10 @@ export function Modal({
   }, [onClose])
 
   useEffect(() => {
+    if (!open) initialFocusDone.current = false
+  }, [open])
+
+  useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden"
       const previousFocus = document.activeElement as HTMLElement | null

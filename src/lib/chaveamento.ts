@@ -151,8 +151,9 @@ export function calculateTournamentResults(
   results.sort((a, b) => {
     if (b.total_games !== a.total_games) return b.total_games - a.total_games
     if (b.saldo !== a.saldo) return b.saldo - a.saldo
+    // headToHead > 0 = a venceu o duelo → a na frente (retorno negativo)
     const h2h = headToHead(a.athlete_id, b.athlete_id, finishedMatches)
-    if (h2h !== 0) return h2h
+    if (h2h !== 0) return -h2h
     return 0
   })
 
