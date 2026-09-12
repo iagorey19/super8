@@ -147,11 +147,11 @@ Ao iniciar conversa em qualquer projeto, SEMPRE:
 Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (arquivo + resumo). Manter só últimas 5. Se conversa ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e reiniciar."
 
 ## Últimas Alterações
+- Pós-auditoria 12/09/2026: `EXEC_SQL_SECRET` removido (Vercel + `.env.local`) + redeploy, `hasExecSqlSecret:false` em prod; `.env.local` sem BOM e sem vars TURBO/VERCEL (`supabase db push` voltou a funcionar, histórico alinhado); `exec_sql_with_secret.sql` virou registro histórico
 - Auditoria completa 12/09/2026 (P0): `POST/PUT /api/auth/password` — reset e troca de senha no servidor (bcrypt+Auth sync); `reset-password/page` sem service_role no browser; `updateAthlete` sem bcrypt client-side; `exec_sql` removido do banco (vazava secret nos postgres logs) + REVOKE/search_path nas RPCs debug
 - Auditoria (P1): `isSafeRedirect` só interno (fim do open redirect); `admin-register` espelha `public.users`; storage `photos` INSERT só `authenticated`; `winner_id` anulável + `recordRaffle` vincula atleta; `seed` insere mesmo sem senha; `/api/debug/all` exige admin em prod; editions normalizadas (4ª/5ª)
 - Auditoria (qualidade): eslint 0 errors (era 65) — modal `useId`, `stripPassword()`, dead code removido, `set-state-in-effect`→warn (hidratação client-side); tsc zero; `bcrypt` async; cookies `secure` só em prod; senha forte unificada
 - Banco (P2): migration `index_cleanup` — 8 índices duplicados removidos, 1 constraint UNIQUE duplicada removida, 9 índices de FK criados
-- `EXEC_SQL_SECRET` (segurança): `git add -A` commitou o secret real (estava untracked) → rotacionado 2x (banco + `.env.local` + Vercel Sensitive) + arquivos higienizados com placeholder. `.env.local` foi destruído no processo (`Set-Content -NoNewline` junta linhas!) → restaurado via `vercel env pull` + API do Supabase. Lição: nunca `-NoNewline` em array, nunca `add -A` sem `git status` antes
 
 ## Regras de Código
 - **NÃO usar `any`** — Nunca usar `any`, `any[]`, `as any` em nenhum arquivo TypeScript. Usar tipos específicos, `unknown`, `Record<string, unknown>`, ou tipos de `src/lib/types.ts`. Supabase queries: usar `as unknown as { ... }` com tipos reais.

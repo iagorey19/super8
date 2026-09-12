@@ -1,11 +1,7 @@
--- Execute no SQL Editor do Supabase Dashboard
--- URL: https://supabase.com/dashboard/project/ylltshboiejlcbhksrci/sql/new
--- ⚠️ NUNCA commite o valor real do secret (guia 21 — BLOCKER).
--- O valor real vive em: .env.local (gitignorado) + Vercel Env Vars (Sensitive).
--- Apos qualquer exposicao: gerar novo (`crypto.randomBytes(32).toString('hex')`),
--- aplicar via `supabase db query --linked --file <arquivo-temporario-fora-do-repo>.sql`,
--- atualizar .env.local + Vercel, redeploy, apagar o temporario.
--- Secret rotacionado em: 12/09/2026 (exposicao acidental no commit 7d4a4c3)
+-- HISTÓRICO (12/09/2026): função exec_sql REMOVIDA do banco (migration
+-- 20260912010000_security_hardening.sql) — o secret vazava nos postgres logs a
+-- cada DDL e nada no app usava a função. Este arquivo fica como registro.
+-- NÃO recriar sem antes resolver o vazamento de secret nos logs.
 
 -- Remove a versão antiga (sem proteção)
 DROP FUNCTION IF EXISTS exec_sql(text);

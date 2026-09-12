@@ -3,6 +3,7 @@
 -- Upload via app continua funcionando (usa service_role no signed URL).
 
 DROP POLICY IF EXISTS allow_public_upload ON storage.objects;
+DROP POLICY IF EXISTS allow_authenticated_upload ON storage.objects;
 
 CREATE POLICY allow_authenticated_upload
 ON storage.objects FOR INSERT TO authenticated
