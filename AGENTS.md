@@ -147,6 +147,7 @@ Ao iniciar conversa em qualquer projeto, SEMPRE:
 Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (arquivo + resumo). Manter só últimas 5. Se conversa ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e reiniciar."
 
 ## Últimas Alterações
+- Senha vazada sem Pro: `src/lib/hibp.ts` (HaveIBeenPwned k-anonymity, fail-open) wired em register + troca + reset; proteção nativa do Supabase é Pro+ (doc confirmada)
 - Pós-auditoria 12/09/2026: `EXEC_SQL_SECRET` removido (Vercel + `.env.local`) + redeploy, `hasExecSqlSecret:false` em prod; `.env.local` sem BOM e sem vars TURBO/VERCEL (`supabase db push` voltou a funcionar, histórico alinhado); `exec_sql_with_secret.sql` virou registro histórico
 - Auditoria completa 12/09/2026 (P0): `POST/PUT /api/auth/password` — reset e troca de senha no servidor (bcrypt+Auth sync); `reset-password/page` sem service_role no browser; `updateAthlete` sem bcrypt client-side; `exec_sql` removido do banco (vazava secret nos postgres logs) + REVOKE/search_path nas RPCs debug
 - Auditoria (P1): `isSafeRedirect` só interno (fim do open redirect); `admin-register` espelha `public.users`; storage `photos` INSERT só `authenticated`; `winner_id` anulável + `recordRaffle` vincula atleta; `seed` insere mesmo sem senha; `/api/debug/all` exige admin em prod; editions normalizadas (4ª/5ª)
