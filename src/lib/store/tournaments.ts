@@ -1,6 +1,6 @@
 import type {
   AppData, Tournament, AthleteRegistration, Pairing, Match, TournamentResult,
-  Revenue, AnnualRanking,
+  Revenue,
 } from "../types"
 import { generatePairings, calculateTournamentResults, WHIST_SCHEDULE } from "../chaveamento"
 import { getData, saveData } from "./core"

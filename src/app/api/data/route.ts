@@ -3,7 +3,7 @@ import { cookies } from "next/headers"
 import { getServiceClient } from "@/lib/supabase"
 import { seed } from "@/lib/seed"
 import { getClientIp, isRateLimited } from "@/lib/rate-limit"
-import { getAuthSecret, validateToken } from "@/lib/auth-secret"
+import { validateToken } from "@/lib/auth-secret"
 import { appDataSchema, validateTableData } from "@/lib/validation"
 import type { AppData, User, Tournament, AthleteRegistration, Pairing, Match, TournamentResult, AnnualRanking, Sponsorship, Expense, Revenue, Photo, Notification, Apoiador, Brinde, RaffleRecord, Note } from "@/lib/types"
 import bcrypt from "bcryptjs"
@@ -16,13 +16,6 @@ const TABLE_PERMISSIONS: Record<string, { roles: Role[]; ownerField?: string }> 
   notifications: { roles: ["admin", "athlete"], ownerField: "user_id" },
   sponsorships: { roles: ["admin", "sponsor"], ownerField: "sponsor_id" },
 }
-
-const DB_TABLES = [
-  "raffle_records", "brindes", "apoiadores",
-  "annual_rankings", "tournament_results", "matches", "pairings",
-  "athlete_registrations", "sponsorships", "expenses", "revenues",
-  "photos", "notifications", "notes", "tournaments", "users",
-] as const
 
 async function queryAll<T>(table: string): Promise<T[]> {
   const { data } = await getServiceClient().from(table).select("*")
@@ -296,8 +289,7 @@ async function syncToSupabase(data: AppData, callerRole: Role, callerUserId: str
         if (table === "tournaments") {
           for (const rec of filteredRecords as Record<string, unknown>[]) {
             if (rec.registrations_closed === true) {
-              const sql = `UPDATE tournaments SET registrations_closed = true WHERE id = '${(rec.id as string).replace(/'/g, "''")}'`
-              const { error: rcErr } = await (svc as unknown as { rpc: (fn: string, params: { query: string }) => Promise<{ error: { message: string } | null }> }).rpc("exec_sql", { query: sql })
+              const { error: rcErr } = await (svc.from("tournaments") as unknown as { update: (data: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<{ error: { message: string } | null }> } }).update({ registrations_closed: true }).eq("id", rec.id as string)
               if (rcErr) errors.push(`tournaments registrations_closed update: ${rcErr.message}`)
             }
           }

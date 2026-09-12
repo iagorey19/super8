@@ -2,16 +2,10 @@ import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { getServiceClient } from "@/lib/supabase"
 import { getClientIp, isRateLimited } from "@/lib/rate-limit"
-import { getAuthSecret, validateToken } from "@/lib/auth-secret"
-import crypto from "crypto"
+import { validateToken, signToken } from "@/lib/auth-secret"
 import bcrypt from "bcryptjs"
 
 const TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000
-
-function signToken(payload: string): string {
-  const secret = getAuthSecret()
-  return crypto.createHmac("sha256", secret).update(payload).digest("base64url")
-}
 
 export async function POST(req: Request) {
   try {
@@ -62,7 +56,7 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET(_req: Request) {
   try {
     const cookieStore = await cookies()
     const tokenCookie = cookieStore.get("super8-auth-token")

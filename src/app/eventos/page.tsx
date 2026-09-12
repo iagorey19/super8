@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import * as store from "@/lib/store"
-import { getStatusColor, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor, getCategoryLabel } from "@/lib/utils"
+import { getTournamentStatusLabel, getTournamentStatusColor, getCategoryLabel } from "@/lib/utils"
 import type { Tournament } from "@/lib/types"
 
 export default function EventosPage() {

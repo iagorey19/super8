@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { Providers } from "@/components/providers"
 import { ErrorLogger } from "@/components/error-logger"
+import { VersionCheck } from "@/components/version-check"
 import { DataLoader } from "@/components/data-loader"
 import { PWAPrompt } from "@/components/pwa-prompt"
 import "./globals.css"
@@ -63,6 +64,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full antialiased bg-gray-50 dark:bg-gray-950">
         <ErrorLogger />
+        <VersionCheck />
         <DataLoader>
           <Providers>{children}</Providers>
         </DataLoader>

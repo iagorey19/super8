@@ -116,7 +116,7 @@ function headToHead(a: string, b: string, matches: Match[]): number {
 export function calculateTournamentResults(
   athleteIds: string[],
   matches: Match[],
-  athleteNames: Record<string, string>,
+  _athleteNames: Record<string, string>,
   category: string,
   groupName: string
 ) {

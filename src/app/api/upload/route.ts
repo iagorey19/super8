@@ -34,7 +34,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }
 
-    const { name, type } = await req.json()
+    const { name } = await req.json()
     if (!name) {
       return NextResponse.json({ error: "Nome do arquivo obrigatório" }, { status: 400 })
     }

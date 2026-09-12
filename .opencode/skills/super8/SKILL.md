@@ -101,8 +101,13 @@ Get-Process node | Where-Object { $_.Id -ne $PID } | Stop-Process -Force
 | Rate Limit | In-memory (5/min login, 30/min data, 10/min register, 30/min upload) |
 | Deploy | **Vercel** (git push no master → auto-deploy) |
 | Lint | ESLint v9 + `eslint-config-next` |
+| TypeScript | `strict + noUnusedLocals + noUnusedParameters + noImplicitAny`, zero `any`, `tsc` zero erros |
 | Validação | Zod schema no POST /api/data |
-| Security Headers | X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy |
+| Security Headers | X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy |
+| Observabilidade | `serverLogger` pino (dev→`data/logs/app.log`, prod→stdout) + `GET /api/debug/all` + `POST /api/logs` |
+| Cache busting | `public/version.json` (gerado no `prebuild`) + `<VersionCheck />` recarrega em deploy novo |
+| Ícones | `lucide-react@0.400.0` travado (`CheckCircle2/MoreVertical/AlertCircle`) |
+| Diagnóstico | `debug/` (scripts + checklists) · acervo `20-licoes-aprendidas/` · padrões `docs/padroes/` |
 
 ---
 
@@ -329,7 +334,7 @@ Para ver status: https://vercel.com/iagorey19s-projects/super8
 
 ---
 
-## 9. FERRAMENTAS MCP DISPONÍVEIS
+## 9. FERRAMENTAS & SKILLS DISPONÍVEIS
 
 Usar **sempre que relevante**, sem perguntar:
 
@@ -338,9 +343,32 @@ Usar **sempre que relevante**, sem perguntar:
 | **context7** | Buscar docs/código de bibliotecas (Next.js, Tailwind, Supabase) |
 | **chrome-devtools** | Navegar no app live, tirar screenshot, debug visual, console, network requests |
 | **github** | Acessar repositórios externos (buscar código, arquivos, issues, PRs) |
-| **sequential-thinking** | **Sempre usar para planejamento e raciocínio** — mantém continuidade entre chamadas. Planejar, debater, confirmar, depois executar. |
+| **sequential-thinking** | **Sempre usar para planejamento e raciocínio** — mantém continuidade entre chamadas |
+| **graphify** | Knowledge graph — mapear arquitetura, navegar dependências, query sem grep |
+| **ui-ux-pro-max** | Design intelligence — estilos, paletas, fontes, anti-patterns por indústria |
+| **DESIGN.md** | Design system Supabase — seguir tokens ao gerar código visual |
 
-**Ativação automática**: chrome-devtools e sequential-thinking são auto-invocados quando relevante.
+### Graphify — Quando usar
+- **Explorar código complexo**: `/graphify query "fluxo de auth"` em vez de grep
+- **Entender dependências**: `/graphify path "Store" "Supabase"` para ver caminho entre módulos
+- **Onboarding**: ler `graphify-out/GRAPH_REPORT.md` para visão geral da arquitetura
+- **Após alterações grandes**: `/graphify . --update` para re-mapear
+
+### UI UX Pro Max — Quando usar
+- Criar componentes visuais novos (modais, cards, formulários, páginas)
+- Melhorar design existente (cores, espaçamento, tipografia)
+- Gerar design systems para funcionalidades novas
+- Verificar anti-patterns de UX antes de implementar
+
+### DESIGN.md — Regras visuais
+Ao gerar código visual, **SEGUIR** os tokens de `DESIGN.md`:
+- Cor primária: `#3ecf8e` (emerald green)
+- Botões: `rounded-sm` (6px), texto `#171717` no botão verde (NÃO branco)
+- Fonte: Inter/Geist, weight 500 display, 400 body
+- Fundo: `bg-white`, dark: `bg-[#1c1c1c]`
+- Espaçamento: base 8px (8, 12, 16, 24, 32, 64)
+
+**Ativação automática**: chrome-devtools, sequential-thinking, graphify são auto-invocados quando relevante.
 **context7**: incluir no prompt quando precisar de docs recentes de bibliotecas.
 
 ---
@@ -358,9 +386,21 @@ Usar **sempre que relevante**, sem perguntar:
 ## 11. MANUTENÇÃO DA SKILL
 
 - **Local**: `.opencode/skills/super8/SKILL.md`
+- **Skills externas**: graphify (global `~/.config/opencode/skills/graphify/`), ui-ux-pro-max (local `.opencode/skills/ui-ux-pro-max/`)
+- **DESIGN.md**: referência visual na raiz do projeto
 - **Sempre que** alterar algo significativo no projeto (arquitetura, stack, regras de negócio), atualize esta skill
 - **Formato**: frontmatter YAML + markdown
-- Para testar: inicie nova sessão — se aparecer em `<available_skills>`, está ok
+- **Para testar**: inicie nova sessão — se aparecer em `<available_skills>`, está ok
+
+### Skills Instaladas (Referência Rápida)
+| Skill | Local | Trigger |
+|-------|-------|---------|
+| super8 | `.opencode/skills/super8/` | Qualquer trabalho no SUPER 8 |
+| deploy | `.opencode/skills/deploy/` | Deploy, build, git |
+| supabase | `.opencode/skills/supabase/` | SQL, migrations, banco |
+| graphify | `~/.config/opencode/skills/graphify/` | `/graphify`, explorar código |
+| ui-ux-pro-max | `.opencode/skills/ui-ux-pro-max/` | Auto (UI/UX requests) |
+| DESIGN.md | Raiz do projeto | Referência visual ao gerar UI |
 
 ---
 

@@ -48,11 +48,6 @@ console.log(`\n✓ super8-db.json atualizado (${db.users.length} usuários)`)
 const seedPath = join(__dirname, "..", "src", "lib", "seed.ts")
 let seed = readFileSync(seedPath, "utf-8")
 
-const SEED_OVERRIDES: Record<string, string> = {
-  "admin-001": "admin123",
-  "spo-001": "patro123",
-}
-
 for (const u of db.users) {
   if (!u.id.startsWith("ath-")) continue
   const pwd = newPassword(u.name)

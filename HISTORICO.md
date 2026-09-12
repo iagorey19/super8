@@ -1,5 +1,48 @@
 # Histórico de Sessões — THE SUPER 8
 
+## 12/Set — Guias adaptados + debug/ + strict TS + version check
+
+### Feito
+- **Guias lidos e adaptados**: 25 templates lidos → `docs/padroes/` (README + 10 arquivos, sem links absolutos) — checklist do AGENTS.md marcado
+- **`debug/` criado**: README, 6 scripts (`check-env/build/routes/processos/supabase/consultar-licoes`), `logs/dumps/fixes` (gitignorados), 4 checklists manuais (login, deploy, placar-ranking, segurança)
+- **Acervo local**: `20-licoes-aprendidas/` + bug-001 (seed T3) documentado
+- **TS strict**: `noUnusedLocals + noUnusedParameters + noImplicitAny` → 54 dead codes removidos (38 arquivos), `tsc` zero, zero `any`
+- **Observabilidade**: `serverLogger` pino (arquivo em dev, stdout em prod) + `GET /api/debug/all` (só booleans) + `POST /api/logs` aceita `INFO`
+- **Cache busting**: `public/version.json` gerado no `prebuild` + `<VersionCheck />` no layout (poll 60s, pausa oculta)
+- **Deps**: `lucide-react@0.400.0` (travado, padrão guia 16) + `pino`
+- **Segurança**: `proxy.ts` com `XSS + Permissions-Policy` · `.gitignore`: `debug/logs|dumps|fixes`, `data/logs`, sem `.vercel` duplicado
+- **Docs**: AGENTS.md enxutado (Últimas Alterações: só 5) + CHANGELOG com entradas 22/07 (consolidação) e 12/09
+- **Verificação**: `npx tsc --noEmit` ✅ zero · `npm run build` ✅ zero (rota `/api/debug/all` incluída)
+
+### Lição desta sessão
+Subagente de limpeza tocou 38 arquivos — working tree já estava sujo de sessões anteriores. Daqui em diante: `git status` no início da sessão para separar o que é pré-existente do que a sessão alterou.
+
+## 21/Jul — Documentação de Seed Data Loss + Atualização de Guias
+
+### Feito
+- **Seed data loss documentado**: T3 (3ª Edição) perdeu 28 matches + 16 results por reset sem backup
+- **Inseridas 16 inscrições T3** no Supabase (dados recuperados do seed)
+- **T3 permanece sem dados de jogos** (pairings, matches, results irrecuperáveis)
+- **Guias universais atualizados** (`GUIAS GERAIS, PADRÕES - IAGO REY`):
+  - Criado `20-licoes-aprendidas.md` — registry de bugs e lições (Bug #1: seed data loss)
+  - Atualizado `06-supabase.md` — seção Seed Data Management
+  - Atualizado `11-regras-negocio.md` — seção seed expandida
+  - Atualizado `02-anti-breaking.md` — Mandamento #8 (Backup Antes de Reset)
+  - Atualizado `README.md` — índice com novo guia
+- **Docs do SUPER.8 atualizados**:
+  - `.project-rules.md` — seção 6: Seed Data (regra crítica)
+  - `AGENTS.md` — Lição Aprendida adicionada
+  - `HISTORICO.md` — esta sessão
+  - `CHANGELOG.md` — entry documentado
+
+### Dados Restaurados no Supabase
+| Torneio | Regs | Pairs | Matches | Results | Status |
+|---------|------|-------|---------|---------|--------|
+| T1 (1ª Ed.) | 16 | 28 | 28 | 16 | ✅ Completo |
+| T2 (2ª Ed.) | 8 | 14 | 14 | 8 | ✅ Completo |
+| T3 (3ª Ed.) | 16 | 0 | 0 | 0 | ⚠️ Só inscrições |
+| T4 (4ª Ed.) | 16 | 28 | 28 | 16 | ✅ Completo |
+
 ## 18/Jul — PWA: instruções iOS corrigidas + replicação de guias do MASTER APP
 
 ### Feito

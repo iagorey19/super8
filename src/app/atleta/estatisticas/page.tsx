@@ -4,9 +4,7 @@ import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import { Card, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Table, Td } from "@/components/ui/table"
 import * as store from "@/lib/store"
 
 export default function AthleteStatsPage() {

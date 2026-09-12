@@ -1,5 +1,5 @@
 import type { User } from "../types"
-import { saveData, getData, refreshFromServer } from "./core"
+import { refreshFromServer } from "./core"
 
 type Session = { user: User; token?: string }
 

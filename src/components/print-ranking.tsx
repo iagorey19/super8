@@ -11,7 +11,7 @@ export default function PrintRankingPage() {
   const [results, setResults] = useState<(TournamentResult & { name: string })[]>([])
   const [tournament, setTournament] = useState<Tournament | undefined>()
   const [selectedCategory, setSelectedCategory] = useState<string>("")
-  const [courtNames, setCourtNames] = useState<string[]>([])
+  const [_courtNames, setCourtNames] = useState<string[]>([])
 
   useEffect(() => {
     const t = getTournamentById(tournamentId)

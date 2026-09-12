@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Table, Td } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { getRankings, getLiveRankings, getTournamentById, getUserName, getApoiadores, getSponsorships, getRaffleRecords } from "@/lib/store"
-import { formatCurrency, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
+import { formatCurrency, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
 import type { Tournament, TournamentResult, RaffleRecord, Sponsorship, ApoiadorWithBrindes, Brinde, SponsorshipWithDetails } from "@/lib/types"
 import { RankingInfo } from "@/components/ui/ranking-info"
 

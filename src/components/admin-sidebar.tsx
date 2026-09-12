@@ -24,7 +24,7 @@ export function AdminSidebar() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
 
-  function handleNav(href: string) {
+  function handleNav(_href: string) {
     setOpen(false)
   }
 

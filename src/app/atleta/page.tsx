@@ -11,7 +11,7 @@ import { Modal } from "@/components/ui/modal"
 import * as store from "@/lib/store"
 import { sanitizeUrl } from "@/lib/validate-url"
 import { useToast } from "@/components/ui/toast"
-import { formatDate, getStatusColor, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
+import { formatDate, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
 import type { Tournament, AthleteRegistration, RaffleRecord, SponsorshipWithDetails, ApoiadorWithBrindes, Brinde } from "@/lib/types"
 
 export default function AthleteDashboard() {

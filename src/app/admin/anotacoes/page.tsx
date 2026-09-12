@@ -1,9 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
-import { Card, CardHeader } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Modal } from "@/components/ui/modal"
@@ -13,7 +12,6 @@ import type { Note } from "@/lib/types"
 
 export default function AnotacoesPage() {
   const { user, loading } = useAuth()
-  const router = useRouter()
   const [notes, setNotes] = useState<Note[]>([])
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<Note | null>(null)

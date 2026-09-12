@@ -53,10 +53,6 @@ export async function generatePixQR(payload: string): Promise<string> {
   return QRCode.toDataURL(payload, { width: 400, margin: 4, errorCorrectionLevel: "H", color: { dark: "#000000", light: "#ffffff" } })
 }
 
-export function formatCurrency(value: number): string {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
-}
-
 export function generateWhatsAppLink(phone: string, message: string): string {
   const digits = phone.replace(/\D/g, "")
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`

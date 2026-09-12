@@ -10,7 +10,6 @@ import { Table, Td } from "@/components/ui/table"
 import * as store from "@/lib/store"
 import { sanitizeUrl } from "@/lib/validate-url"
 import { RankingInfo } from "@/components/ui/ranking-info"
-import { getStatusLabel } from "@/lib/utils"
 import type { Tournament, TournamentResultWithName, ApoiadorWithBrindes, Brinde, RaffleRecord, Sponsorship } from "@/lib/types"
 
 const positionStyle = (pos: number) => {

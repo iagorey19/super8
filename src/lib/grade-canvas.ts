@@ -80,7 +80,7 @@ function drawDataCell(ctx: CanvasRenderingContext2D, x: number, y: number, w: nu
 }
 
 export function renderGradeCanvas(
-  gridCells: GridCell[],
+  _gridCells: GridCell[],
   uniqueCourts: string[],
   rounds: number[],
   cellForFn: (court: string, round: number) => GridCell | undefined

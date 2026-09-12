@@ -1,7 +1,7 @@
-import * as XLSX from "xlsx"
 import * as store from "./store"
 
-export function exportTournamentSpreadsheet(tournamentId: string) {
+export async function exportTournamentSpreadsheet(tournamentId: string) {
+  const XLSX = await import("xlsx")
   const t = store.getTournamentById(tournamentId)
   if (!t) return
   const matches = store.getTournamentMatches(tournamentId)
@@ -104,7 +104,6 @@ export function exportTournamentSpreadsheet(tournamentId: string) {
   const scB = `${S}!J:J`  // Placar B
   const wA  = `${S}!K:K`  // Win A
   const wB  = `${S}!L:L`  // Win B
-  const pRange = `${S}!E$2:H$${lastDataRow}`
 
   for (let r = 2; r <= lastPlayerRow; r++) {
     const a = `A${r}`

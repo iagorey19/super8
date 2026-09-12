@@ -1,16 +1,11 @@
 import { NextResponse } from "next/server"
 import { getServiceClient } from "@/lib/supabase"
 import { getClientIp, isRateLimited } from "@/lib/rate-limit"
-import { getAuthSecret } from "@/lib/auth-secret"
+import { signToken } from "@/lib/auth-secret"
 import crypto from "crypto"
 import bcrypt from "bcryptjs"
 
 const TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000
-
-function signToken(payload: string): string {
-  const secret = getAuthSecret()
-  return crypto.createHmac("sha256", secret).update(payload).digest("base64url")
-}
 
 export async function POST(req: Request) {
   try {
@@ -28,6 +23,9 @@ export async function POST(req: Request) {
     }
     if (password.length < 6) {
       return NextResponse.json({ error: "Senha deve ter no mínimo 6 caracteres" }, { status: 400 })
+    }
+    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
+      return NextResponse.json({ error: "Senha deve conter ao menos uma letra maiúscula, uma minúscula e um número" }, { status: 400 })
     }
 
     const svc = getServiceClient()

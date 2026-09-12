@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
@@ -20,7 +20,6 @@ export default function CadastroPage() {
   const [success, setSuccess] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const { register } = useAuth()
-  const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get("redirect")
 

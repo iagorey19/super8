@@ -19,12 +19,6 @@ export function getClientIp(req: Request): string {
   return req.headers.get("x-real-ip") || "unknown"
 }
 
-function makeWindowKey(ip: string, windowMs: number): string {
-  const now = Date.now()
-  const windowStart = Math.floor(now / windowMs) * windowMs
-  return `${ip}:${windowStart}`
-}
-
 export async function isRateLimited(ip: string, max: number = 30, windowMs: number = 60_000): Promise<boolean> {
   try {
     const svc = getSvc()

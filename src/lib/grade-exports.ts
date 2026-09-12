@@ -1,7 +1,6 @@
 import { renderGradeCanvas, canvasToBlob } from "./grade-canvas"
 import { generateText, generateCSV } from "./grade-builder"
 import type { GridCell } from "./grade-types"
-import jsPDF from "jspdf"
 
 export async function copyGradeText(
   gridCells: GridCell[],
@@ -60,6 +59,7 @@ export async function exportGradePDF(
   groupName: string,
   cellForFn: (court: string, round: number) => GridCell | undefined
 ) {
+  const jsPDF = (await import("jspdf")).default
   const canvas = renderGradeCanvas(gridCells, uniqueCourts, rounds, cellForFn)
   const dataUrl = canvas.toDataURL("image/png")
   const pdf = new jsPDF("l", "mm", "a4")

@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -11,7 +10,6 @@ import type { AppConfig } from "@/lib/types"
 
 export default function AdminConfigPage() {
   const { user, loading } = useAuth()
-  const router = useRouter()
   const [config, setConfig] = useState<AppConfig | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)

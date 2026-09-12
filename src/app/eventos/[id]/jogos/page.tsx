@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import { useEffect, useState, useCallback } from "react"
-import { Card, CardHeader } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import * as store from "@/lib/store"
@@ -48,11 +48,6 @@ export default function PublicJogosPage() {
   const rounds = [1, 2, 3, 4, 5, 6, 7]
   const roundMatches = filteredMatches.filter((m) => m.round === selectedRound)
   const uniqueCourts = [...new Set(filteredMatches.map((m) => m.court))].sort()
-
-  function courtIndex(court: string): number {
-    const n = parseInt(court.replace(/[A-Za-z]/g, ""), 10)
-    return isNaN(n) ? 0 : n - 1
-  }
 
   if (!tournament) {
     return (

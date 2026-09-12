@@ -2,11 +2,9 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/lib/auth-context"
-import { useRouter } from "next/navigation"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { Select } from "@/components/ui/select"
 import { Modal } from "@/components/ui/modal"
 import * as store from "@/lib/store"
@@ -19,7 +17,6 @@ interface Participant {
 
 export default function SortearBrindes() {
   const { user, loading } = useAuth()
-  const router = useRouter()
 
   const [participants, setParticipants] = useState<Participant[]>([])
   const [newName, setNewName] = useState("")

@@ -8,7 +8,7 @@ const userSchema = z.object({
   email: z.string().nullish(),
   name: z.string(),
   role: z.enum(["admin", "athlete", "sponsor"]),
-  password: z.string().nullish(),
+  password: z.string().min(6).nullish(),
   phone: z.string().nullish(),
   avatar: z.string().nullish(),
   url: z.string().nullish(),
@@ -26,6 +26,7 @@ const tournamentSchema = z.object({
   registration_fee: z.number().nullish(),
   max_score: z.number().nullish(),
   court_names: z.array(z.string()).nullish(),
+  registrations_closed: z.boolean().nullish(),
   created_at: dateField,
   created_by: z.string(),
 })

@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { usePathname } from "next/navigation"
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>
@@ -23,7 +22,6 @@ function isStandalone(): boolean {
 export function PWAPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [show, setShow] = useState(false)
-  const pathname = usePathname()
   const ios = isIOS()
   const standalone = isStandalone()
 

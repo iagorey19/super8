@@ -57,7 +57,7 @@ export default function AthleteRanking() {
           <p className="text-gray-500 dark:text-gray-400 text-center py-4">Ranking indisponível.</p>
         ) : (
           <Table headers={["Posição", "Atleta", "Total Games", "Pontos"]}>
-            {liveRanking.map((r, idx) => {
+            {liveRanking.map((r) => {
               const isMe = r.athlete_id === user.id
               return (
                 <tr

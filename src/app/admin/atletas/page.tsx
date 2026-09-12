@@ -25,8 +25,6 @@ import {
 import { getStatusLabel } from "@/lib/utils"
 import type { User, Tournament } from "@/lib/types"
 
-const CATEGORIES = ["4e5", "6e7"]
-
 export default function AthletesPage() {
   const [athletes, setAthletes] = useState<User[]>([])
   const [pending, setPending] = useState<(User & { registration_id: string; category?: string; group_name?: string; tournament_id?: string; tournament_title?: string })[]>([])
@@ -34,7 +32,7 @@ export default function AthletesPage() {
   const [selectedAthlete, setSelectedAthlete] = useState<User | null>(null)
   const [selectedTournament, setSelectedTournament] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("")
-  const [selectedGroup, setSelectedGroup] = useState("")
+  const [_selectedGroup, setSelectedGroup] = useState("")
   const [registerPaymentStatus, setRegisterPaymentStatus] = useState<"paid" | "pending">("pending")
   const { toast: notify } = useToast()
   const [editModalOpen, setEditModalOpen] = useState(false)

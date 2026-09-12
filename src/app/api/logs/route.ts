@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getClientIp, isRateLimited } from "@/lib/rate-limit"
+import { serverLogger } from "@/lib/server-logger"
 
-const MAX_BODY_SIZE = 10_000
-const VALID_LEVELS = new Set(["LOG", "WARN", "ERROR"])
+const VALID_LEVELS = new Set(["LOG", "WARN", "ERROR", "INFO"])
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,10 +22,10 @@ export async function POST(req: NextRequest) {
       if (!VALID_LEVELS.has(e.level)) continue
 
       const line = `[${e.timestamp || "?"}] [${e.level}] ${e.message.slice(0, 500)}${e.url ? ` (${e.url})` : ""}`
-      if (e.level === "ERROR") console.error(line)
-      else if (e.level === "WARN") console.warn(line)
-      else console.log(line)
-      if (e.stack && typeof e.stack === "string") console.error(e.stack.slice(0, 2000))
+      if (e.level === "ERROR") serverLogger.error({ url: e.url }, line)
+      else if (e.level === "WARN") serverLogger.warn(line)
+      else serverLogger.info(line)
+      if (e.stack && typeof e.stack === "string") serverLogger.error(e.stack.slice(0, 2000))
     }
 
     return NextResponse.json({ ok: true })

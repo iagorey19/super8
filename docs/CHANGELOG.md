@@ -4,6 +4,38 @@ _Histórico completo de alterações. Consulte AGENTS.md para as últimas 5._
 
 ---
 
+## 12/09/2026 — Guias adaptados + debug/ + strict TS + version check
+
+- `docs/padroes/`: README + 10 arquivos com as regras dos 25 guias adaptadas para Next 16 + Supabase + Vercel (sem links absolutos)
+- `debug/`: pasta de diagnóstico (README, 6 scripts, logs/dumps/fixes, 4 checklists manuais) + `GET /api/debug/all`
+- `20-licoes-aprendidas/`: acervo local + bug-001 (seed T3) documentado
+- `tsconfig`: `noUnusedLocals` + `noUnusedParameters` + `noImplicitAny` — 54 dead codes removidos, `tsc` zero, zero `any`
+- `public/version.json` (gerado no `prebuild`) + `<VersionCheck />` no layout + `serverLogger` pino + `lucide-react@0.400.0`
+- `src/proxy.ts`: headers completos (`XSS`, `Permissions-Policy`) · `src/app/api/logs`: aceita nível `INFO`
+- `AGENTS.md`: Últimas Alterações enxutadas (regra: só 5) + seção Guias Universais aponta para `docs/padroes/`
+- `npm run build`: ✅ zero erros
+
+---
+
+## 22/07/2026 — Consolidação (itens do AGENTS.md, sessões 18–22/07)
+
+- `Vercel`: EXEC_SQL_SECRET rotacionado em produção (valor antigo exposto no git) + `.env.local` atualizado
+- `supabase/migrations/20260721010000_add_performance_indexes.sql`: 20 índices de performance em produção
+- `src/proxy.ts`: security headers via proxy convention (Next.js 16)
+- `src/lib/pix.ts`: removido formatCurrency duplicado · `src/lib/validation.ts`: `registrations_closed` no schema · `docs/DATABASE.md`: campo documentado
+- `_archive/sync-passwords.ts`: arquivado (senhas plaintext) · `.gitignore`: permite `.env.example`, sem `.vercel` duplicado
+- Skills/opencode: SKILL.md atualizada, plugin graphify registrado, `sequential-thinking` desabilitado, `cleanup-opencode.ps1` criado
+- `sw.js`: `clients.claim()` separado do cleanup (fix barra de status piscando) · polling 5s→30s (público) e 3s→10s (placar admin)
+- Diversos: seção CLI no AGENTS.md, `.project-rules.md` expandido, `HISTORICO.md` criado, remoção de 115 tipos `any` (32 arquivos), toast único, login admin via cookie, WHIST_SCHEDULE corrigido
+
+## 21/07/2026 — Documentação Seed Data Loss + Guias Atualizados
+
+- **Seed data loss documentado**: T3 (3ª Edição) perdeu 28 matches por reset sem backup — lição registrada em `20-licoes-aprendidas.md`
+- **`.project-rules.md`**: Nova seção 6 "Seed Data — Regra Crítica" com checklist de backup
+- **`AGENTS.md`**: Adicionada seção "Lição Aprendida" sobre perda de dados do T3
+- **Guias universais**: Criado `20-licoes-aprendidas.md`, atualizados `06-supabase.md`, `11-regras-negocio.md`, `02-anti-breaking.md`, `README.md`
+- **Regra adicionada**: Sempre fazer `supabase db dump --linked` antes de qualquer operação destrutiva
+
 ## 07/07/2026 — Lista de Espera, Correção Financeiro, Feedbacks de Cadastro, Logo Rey Madeiras
 
 - `src/app/eventos/[id]/page.tsx`: Atleta pode se inscrever em lista de espera quando categorias lotadas — botão "Entrar na lista de espera" e categoria mostra "Lista de espera · X na fila"

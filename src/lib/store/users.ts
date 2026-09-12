@@ -103,15 +103,7 @@ export async function updateAthlete(athleteId: string, updates: { name?: string;
 }
 
 export async function deleteAthlete(athleteId: string) {
-  const data = getData()
-  data.users = data.users.filter((u) => u.id !== athleteId)
-  data.athlete_registrations = data.athlete_registrations.filter((r) => r.athlete_id !== athleteId)
-  data.pairings = data.pairings.filter((p) => ![p.player1_id, p.player2_id, p.player3_id, p.player4_id].includes(athleteId))
-  data.matches = data.matches.filter((m) => ![m.team1_player1_id, m.team1_player2_id, m.team2_player1_id, m.team2_player2_id].includes(athleteId))
-  data.tournament_results = data.tournament_results.filter((r) => r.athlete_id !== athleteId)
-  data.annual_rankings = data.annual_rankings.filter((r) => r.athlete_id !== athleteId)
-  data.notifications = data.notifications.filter((n) => n.user_id !== athleteId)
-  await saveData(data)
+  return deleteUser(athleteId)
 }
 
 export function getAthleteMatches(athleteId: string, tournamentId?: string): import("../types").Match[] {
@@ -163,7 +155,6 @@ export function getAthleteStats(athleteId: string) {
   const bestPosition = results.length > 0 ? Math.min(...results.map((r) => r.position)) : null
 
   const scoresByTournament: { tournamentTitle: string; points: number; position: number }[] = []
-  const resultTournamentIds = new Set(results.map((r) => r.tournament_id))
 
   for (const tid of tournamentIdSet) {
     const t = data.tournaments.find((tour) => tour.id === tid)

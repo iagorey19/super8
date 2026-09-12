@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import * as store from "@/lib/store"
-import { formatDate, getStatusColor, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
+import { formatDate, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
 import type { Tournament } from "@/lib/types"
 
 export default function AthleteHistory() {

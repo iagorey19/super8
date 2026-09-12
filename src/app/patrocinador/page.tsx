@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Modal } from "@/components/ui/modal"
 import * as store from "@/lib/store"
 import { useToast } from "@/components/ui/toast"
-import { formatCurrency, formatDate, getStatusColor, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
+import { formatCurrency, formatDate, getTournamentStatusLabel, getTournamentStatusColor } from "@/lib/utils"
 import type { Tournament, Sponsorship } from "@/lib/types"
 
 export default function SponsorDashboard() {

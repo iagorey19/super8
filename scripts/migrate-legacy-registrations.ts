@@ -35,7 +35,6 @@ async function main() {
     groups.get(key)!.push(r)
   }
 
-  const BATCH_SIZE = 50
   let updated = 0
   let skipped = 0
 

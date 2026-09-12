@@ -246,7 +246,6 @@ export default function SortearNumeros() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {athletes.map((athlete) => {
-              const isPending = athlete.number == null
               return (
                 <div
                   key={athlete.athlete_id}

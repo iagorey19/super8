@@ -54,7 +54,3 @@ export async function updateConfig(config: Partial<AppData["config"]>) {
   Object.assign(data.config, config)
   await saveData(data)
 }
-
-export function getDataRef(): AppData {
-  return getData()
-}

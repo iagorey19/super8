@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Modal } from "@/components/ui/modal"
 import { Table, Td } from "@/components/ui/table"
 import * as store from "@/lib/store"
-import { formatDate, getStatusColor, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor, exportToCSV } from "@/lib/utils"
+import { formatDate, getTournamentStatusLabel, getTournamentStatusColor, exportToCSV } from "@/lib/utils"
 import type { Tournament } from "@/lib/types"
 
 const ALL_CATEGORIES = ["4e5", "6e7"]

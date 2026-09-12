@@ -1,0 +1,145 @@
+{
+    "expenses":  [
+                     {
+                         "id":  "e2c6f5a2-905e-4028-9425-213fa925acbe",
+                         "tournament_id":  "2bb70ad7-3757-4692-8b75-4d812f76da4d",
+                         "category":  "estrutura",
+                         "description":  "QUADRAS",
+                         "amount":  1350,
+                         "date":  "2026-06-20",
+                         "created_by":  "admin-001",
+                         "created_at":  "2026-06-12T18:39:52.311Z"
+                     },
+                     {
+                         "id":  "2e0499a5-f10b-46c3-a9b4-fe7709ce7a1a",
+                         "tournament_id":  "2bb70ad7-3757-4692-8b75-4d812f76da4d",
+                         "category":  "brindes",
+                         "description":  "Tábua Oficial The Super 8",
+                         "amount":  350,
+                         "date":  "2026-06-17",
+                         "created_by":  "admin-001",
+                         "created_at":  "2026-06-12T18:38:45.319Z"
+                     },
+                     {
+                         "id":  "50be718a-2f0f-4b28-9861-73931bd99b7b",
+                         "tournament_id":  "2bb70ad7-3757-4692-8b75-4d812f76da4d",
+                         "category":  "outros",
+                         "description":  "Bolinhas",
+                         "amount":  150,
+                         "date":  "2026-06-15",
+                         "created_by":  "admin-001",
+                         "created_at":  "2026-06-12T18:37:38.223Z"
+                     },
+                     {
+                         "id":  "d2b50626-d8b6-4a47-86a9-ed1b41229a97",
+                         "tournament_id":  "2bb70ad7-3757-4692-8b75-4d812f76da4d",
+                         "category":  "brindes",
+                         "description":  "Chaveirinho",
+                         "amount":  200,
+                         "date":  "2026-06-12",
+                         "created_by":  "admin-001",
+                         "created_at":  "2026-06-12T18:36:40.671Z"
+                     }
+                 ],
+    "sponsorships":  {
+                         "id":  "c65b0985-b78d-4dc6-b3b8-3602f95fca70",
+                         "tournament_id":  "2bb70ad7-3757-4692-8b75-4d812f76da4d",
+                         "sponsor_id":  "f0e0bbbf-9489-4538-8953-45150e9bf4d0",
+                         "tier":  "gold",
+                         "amount":  500,
+                         "description":  "CHAVEIRINHOS+QUADRAS",
+                         "created_at":  "2026-06-12T18:07:07.109Z"
+                     },
+    "revenues":  [
+                     {
+                         "id":  "78db4b60-b4de-42f4-a8f6-d17842ede18e",
+                         "tournament_id":  "2bb70ad7-3757-4692-8b75-4d812f76da4d",
+                         "source":  "patrocinio",
+                         "amount":  500,
+                         "description":  "CHAVEIRINHOS+AJUDA DE CUSTO",
+                         "date":  "2026-06-12",
+                         "created_by":  "f0e0bbbf-9489-4538-8953-45150e9bf4d0",
+                         "created_at":  "2026-06-12T18:07:07.109Z"
+                     },
+                     {
+                         "id":  "76c0e870-1152-497a-94d0-05d13abead6b",
+                         "tournament_id":  "2bb70ad7-3757-4692-8b75-4d812f76da4d",
+                         "source":  "inscricao",
+                         "amount":  120,
+                         "description":  "Inscrição Dani Madeli - THE SUPER 8",
+                         "date":  "2026-06-12",
+                         "created_by":  "ath-001",
+                         "created_at":  "2026-06-12T18:26:53.532Z"
+                     },
+                     {
+                         "id":  "b54d4908-4f9a-4936-84d9-583fb4b8ad8d",
+                         "tournament_id":  "2bb70ad7-3757-4692-8b75-4d812f76da4d",
+                         "source":  "inscricao",
+                         "amount":  0,
+                         "description":  "Inscrição Patricia Rey - THE SUPER 8",
+                         "date":  "2026-06-12",
+                         "created_by":  "ath-004",
+                         "created_at":  "2026-06-12T18:26:54.396Z"
+                     },
+                     {
+                         "id":  "ed59d5a2-a30c-43ee-8385-d78be38b6d25",
+                         "tournament_id":  "2bb70ad7-3757-4692-8b75-4d812f76da4d",
+                         "source":  "inscricao",
+                         "amount":  120,
+                         "description":  "Inscrição Pâmela - THE SUPER 8",
+                         "date":  "2026-06-14",
+                         "created_by":  "89624872-cdff-40c8-966f-ce4f62025da6",
+                         "created_at":  "2026-06-14T04:43:44.283Z"
+                     },
+                     {
+                         "id":  "8c138bfe-edd7-43fc-91d0-a747f1449aef",
+                         "tournament_id":  "2bb70ad7-3757-4692-8b75-4d812f76da4d",
+                         "source":  "inscricao",
+                         "amount":  120,
+                         "description":  "Inscrição Patty Conceição - THE SUPER 8",
+                         "date":  "2026-06-14",
+                         "created_by":  "87358cfb-f406-4398-988a-2967605e4a71",
+                         "created_at":  "2026-06-14T04:43:59.690Z"
+                     },
+                     {
+                         "id":  "eab27f86-6cbe-49ce-b6ac-f8d011566000",
+                         "tournament_id":  "2bb70ad7-3757-4692-8b75-4d812f76da4d",
+                         "source":  "inscricao",
+                         "amount":  120,
+                         "description":  "Inscrição Ivana Nascimento - THE SUPER 8",
+                         "date":  "2026-06-14",
+                         "created_by":  "3d51d686-ce46-4d5d-86eb-f256c163245b",
+                         "created_at":  "2026-06-14T04:45:57.804Z"
+                     },
+                     {
+                         "id":  "32b96631-76e9-447d-afa0-fb912d9c6b5d",
+                         "tournament_id":  "2bb70ad7-3757-4692-8b75-4d812f76da4d",
+                         "source":  "inscricao",
+                         "amount":  120,
+                         "description":  "Inscrição Rosana Albino - THE SUPER 8",
+                         "date":  "2026-06-14",
+                         "created_by":  "54302b65-2afc-47e5-98da-eee3f7609d78",
+                         "created_at":  "2026-06-14T04:45:58.659Z"
+                     },
+                     {
+                         "id":  "015838fd-09e1-4bb2-9392-dda14c45a701",
+                         "tournament_id":  "2bb70ad7-3757-4692-8b75-4d812f76da4d",
+                         "source":  "inscricao",
+                         "amount":  120,
+                         "description":  "Inscrição Tatiane Gomes - THE SUPER 8",
+                         "date":  "2026-06-14",
+                         "created_by":  "837b774c-706f-45d5-821f-3168bb9b7267",
+                         "created_at":  "2026-06-14T04:46:06.907Z"
+                     },
+                     {
+                         "id":  "1b2073df-a3da-4736-bc26-661f903d9b6b",
+                         "tournament_id":  "2bb70ad7-3757-4692-8b75-4d812f76da4d",
+                         "source":  "inscricao",
+                         "amount":  120,
+                         "description":  "Inscrição Jualiane Heringer - THE SUPER 8",
+                         "date":  "2026-06-14",
+                         "created_by":  "642ef774-d555-4e5c-a082-9462d1257692",
+                         "created_at":  "2026-06-14T04:46:10.627Z"
+                     }
+                 ]
+}

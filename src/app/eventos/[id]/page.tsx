@@ -9,8 +9,8 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/toast"
 import * as store from "@/lib/store"
 import { sanitizeUrl } from "@/lib/validate-url"
-import { getStatusColor, getStatusLabel, getTournamentStatusLabel, getTournamentStatusColor, getCategoryLabel, formatDateWithWeekday } from "@/lib/utils"
-import { generatePixPayload, generatePixQR, formatCurrency, generateWhatsAppLink } from "@/lib/pix"
+import { getTournamentStatusLabel, getTournamentStatusColor, getCategoryLabel, formatDateWithWeekday, formatCurrency } from "@/lib/utils"
+import { generatePixPayload, generatePixQR, generateWhatsAppLink } from "@/lib/pix"
 import type { Tournament, RaffleRecord, AthleteRegistration, TournamentResultWithName, Sponsorship, ApoiadorWithBrindes, Brinde, RegistrationWithName } from "@/lib/types"
 
 export default function EventoDetalhePage() {
@@ -22,10 +22,10 @@ export default function EventoDetalhePage() {
   const [registrations, setRegistrations] = useState<RegistrationWithName[]>([])
   const [sponsors, setSponsors] = useState<(Sponsorship & { sponsor_name: string; sponsor_url?: string })[]>([])
   const [apoiadores, setApoiadores] = useState<ApoiadorWithBrindes[]>([])
-  const [session, setSession] = useState<{ user: { id: string; name: string; role: string } } | null>(null)
+  const [_session, setSession] = useState<{ user: { id: string; name: string; role: string } } | null>(null)
   const [myReg, setMyReg] = useState<AthleteRegistration | null>(null)
   const [step, setStep] = useState<"idle" | "category" | "pix" | "done">("idle")
-  const [selectedCategory, setSelectedCategory] = useState("")
+  const [_selectedCategory, setSelectedCategory] = useState("")
   const [pixPayload, setPixPayload] = useState("")
   const [pixQR, setPixQR] = useState("")
   const [copied, setCopied] = useState(false)
@@ -103,7 +103,7 @@ export default function EventoDetalhePage() {
     }
   }
 
-  async function generatePixForRegistration(reg: AthleteRegistration, athleteName: string) {
+  async function generatePixForRegistration(_reg: AthleteRegistration, _athleteName: string) {
     const config = store.getConfig()
     if (!config.pix_key || !tournament?.registration_fee) return
     const payload = generatePixPayload( config.pix_key, tournament.registration_fee, config.pix_name || "Pagamento", config.pix_city || "Cidade")

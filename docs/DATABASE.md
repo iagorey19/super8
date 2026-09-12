@@ -43,6 +43,7 @@ URL: `https://ylltshboiejlcbhksrci.supabase.co`
 | registration_fee | numeric? | Taxa de inscrição |
 | max_score | int? | Pontuação máxima por partida (default 5) |
 | court_names | jsonb? | Nomes personalizados das quadras |
+| registrations_closed | boolean? | Inscrições encerradas (default false) |
 | created_at | timestamptz | Data de criação |
 | created_by | text | FK → users.id |
 
