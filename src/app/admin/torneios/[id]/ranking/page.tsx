@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Table, Td } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { getRankings, getLiveRankings, getTournamentById, getUserName, getApoiadores, getSponsorships, getRaffleRecords } from "@/lib/store"
-import { formatCurrency, getTournamentStatusLabel, getTournamentStatusColor, tiebreakSeal } from "@/lib/utils"
+import { formatCurrency, getTournamentStatusLabel, getTournamentStatusColor, sealForRow } from "@/lib/utils"
 import type { Tournament, TournamentResult, RaffleRecord, Sponsorship, ApoiadorWithBrindes, Brinde, SponsorshipWithDetails } from "@/lib/types"
 import { RankingInfo } from "@/components/ui/ranking-info"
 
@@ -174,9 +174,7 @@ export default function TournamentRankingPage() {
             </tr>
           ) : (
             results.map((r, idx) => {
-              const prev = idx > 0 ? results[idx - 1] : undefined
-              const sameGroup = !!prev && prev.category === r.category && (prev.group_name || "A") === (r.group_name || "A")
-              const seal = sameGroup && prev ? tiebreakSeal(prev, r) : null
+              const seal = sealForRow(results, idx)
               return (
               <tr
                 key={r.id || idx}

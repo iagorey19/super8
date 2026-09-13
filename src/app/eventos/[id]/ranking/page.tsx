@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Table, Td } from "@/components/ui/table"
 import * as store from "@/lib/store"
 import { sanitizeUrl } from "@/lib/validate-url"
-import { tiebreakSeal } from "@/lib/utils"
+import { sealForRow } from "@/lib/utils"
 import { RankingInfo } from "@/components/ui/ranking-info"
 import type { Tournament, TournamentResultWithName, ApoiadorWithBrindes, Brinde, RaffleRecord, Sponsorship } from "@/lib/types"
 
@@ -141,9 +141,7 @@ export default function PublicRankingPage() {
             </tr>
           ) : (
             results.map((r: TournamentResultWithName, idx: number) => {
-              const prev = idx > 0 ? results[idx - 1] : undefined
-              const sameGroup = !!prev && prev.category === r.category && (prev.group_name || "A") === (r.group_name || "A")
-              const seal = sameGroup && prev ? tiebreakSeal(prev, r) : null
+              const seal = sealForRow(results, idx)
               return (
               <tr
                 key={r.id || idx}

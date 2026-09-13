@@ -132,12 +132,29 @@ export function stripPassword<U extends Record<string, unknown>>(u: U): Omit<U, 
 export function tiebreakSeal(
   prev: { total_games: number; saldo?: number | null } | undefined,
   cur: { total_games: number; saldo?: number | null }
-): "saldo" | "h2h" | null {
-  if (!prev) return null
-  if (prev.total_games !== cur.total_games) return null
-  if ((prev.saldo ?? 0) !== (cur.saldo ?? 0)) return "saldo"
-  return "h2h"
-}
+  ): "saldo" | "h2h" | null {
+    if (!prev) return null
+    if (prev.total_games !== cur.total_games) return null
+    if ((prev.saldo ?? 0) !== (cur.saldo ?? 0)) return "saldo"
+    return "h2h"
+  }
+
+  // Selo para tabelas que intercalam categorias/grupos: compara com a linha
+  // anterior DO MESMO grupo/categoria em vez da vizinha imediata.
+  export function sealForRow(
+    rows: { category?: string; group_name?: string | null; total_games: number; saldo?: number | null }[],
+    idx: number
+  ): "saldo" | "h2h" | null {
+    const cur = rows[idx]
+    if (!cur) return null
+    for (let i = idx - 1; i >= 0; i--) {
+      const p = rows[i]
+      if (p.category === cur.category && (p.group_name || "A") === (cur.group_name || "A")) {
+        return tiebreakSeal(p, cur)
+      }
+    }
+    return null
+  }
 
 export function exportToCSV(headers: string[], rows: string[][], filename: string) {
   const BOM = "\uFEFF"

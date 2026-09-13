@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Table, Td } from "@/components/ui/table"
 import * as store from "@/lib/store"
-import { tiebreakSeal } from "@/lib/utils"
+import { sealForRow } from "@/lib/utils"
 import { RankingInfo } from "@/components/ui/ranking-info"
 import type { TournamentResult, AnnualRankingWithDetails } from "@/lib/types"
 
@@ -64,9 +64,7 @@ export default function AthleteRanking() {
           <Table headers={["Posição", "Atleta", "Total Games", "Saldo", "Pontos"]}>
             {liveRanking.map((r, idx) => {
               const isMe = r.athlete_id === user.id
-              const prev = idx > 0 ? liveRanking[idx - 1] : undefined
-              const sameGroup = !!prev && prev.category === r.category && (prev.group_name || "A") === (r.group_name || "A")
-              const seal = sameGroup && prev ? tiebreakSeal(prev, r) : null
+              const seal = sealForRow(liveRanking, idx)
               return (
                 <tr
                   key={r.athlete_id}

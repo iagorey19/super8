@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select } from "@/components/ui/select"
 import { Table, Td } from "@/components/ui/table"
 import * as store from "@/lib/store"
-import { formatCurrency, getStatusColor, getStatusLabel, tiebreakSeal } from "@/lib/utils"
+import { formatCurrency, getStatusColor, getStatusLabel, sealForRow } from "@/lib/utils"
 import { sanitizeUrl } from "@/lib/validate-url"
 import type { Tournament, Photo, TournamentResult, Match, Apoiador, Brinde, RaffleRecord, SponsorshipWithDetails } from "@/lib/types"
 
@@ -155,9 +155,7 @@ export default function SponsorResults() {
             ) : (
               <Table headers={["Posição", "Atleta", "Categoria", "Total Games", "Saldo", "Pontos"]}>
                 {rankings.map((r, idx) => {
-                  const prev = idx > 0 ? rankings[idx - 1] : undefined
-                  const sameGroup = !!prev && prev.category === r.category && (prev.group_name || "A") === (r.group_name || "A")
-                  const seal = sameGroup && prev ? tiebreakSeal(prev, r) : null
+                  const seal = sealForRow(rankings, idx)
                   return (
                   <tr key={r.athlete_id}>
                     <Td className="font-semibold">{r.position}º</Td>

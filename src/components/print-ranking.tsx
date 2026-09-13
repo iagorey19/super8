@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { getRankings, getLiveRankings, getTournamentById, getUserName, getCourtNames } from "@/lib/store"
-import { tiebreakSeal } from "@/lib/utils"
+import { sealForRow } from "@/lib/utils"
 import type { Tournament, TournamentResult } from "@/lib/types"
 
 export default function PrintRankingPage() {
@@ -95,9 +95,7 @@ export default function PrintRankingPage() {
         </thead>
         <tbody>
           {results.map((r: TournamentResult & { name: string }, idx: number) => {
-            const prev = idx > 0 ? results[idx - 1] : undefined
-            const sameGroup = !!prev && prev.category === r.category && (prev.group_name || "A") === (r.group_name || "A")
-            const seal = sameGroup && prev ? tiebreakSeal(prev, r) : null
+            const seal = sealForRow(results, idx)
             return (
             <tr key={r.athlete_id || idx} className="border-b border-gray-200 dark:border-gray-700">
               <td className={`py-2 px-3 text-center font-bold ${
