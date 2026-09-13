@@ -4,6 +4,15 @@ _Histórico completo de alterações. Consulte AGENTS.md para as últimas 5._
 
 ---
 
+## 13/09/2026 — Performance + keep-alive
+
+- Banner instalar aparece toda entrada até instalar (snooze removido)
+- Poll inteligente: `data_version` no config + `GET /api/data-version` (7 bytes) com bump em todo POST; placar checa 5s, páginas 15s + volta de aba, baixa 189KB só quando muda
+- `qrcode` virou import dinâmico (fora do bundle da página do evento)
+- Workflow `keep-alive.yml` a cada 3 dias (Supabase free não pausa)
+
+---
+
 ## 13/09/2026 — Regra visível + pacote da auditoria profunda
 
 **Desempate visível**
