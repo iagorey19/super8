@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { startVersionWatch } from "@/lib/db"
 import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
@@ -31,8 +32,8 @@ export default function AthleteFotos() {
       await Promise.resolve()
       if (!cancelled) loadPhotos()
     })()
-    const interval = setInterval(loadPhotos, 30000)
-    return () => { cancelled = true; clearInterval(interval) }
+    const stop = startVersionWatch(loadPhotos, 15000)
+    return () => { cancelled = true; stop() }
   }, [])
 
   if (loading) {

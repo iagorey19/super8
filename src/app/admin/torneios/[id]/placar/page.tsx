@@ -20,6 +20,7 @@ import {
   finalizeTournament,
 } from "@/lib/store"
 import { getStatusColor, getStatusLabel } from "@/lib/utils"
+import { startVersionWatch } from "@/lib/db"
 import type { Match, Tournament } from "@/lib/types"
 
 export default function PlacarPage() {
@@ -74,8 +75,8 @@ export default function PlacarPage() {
   }, [loadData])
 
   useEffect(() => {
-    const interval = setInterval(loadData, 10000)
-    return () => clearInterval(interval)
+    const stop = startVersionWatch(loadData, 5000)
+    return () => stop()
   }, [loadData])
 
   const handleScore = async (matchId: string, team: 1 | 2) => {

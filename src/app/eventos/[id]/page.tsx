@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { useEffect, useState, useCallback } from "react"
+import { startVersionWatch } from "@/lib/db"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -59,8 +60,8 @@ export default function EventoDetalhePage() {
       await Promise.resolve()
       if (!cancelled) loadData()
     })()
-    const interval = setInterval(loadData, 30000)
-    return () => { cancelled = true; clearInterval(interval) }
+    const stop = startVersionWatch(loadData, 15000)
+    return () => { cancelled = true; stop() }
   }, [loadData])
 
   async function handleStartRegistration() {

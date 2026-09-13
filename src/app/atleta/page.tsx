@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { startVersionWatch } from "@/lib/db"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { Card, CardHeader } from "@/components/ui/card"
@@ -63,8 +64,8 @@ export default function AthleteDashboard() {
       await Promise.resolve()
       if (!cancelled) loadData()
     })()
-    const interval = setInterval(loadData, 30000)
-    return () => { cancelled = true; clearInterval(interval) }
+    const stop = startVersionWatch(loadData, 15000)
+    return () => { cancelled = true; stop() }
   }, [loadData])
 
   if (loading) {

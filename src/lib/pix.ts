@@ -1,5 +1,3 @@
-import QRCode from "qrcode"
-
 function crc16ccitt(data: string): string {
   let crc = 0xFFFF
   for (let i = 0; i < data.length; i++) {
@@ -57,6 +55,7 @@ export function generatePixPayload(key: string, amount: number, name: string, ci
 }
 
 export async function generatePixQR(payload: string): Promise<string> {
+  const QRCode = (await import("qrcode")).default
   return QRCode.toDataURL(payload, { width: 400, margin: 4, errorCorrectionLevel: "H", color: { dark: "#000000", light: "#ffffff" } })
 }
 

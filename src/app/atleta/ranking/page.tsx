@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { startVersionWatch } from "@/lib/db"
 import { useAuth } from "@/lib/auth-context"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -39,8 +40,8 @@ export default function AthleteRanking() {
       await Promise.resolve()
       if (!cancelled) refresh()
     })()
-    const interval = setInterval(refresh, 30000)
-    return () => { cancelled = true; clearInterval(interval) }
+    const stop = startVersionWatch(refresh, 15000)
+    return () => { cancelled = true; stop() }
   }, [refresh])
 
   if (!user) return null

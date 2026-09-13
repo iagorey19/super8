@@ -6,7 +6,9 @@ import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, Td } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { getRankings, getLiveRankings, getTournamentById, getUserName, getApoiadores, getSponsorships, getRaffleRecords } from "@/lib/store"
+import { getRankings, getLiveRankings, getTournamentById, getUserName, getApoiadores, getSponsorships, 
+getRaffleRecords } from "@/lib/store"
+import { startVersionWatch } from "@/lib/db"
 import { formatCurrency, getTournamentStatusLabel, getTournamentStatusColor, sealForRow } from "@/lib/utils"
 import type { Tournament, TournamentResult, RaffleRecord, Sponsorship, ApoiadorWithBrindes, Brinde, SponsorshipWithDetails } from "@/lib/types"
 import { RankingInfo } from "@/components/ui/ranking-info"
@@ -91,9 +93,9 @@ export default function TournamentRankingPage() {
       loadRankings()
       loadAgradecimentos()
     })()
-    if (tournament?.status === "ongoing") {
-      const interval = setInterval(loadRankings, 15000)
-      return () => { cancelled = true; clearInterval(interval) }
+      if (tournament?.status === "ongoing") {
+      const stop = startVersionWatch(() => { loadRankings(); loadAgradecimentos() }, 15000)
+      return () => { cancelled = true; stop() }
     }
     return () => { cancelled = true }
   }, [tournamentId, tournament?.status, selectedCategory, loadRankings, loadAgradecimentos])

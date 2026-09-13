@@ -246,6 +246,16 @@ async function syncToSupabase(data: AppData, callerRole: Role, callerUserId: str
   const { error: configErr } = await (svc.from("config") as unknown as { upsert: (row: Record<string, unknown>, opts: { onConflict: string }) => Promise<{ error: { message: string } | null }> }).upsert({ id: "global", ...data.config } as Record<string, unknown>, { onConflict: "id" })
   if (configErr) errors.push(`config upsert: ${configErr.message}`)
 
+  // Bump da versão global (poll inteligente + keep-alive). Melhor-esforço.
+  // Read-modify-write é seguro aqui: o payload é snapshot full, então mesmo
+  // com writes concorrentes o cliente baixa tudo de uma vez ao ver v mudar.
+  try {
+    const { data: cfgRow } = await (svc.from("config") as unknown as { select: (c: string) => { eq: (col: string, val: string) => { maybeSingle: () => Promise<{ data: { data_version: number } | null }> } } }).select("data_version").eq("id", "global").maybeSingle()
+    await (svc.from("config") as unknown as { update: (row: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<unknown> } }).update({ data_version: (cfgRow?.data_version || 0) + 1 }).eq("id", "global")
+  } catch {
+    // ignora — não bloqueia a escrita
+  }
+
   for (const { table, records } of upsertOrder) {
     const perm = TABLE_PERMISSIONS[table]
     if (callerRole !== "admin" && (!perm || !perm.roles.includes(callerRole))) {

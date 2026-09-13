@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import { useEffect, useState, useCallback } from "react"
+import { startVersionWatch } from "@/lib/db"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -40,8 +41,8 @@ export default function PublicJogosPage() {
       await Promise.resolve()
       if (!cancelled) loadData()
     })()
-    const interval = setInterval(loadData, 30000)
-    return () => { cancelled = true; clearInterval(interval) }
+    const stop = startVersionWatch(loadData, 15000)
+    return () => { cancelled = true; stop() }
   }, [loadData])
 
   const categories = tournament?.categories || ["4e5"]

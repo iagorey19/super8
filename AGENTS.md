@@ -147,6 +147,7 @@ Ao iniciar conversa em qualquer projeto, SEMPRE:
 Ao alterar arquivos/testar, adicionar entrada no TOPO de Últimas Alterações (arquivo + resumo). Manter só últimas 5. Se conversa ~50 trocas, avisar: "⚠️ Conversa longa — sugiro `/salvar` e reiniciar."
 
 ## Últimas Alterações
+- Performance+keep-alive (13/09/2026): banner instalar sempre até instalar; `data_version` no config + `GET /api/data-version` com bump em todo POST (polls viraram checagem de versão: placar 5s, páginas 15s + volta de aba, full só quando muda); `qrcode` dinâmico; workflow `keep-alive.yml` a cada 3 dias (Supabase free não pausa)
 - Pacote regra+ranking (13/09/2026): H2H com sinal corrigido; `saldo` no banco (backfill 56/56) + selo ⚖️/🤝 em todo ranking; planilha com abas por grupo/categoria + posição TS + fórmulas por ID; docs da regra verdadeira (total→saldo→confronto, sem "vencer por 2")
 - Lógica Whist (13/09/2026): espera fora de sorteio/placar/ranking, ordem sem duplicar, `max_score`≥1, resultados invalidados ao editar, `regenerate` com swap, live=final, quadras por grupo, ano civil pela data, anual normalizado; financeiro sem duplicada/órfã + validação; PIX sem DDD duplo; CSV sem injeção
 - Shell (13/09/2026): SW registrado e corrigido, offline com snapshot+aviso, `global-error`+`not-found`, `/api/logs` com auth, token fora do `sessionStorage`, papéis nos layouts, PWA/iOS corrigidos; backup em `$env:TEMP\super8-data-20260913.json`

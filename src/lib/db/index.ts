@@ -20,6 +20,44 @@ export function resetData() {
   _dirtyTables.clear()
 }
 
+// Poll inteligente: pergunta só a versão (bytes) e recarrega os dados
+// completos apenas quando o servidor mudou (admin salvou algo).
+// Retorna função para parar. Pausa com aba oculta + checa ao voltar.
+export function startVersionWatch(onChange: () => void, intervalMs: number): () => void {
+  let stopped = false
+  let lastV: number | null = null
+  let timer: ReturnType<typeof setInterval> | null = null
+
+  async function check() {
+    if (stopped || document.hidden) return
+    try {
+      const res = await fetch("/api/data-version", { cache: "no-store" })
+      if (!res.ok) return
+      const { v } = (await res.json()) as { v?: number }
+      if (typeof v !== "number" || v < 0) return
+      if (lastV === null) {
+        lastV = v
+        return
+      }
+      if (v !== lastV) {
+        lastV = v
+        onChange()
+      }
+    } catch {
+      // sem rede — tenta no próximo ciclo
+    }
+  }
+
+  void check()
+  timer = setInterval(check, intervalMs)
+  document.addEventListener("visibilitychange", check)
+  return () => {
+    stopped = true
+    if (timer) clearInterval(timer)
+    document.removeEventListener("visibilitychange", check)
+  }
+}
+
 export function isReady() {
   return _ready
 }

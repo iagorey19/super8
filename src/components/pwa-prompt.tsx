@@ -19,26 +19,6 @@ function isStandalone(): boolean {
   return window.matchMedia("(display-mode: standalone)").matches || nav.standalone === true
 }
 
-const SNOOZE_KEY = "super8-pwa-dismissed-at"
-const SNOOZE_MS = 7 * 24 * 60 * 60 * 1000
-
-function isSnoozed(): boolean {
-  try {
-    const at = Number(localStorage.getItem(SNOOZE_KEY) || 0)
-    return Date.now() - at < SNOOZE_MS
-  } catch {
-    return false
-  }
-}
-
-function snooze() {
-  try {
-    localStorage.setItem(SNOOZE_KEY, String(Date.now()))
-  } catch {
-    // ignore
-  }
-}
-
 export function PWAPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [show, setShow] = useState(false)
@@ -46,7 +26,9 @@ export function PWAPrompt() {
   const standalone = isStandalone()
 
   useEffect(() => {
-    if (standalone || isSnoozed()) return
+    // Aparece TODA vez que entrar sem estar instalado (sem snooze).
+    // Só some de vez quando instalado (standalone).
+    if (standalone) return
 
     if (ios) {
       const timer = setTimeout(() => setShow(true), 3000)
@@ -66,14 +48,13 @@ export function PWAPrompt() {
     if (!deferredPrompt) return
     deferredPrompt.prompt()
     deferredPrompt.userChoice.then(() => {
-      snooze()
       setDeferredPrompt(null)
       setShow(false)
     })
   }
 
   function handleDismiss() {
-    snooze()
+    // Fecha só desta vez — na próxima entrada aparece de novo até instalar
     setShow(false)
   }
 

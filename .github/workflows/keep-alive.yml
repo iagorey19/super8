@@ -1,0 +1,19 @@
+name: keep-alive
+
+# Mantém o Supabase do plano free ativo: o projeto pausa após ~7 dias sem
+# atividade no banco. Este ping a cada 3 dias conta como atividade (lê a
+# tabela config via /api/data-version, resposta de bytes, sem auth).
+on:
+  schedule:
+    - cron: "17 3 */3 * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping data-version
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" https://super8-three.vercel.app/api/data-version)
+          echo "HTTP $code"
+          test "$code" = "200"

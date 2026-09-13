@@ -1,6 +1,7 @@
 "use client"
 
 import { Fragment, useState, useEffect, useCallback } from "react"
+import { startVersionWatch } from "@/lib/db"
 import { Card, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, Td } from "@/components/ui/table"
@@ -37,8 +38,8 @@ export function AnnualRanking() {
       await Promise.resolve()
       if (!cancelled) loadRanking()
     })()
-    const interval = setInterval(loadRanking, 10000)
-    return () => { cancelled = true; clearInterval(interval) }
+    const stop = startVersionWatch(loadRanking, 15000)
+    return () => { cancelled = true; stop() }
   }, [selectedCategory, loadRanking])
 
   function toggleExpand(id: string) {
