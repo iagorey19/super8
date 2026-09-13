@@ -4,6 +4,33 @@ _Histórico completo de alterações. Consulte AGENTS.md para as últimas 5._
 
 ---
 
+## 13/09/2026 — Regra visível + pacote da auditoria profunda
+
+**Desempate visível**
+- `tournament_results.saldo` (migration + backfill 56/56) gravado em `finalize`/`recalc`/conclusão
+- Selo do critério em todo ranking (admin, atleta, evento, impressão, patrocinador): `⚖️` saldo, `🤝` confronto (`sealForRow`, vale p/ categorias intercaladas) + legenda no `RankingInfo`
+- H2H com sinal corrigido (nunca havia decidido nada: zero empates duplos em T1–T5)
+- Regra verdadeira documentada (total → saldo → confronto, sem "vencer por 2"): skill, `.project-rules.md`, checklist
+
+**Planilha**
+- Abas por grupo/categoria (`Classif 4e5 A`…; só quando há >1), Jogos global
+- Posição calculada em TS (com H2H) + coluna Critério; fórmulas `COUNTIFS/SUMIFS` por ID oculto (adeus homônimos)
+
+**Lógica (P0/P1)**
+- `updateConfig` persiste; `persist` sem lost-update (re-entra + limpa só o enviado)
+- Espera fora de sorteio/placar/ranking; ordem sequencial sem duplicar; `max_score` ≥ 1; resultados invalidados ao editar (`decrement/swap/players/reset/regenerate`)
+- `regenerate` com swap de pares + reseta placares; live ordenado igual ao final; quadras por grupo; ano civil pela data; anual normalizado nos dois caminhos
+- Financeiro: receita de inscrição com dedup real, órfãs cascateadas, validação de valores, moeda via `formatCurrency`; `sponsorship_id` em revenues (migration + backfill parcial — 1 ambígua deixada solta)
+- PIX sem DDD duplo (detecta tipo de chave) + guards; CSV sem injeção de fórmula (`""` + prefixo `'`), delimitador `;`
+
+**Shell**
+- SW registrado (`ServiceWorkerRegister` no layout) + `sw.js` v2 (só cacheia `ok`, fallback de navegação)
+- Offline com snapshot + aviso; `global-error` + `not-found`; `error.tsx` com saída
+- `/api/logs` com sessão + anti-injeção; token fora do `sessionStorage` (memória + cookie); logout limpa `_data`; layouts com papel; PWA/iOS corrigidos; manifest honesto; toast com fila; autofocus do modal
+- Backup pré-sessão em `$env:TEMP\super8-data-20260913.json`
+
+---
+
 ## 12/09/2026 — Warns zerados (sem nada pago)
 
 - `set-state-in-effect` 50→0: padrão async-guarded (microtask + `cancelled`, semântica idêntica, +segurança em unmount); regra voltou a `error` no eslint

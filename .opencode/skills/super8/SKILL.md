@@ -97,14 +97,15 @@ Get-Process node | Where-Object { $_.Id -ne $PID } | Stop-Process -Force
 | API | `/api/data` (GET = fetch+seed, POST = persist via service_role) |
 | Estado | Store centralizada (`src/lib/store.ts`) |
 | Auth | Custom bcrypt + HMAC token + Google OAuth + Password Reset via Supabase Auth |
-| Sessão | `sessionStorage` (chave `super8-session`: `{ user, token }`) |
+| Sessão | `sessionStorage` só com `{ user }`; token em memória + cookie httpOnly canônico |
 | Rate Limit | Tabela `rate_limits` no Supabase (5/min login/senha, 30/min data, 10/min register, 30/min upload) |
 | Deploy | **Vercel** (git push no master → auto-deploy) |
 | Lint | ESLint v9 + `eslint-config-next` |
 | TypeScript | `strict + noUnusedLocals + noUnusedParameters + noImplicitAny`, zero `any`, `tsc` zero erros |
 | Validação | Zod schema no POST /api/data |
 | Security Headers | X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy |
-| Observabilidade | `serverLogger` pino (dev→`data/logs/app.log`, prod→stdout) + `GET /api/debug/all` (admin em prod) + `POST /api/logs` |
+| Observabilidade | `serverLogger` pino (dev→`data/logs/app.log`, prod→stdout) + `GET /api/debug/all` (admin em prod) + `POST /api/logs` (exige sessão) |
+| PWA/Offline | SW registrado (`ServiceWorkerRegister`, cache `super8-v2`); `DataLoader` serve snapshot + aviso offline; `VersionCheck` confirma se há input focado |
 | Cache busting | `public/version.json` (gerado no `prebuild`) + `<VersionCheck />` recarrega em deploy novo |
 | Ícones | `lucide-react@0.400.0` travado (`CheckCircle2/MoreVertical/AlertCircle`) |
 | Diagnóstico | `debug/` (scripts + checklists) · acervo `20-licoes-aprendidas/` · padrões `docs/padroes/` |
@@ -123,7 +124,7 @@ Get-Process node | Where-Object { $_.Id -ne $PID } | Stop-Process -Force
 ### Pontuação
 - Partida termina quando atleta atinge `max_score` games (4 ou 5 conforme torneio)
 - Sem tiebreak/prorrogação: diferença de 1 game decide (ex.: 5×4 encerra)
-- Ranking: **total_games** vencidos (desempate: **saldo** → **confronto direto**)
+- Ranking: **total_games** vencidos (desempate: **saldo** → **confronto direto**); `tournament_results.saldo` persistido; tabelas mostram coluna Saldo + selo ⚖️/🤝 (`sealForRow` em `utils.ts`, vale p/ categorias intercaladas)
 - Pontos por etapa: 1º=8pts, 2º=7pts … 8º=1pt
 - Rankings anuais normalizam `total_games` proporcionalmente (`games * 5 / max_score`)
 
@@ -210,7 +211,7 @@ Navegador (store.ts)
 | `src/lib/validate-url.ts` | `isSafeRedirect()`, `sanitizeUrl()` |
 | `src/components/data-loader.tsx` | Inicializa dados no mount |
 | `src/lib/chaveamento.ts` | Geração de pairings por rodada |
-| `src/lib/export-spreadsheet.ts` | Export .xlsx (SheetJS) |
+| `src/lib/export-spreadsheet.ts` | Export .xlsx (SheetJS): Jogos global + 1 aba Classificação por grupo/categoria (só se >1), posição TS com H2H, coluna Critério, fórmulas por ID oculto |
 | `src/utils/supabase/client.ts` | Supabase browser client (SSR) |
 | `src/utils/supabase/server.ts` | Supabase server client (SSR) |
 
