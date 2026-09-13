@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Super8 — Conceito Âmbar Premium (preview)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --amber-700:#b45309; --amber-600:#d97706; --amber-500:#f59e0b;
+    --amber-100:#fef3c7; --amber-50:#fffbeb;
+    --amber-900:#78350f;
+    --bg:#faf7f2; --surface:#ffffff; --surface-2:#fffdf8;
+    --ink:#1c1917; --ink-2:#44403c; --muted:#78716c;
+    --line:#e7e0d4; --shadow:0 1px 2px rgba(120,53,15,.06),0 8px 24px -12px rgba(120,53,15,.25);
+    --nav:#ffffff;
+  }
+  .dark{
+    --bg:#0c0a09; --surface:#1c1917; --surface-2:#292524;
+    --ink:#fafaf9; --ink-2:#e7e5e4; --muted:#a8a29e;
+    --line:#3a3430; --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px -12px rgba(0,0,0,.7);
+    --nav:#1c1917;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Inter,system-ui,sans-serif;background:#44403c;color:#fff;min-height:100vh}
+  .display{font-family:"Barlow Condensed",Inter,sans-serif;letter-spacing:.01em}
+  .topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;
+    padding:14px 20px;background:#1c1917;color:#fff;border-bottom:1px solid #333}
+  .topbar h1{font-size:15px;font-weight:800;letter-spacing:.14em}
+  .toggle{border:1px solid #555;background:transparent;color:#fff;font-size:13px;font-weight:600;
+    padding:8px 14px;border-radius:999px;cursor:pointer}
+  .toggle:hover{background:#333}
+  .stage{display:flex;gap:28px;justify-content:center;align-items:flex-start;flex-wrap:wrap;padding:32px 20px 60px}
+  .phonelabel{text-align:center;font-size:12px;font-weight:700;letter-spacing:.18em;color:#d6cfc2;margin-bottom:12px;text-transform:uppercase}
+  .phone{width:390px;height:844px;border-radius:44px;background:var(--bg);color:var(--ink);
+    overflow-y:auto;position:relative;box-shadow:0 30px 80px -20px rgba(0,0,0,.6);border:10px solid #111;scrollbar-width:none}
+  .phone::-webkit-scrollbar{display:none}
+  .screen{padding-bottom:110px}
+  /* header */
+  .appheader{display:flex;align-items:center;gap:10px;padding:16px 16px 8px}
+  .logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--amber-500),var(--amber-700));
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;box-shadow:var(--shadow)}
+  .appheader b{font-size:15px;letter-spacing:.06em}
+  .appheader small{display:block;font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.02em}
+  .livepill{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;
+    color:var(--amber-700);background:var(--amber-100);padding:6px 10px;border-radius:999px}
+  .dark .livepill{color:#fbbf24;background:rgba(217,119,6,.18)}
+  .dot{width:8px;height:8px;border-radius:50%;background:#dc2626;animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
+  @media (prefers-reduced-motion:reduce){.dot{animation:none}}
+  /* hero */
+  .hero{margin:8px 16px 0;border-radius:22px;padding:22px 20px;color:#fff;position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#92400e 0%,#d97706 55%,#f59e0b 100%);box-shadow:var(--shadow)}
+  .hero::after{content:"";position:absolute;right:-50px;top:-50px;width:190px;height:190px;border-radius:50%;
+    border:26px solid rgba(255,255,255,.14)}
+  .hero::before{content:"";position:absolute;right:30px;bottom:-70px;width:130px;height:130px;border-radius:50%;
+    border:18px solid rgba(255,255,255,.1)}
+  .hero .kicker{font-size:11px;font-weight:800;letter-spacing:.22em;opacity:.85}
+  .hero h2{font-family:"Barlow Condensed",sans-serif;font-size:44px;font-weight:700;line-height:1;margin:6px 0 2px}
+  .hero p{font-size:13px;opacity:.92;font-weight:500}
+  .hero .cta{margin-top:14px;display:inline-block;background:#fff;color:#92400e;font-weight:800;font-size:14px;
+    padding:12px 22px;border-radius:14px;text-decoration:none;box-shadow:0 6px 16px -6px rgba(0,0,0,.4)}
+  .stats{display:flex;gap:10px;margin:14px 16px 0}
+  .stat{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 6px;text-align:center;box-shadow:var(--shadow)}
+  .stat b{display:block;font-family:"Barlow Condensed",sans-serif;font-size:30px;font-weight:700;color:var(--amber-700);line-height:1}
+  .dark .stat b{color:#fbbf24}
+  .stat span{font-size:11px;color:var(--muted);font-weight:600}
+  .section{margin:18px 16px 0}
+  .section h3{font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .evcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .evcard .row1{display:flex;align-items:center;justify-content:space-between}
+  .evcard b{font-size:16px}
+  .badge{font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;background:#fef3c7;color:#92400e}
+  .dark .badge{background:rgba(217,119,6,.2);color:#fbbf24}
+  .badge.live{background:#fee2e2;color:#b91c1c}
+  .evcard small{color:var(--muted);font-size:12px;font-weight:500}
+  .pills{display:flex;gap:8px;margin-top:10px}
+  .pill{font-size:11px;font-weight:700;padding:6px 12px;border-radius:999px;background:var(--amber-100);color:var(--amber-900)}
+  .dark .pill{background:rgba(217,119,6,.16);color:#fcd34d}
+  /* bottom nav */
+  .tabbar{position:sticky;bottom:0;background:var(--nav);border-top:1px solid var(--line);
+    display:flex;padding:10px 8px calc(10px + env(safe-area-inset-bottom))}
+  .tabbar div{flex:1;text-align:center;font-size:10px;font-weight:600;color:var(--muted)}
+  .tabbar div.on{color:var(--amber-700)}
+  .dark .tabbar div.on{color:#fbbf24}
+  .tabbar svg{display:block;margin:0 auto 3px}
+  /* ranking */
+  .podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:6px 16px 0}
+  .pod{flex:1;text-align:center}
+  .avatar{width:56px;height:56px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:20px;color:#fff;background:linear-gradient(135deg,#a8a29e,#57534e)}
+  .pod.first .avatar{width:72px;height:72px;font-size:26px;background:linear-gradient(135deg,#f59e0b,#b45309);
+    border:3px solid #fde68a;box-shadow:0 8px 20px -6px rgba(217,119,6,.6)}
+  .pod b{font-size:13px;display:block}
+  .pod span{font-size:11px;color:var(--muted);font-weight:600}
+  .bar{height:8px;border-radius:99px;background:var(--line);margin-top:6px;overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--amber-500),var(--amber-700))}
+  .pod.first .bar{height:11px}
+  .rankcard{background:var(--surface);border:1px solid var(--line);border-radius:18px;margin:14px 16px 0;overflow:hidden;box-shadow:var(--shadow)}
+  .rrow{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .rrow:last-child{border-bottom:none}
+  .rrow.me{background:linear-gradient(90deg,rgba(217,119,6,.14),transparent)}
+  .pos{font-family:"Barlow Condensed",sans-serif;font-size:22px;font-weight:700;width:26px;text-align:center;color:var(--muted)}
+  .rrow.top .pos{color:var(--amber-700)}
+  .dark .rrow.top .pos{color:#fbbf24}
+  .who{flex:1;min-width:0}
+  .who b{font-size:14px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .who span{font-size:11px;color:var(--muted);font-weight:600}
+  .nums{text-align:right}
+  .nums b{font-family:"Barlow Condensed",sans-serif;font-size:22px;font-weight:700}
+  .nums span{display:block;font-size:10px;color:var(--muted);font-weight:700}
+  .seal{font-size:11px;margin-left:4px}
+  .legend{margin:12px 16px 0;font-size:11px;color:var(--muted);font-weight:500;line-height:1.7;
+    background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:10px 14px}
+  /* placar */
+  .court{background:var(--surface);border:1px solid var(--line);border-radius:20px;margin:12px 16px 0;overflow:hidden;box-shadow:var(--shadow)}
+  .court .chead{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
+  .court .chead b{font-size:13px;letter-spacing:.08em}
+  .roundtabs{display:flex;gap:6px;margin:12px 16px 0;overflow-x:auto;scrollbar-width:none}
+  .roundtabs::-webkit-scrollbar{display:none}
+  .roundtabs span{flex-shrink:0;font-size:12px;font-weight:700;padding:8px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+  .roundtabs span.on{background:var(--amber-600);border-color:var(--amber-600);color:#fff}
+  .match{padding:14px 16px;border-bottom:1px solid var(--line)}
+  .match:last-child{border-bottom:none}
+  .team{display:flex;align-items:center;gap:8px;padding:9px 0}
+  .team .nm{flex:1;font-size:14px;font-weight:600}
+  .score{font-family:"Barlow Condensed",sans-serif;font-size:40px;font-weight:700;min-width:52px;text-align:center;
+    background:var(--bg);border:1px solid var(--line);border-radius:14px;line-height:1.25}
+  .team.win .score{color:var(--amber-700);border-color:var(--amber-600)}
+  .dark .team.win .score{color:#fbbf24}
+  .plus{width:44px;height:44px;border-radius:14px;border:none;background:var(--amber-600);color:#fff;
+    font-size:22px;font-weight:800;cursor:pointer;box-shadow:0 4px 12px -4px rgba(217,119,6,.7)}
+  .plus:active{transform:scale(.94)}
+  .vs{text-align:center;font-size:10px;font-weight:800;letter-spacing:.3em;color:var(--muted);margin:2px 0}
+  .note{margin:14px 16px 0;font-size:11px;color:var(--muted);text-align:center;font-weight:500}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>SUPER8 · CONCEITO ÂMBAR PREMIUM</h1>
+  <button class="toggle" onclick="document.getElementById('stage').classList.toggle('dark');this.textContent=document.getElementById('stage').classList.contains('dark')?'☀️ Claro':'🌙 Escuro'">🌙 Escuro</button>
+</div>
+<div class="stage" id="stage">
+
+  <!-- TELA 1: HOME -->
+  <div><div class="phonelabel">1 · Home pública</div>
+  <div class="phone"><div class="screen">
+    <div class="appheader">
+      <div class="logo">S8</div>
+      <div><b>THE SUPER 8</b><small>Torneio feminino · Whist</small></div>
+    </div>
+    <div class="hero">
+      <div class="kicker">PRÓXIMA EDIÇÃO</div>
+      <h2 class="display">6ª EDIÇÃO</h2>
+      <p>12 de outubro · Delta Padel · 4e5 e 6e7</p>
+      <a class="cta" href="#">Inscrever-se</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><b class="display">66</b><span>atletas</span></div>
+      <div class="stat"><b class="display">28</b><span>jogos</span></div>
+      <div class="stat"><b class="display">5</b><span>edições</span></div>
+    </div>
+    <div class="section"><h3>Torneios</h3>
+      <div class="evcard">
+        <div class="row1"><b>The Super 8</b><span class="badge live">● Ao vivo</span></div>
+        <small>5ª Edição · 12 de setembro</small>
+        <div class="pills"><span class="pill">4ª e 5ª Categoria</span><span class="pill">6ª e 7ª Categoria</span></div>
+      </div>
+      <div class="evcard">
+        <div class="row1"><b>The Super 8</b><span class="badge">Encerrado</span></div>
+        <small>4ª Edição · 19 de julho</small>
+        <div class="pills"><span class="pill">4ª e 5ª Categoria</span><span class="pill">6ª e 7ª Categoria</span></div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>Início</div>
+      <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18"/></svg>Eventos</div>
+      <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Perfil</div>
+    </div>
+  </div></div></div>
+
+  <!-- TELA 2: RANKING -->
+  <div><div class="phonelabel">2 · Ranking com desempate</div>
+  <div class="phone"><div class="screen">
+    <div class="appheader">
+      <div class="logo">S8</div>
+      <div><b>RANKING</b><small>5ª Edição · 4e5</small></div>
+      <div class="livepill"><span class="dot"></span>FINAL</div>
+    </div>
+    <div class="podium">
+      <div class="pod"><div class="avatar">D</div><b>Daiane S.</b><span>30 games</span><div class="bar"><i style="width:88%"></i></div></div>
+      <div class="pod first"><div class="avatar">R</div><b>Roberta T.</b><span>32 games</span><div class="bar"><i style="width:100%"></i></div></div>
+      <div class="pod"><div class="avatar">B</div><b>Bárbara B.</b><span>26 games</span><div class="bar"><i style="width:80%"></i></div></div>
+    </div>
+    <div class="rankcard">
+      <div class="rrow top"><div class="pos display">4</div><div class="who"><b>Cinthia Tridapalli</b><span>26 games · saldo 3</span></div><div class="nums"><b class="display">5<span class="seal" title="Desempate por saldo">⚖️</span></b><span>PONTOS</span></div></div>
+      <div class="rrow"><div class="pos display">5</div><div class="who"><b>Angélica Santini</b><span>26 games · saldo 1</span></div><div class="nums"><b class="display">4<span class="seal" title="Desempate por saldo">⚖️</span></b><span>PONTOS</span></div></div>
+      <div class="rrow"><div class="pos display">6</div><div class="who"><b>Roberta Buerger</b><span>24 games · saldo −6</span></div><div class="nums"><b class="display">3</b><span>PONTOS</span></div></div>
+      <div class="rrow"><div class="pos display">7</div><div class="who"><b>Priscila Ferraz</b><span>20 games · saldo −6</span></div><div class="nums"><b class="display">2</b><span>PONTOS</span></div></div>
+    </div>
+    <div class="legend">⚖️ passou no <b>saldo</b> · 🤝 passaria no <b>confronto direto</b> · ordem: games → saldo → duelo</div>
+    <div class="tabbar">
+      <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>Início</div>
+      <div class="on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M6 3h12v5a6 6 0 0 1-12 0z"/></svg>Ranking</div>
+      <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Perfil</div>
+    </div>
+  </div></div></div>
+
+  <!-- TELA 3: PLACAR -->
+  <div><div class="phonelabel">3 · Placar ao vivo</div>
+  <div class="phone"><div class="screen">
+    <div class="appheader">
+      <div class="logo">S8</div>
+      <div><b>PLACAR</b><small>5ª Edição · Quadra 2</small></div>
+      <div class="livepill"><span class="dot"></span>AO VIVO</div>
+    </div>
+    <div class="roundtabs"><span>Rodada 1</span><span>Rodada 2</span><span class="on">Rodada 3</span><span>Rodada 4</span><span>Rodada 5</span></div>
+    <div class="court">
+      <div class="chead"><b>QUADRA 2 · RODADA 3</b><b style="color:var(--amber-700)">4e5</b></div>
+      <div class="match">
+        <div class="team win"><div class="nm">Bárbara B.<br><span style="font-size:12px;color:var(--muted);font-weight:500">Cinthia T.</span></div><div class="score display">4</div><button class="plus">+1</button></div>
+        <div class="vs">×</div>
+        <div class="team"><div class="nm">Angélica S.<br><span style="font-size:12px;color:var(--muted);font-weight:500">Priscila F.</span></div><div class="score display">1</div><button class="plus">+1</button></div>
+      </div>
+    </div>
+    <div class="court">
+      <div class="chead"><b>QUADRA 3 · RODADA 3</b><b style="color:var(--amber-700)">4e5</b></div>
+      <div class="match">
+        <div class="team"><div class="nm">Daiane S.<br><span style="font-size:12px;color:var(--muted);font-weight:500">Roberta T.</span></div><div class="score display">2</div><button class="plus">+1</button></div>
+        <div class="vs">×</div>
+        <div class="team win"><div class="nm">Roberta B.<br><span style="font-size:12px;color:var(--muted);font-weight:500">Carol P.</span></div><div class="score display">3</div><button class="plus">+1</button></div>
+      </div>
+    </div>
+    <div class="note">Atualiza sozinho quando o placar muda · sem precisar recarregar</div>
+    <div class="tabbar">
+      <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>Início</div>
+      <div class="on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18"/></svg>Placar</div>
+      <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Perfil</div>
+    </div>
+  </div></div></div>
+
+</div>
+</body>
+</html>
